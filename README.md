@@ -27,3 +27,19 @@ A modern web application to vote on and track weekly movies to watch.
    ```
 
 4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## DB Migrations & Backfilling Metadata
+
+If you pull updates that include database schema changes (such as the IMDb scraping metadata and trailer URL changes):
+
+1. **Apply Migrations and Regenerate Prisma Client**:
+   ```bash
+   npx prisma migrate dev
+   ```
+
+2. **Backfill Existing Movies**:
+   If you have existing movies in your local database that lack year, director, starring cast, or runtime metadata, run the backfiller script to automatically fetch and save details:
+   ```bash
+   npx tsx prisma/backfill-metadata.ts
+   ```
+
