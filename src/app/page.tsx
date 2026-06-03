@@ -14,6 +14,8 @@ import {
   completeWeekLegacyOverrideAction,
 } from "@/app/actions";
 import Link from "next/link";
+import { MovieVotingFormClient, SubcategoryVotingFormClient, ShortlistVotingFormClient } from "@/components/VotingFormClient";
+import TrailerButton from "@/components/TrailerButton";
 
 export const dynamic = "force-dynamic";
 
@@ -419,12 +421,31 @@ export default async function DashboardPage() {
                         </span>
                       </div>
                       <h3 style={{ fontSize: "1.2rem", fontWeight: 700 }}>
-                        {wk.winner?.title || "Unknown Movie"}
+                        {wk.winner?.title || "Unknown Movie"}{wk.winner?.year ? ` (${wk.winner.year})` : ""}
                       </h3>
-                      {wk.winner?.imdbUrl && (
-                        <a href={wk.winner.imdbUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.8rem", color: "var(--primary)", textDecoration: "underline", alignSelf: "start" }}>
-                          IMDb Link ↗
-                        </a>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "2px" }}>
+                        {wk.winner?.trailerUrl && <TrailerButton trailerUrl={wk.winner.trailerUrl} />}
+                        {wk.winner?.imdbUrl && (
+                          <a href={wk.winner.imdbUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.8rem", color: "var(--primary)", textDecoration: "underline" }}>
+                            IMDb Link ↗
+                          </a>
+                        )}
+                      </div>
+                      {wk.winner && (wk.winner.director || wk.winner.runtime || wk.winner.stars) && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", margin: "2px 0 4px 0" }}>
+                          {(wk.winner.director || wk.winner.runtime) && (
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                              {wk.winner.director && <span>🎬 {wk.winner.director}</span>}
+                              {wk.winner.director && wk.winner.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                              {wk.winner.runtime && <span>⏱️ {wk.winner.runtime}</span>}
+                            </div>
+                          )}
+                          {wk.winner.stars && (
+                            <div style={{ color: "var(--text-muted)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                              👥 {wk.winner.stars}
+                            </div>
+                          )}
+                        </div>
                       )}
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
                         {wk.winner?.genres.map((g) => (
@@ -576,103 +597,12 @@ async function MovieVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
           No options created in this category yet. Go to the Catalog tab to add movies or subcategories!
         </p>
       ) : (
-        <form
-          action={async (formData) => {
-            "use server";
-            const targets = formData.getAll("targetIds") as string[];
-            await submitMovieVotesAction(week.id, targets);
-          }}
-          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-        >
-          {/* Subcategories */}
-          {subcategories.map((sub) => (
-            <label
-              key={sub.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "14px 18px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid " + (userVoteIds.includes(sub.id) ? "var(--primary)" : "var(--glass-border)"),
-                backgroundColor: userVoteIds.includes(sub.id) ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-                cursor: "pointer",
-              }}
-            >
-              <input
-                type="checkbox"
-                name="targetIds"
-                value={sub.id}
-                defaultChecked={userVoteIds.includes(sub.id)}
-                style={{ cursor: "pointer", accentColor: "var(--primary)" }}
-              />
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontWeight: 700, fontSize: "1.05rem" }}>📂 {sub.name} (Subcategory)</span>
-                <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                  Triggers an additional voting round for movies in this subcategory if selected
-                </span>
-              </div>
-            </label>
-          ))}
-
-          {/* Movies */}
-          {movies.map((movie) => (
-            <div
-              key={movie.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "14px 18px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid " + (userVoteIds.includes(movie.id) ? "var(--primary)" : "var(--glass-border)"),
-                backgroundColor: userVoteIds.includes(movie.id) ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              }}
-            >
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  cursor: "pointer",
-                  flex: 1,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  name="targetIds"
-                  value={movie.id}
-                  defaultChecked={userVoteIds.includes(movie.id)}
-                  style={{ cursor: "pointer", accentColor: "var(--primary)" }}
-                />
-                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <span style={{ fontWeight: 600 }}>{movie.title}</span>
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    {movie.genres.map((g) => (
-                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                        #{g.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </label>
-              {movie.imdbUrl && (
-                <a
-                  href={movie.imdbUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
-                >
-                  IMDb ↗
-                </a>
-              )}
-            </div>
-          ))}
-
-          <button type="submit" className="btn btn-primary" style={{ marginTop: "12px" }}>
-            {userVotes.length > 0 ? "Update Movie/Subcategory Votes" : "Cast Movie/Subcategory Votes"}
-          </button>
-        </form>
+        <MovieVotingFormClient
+          weekId={week.id}
+          movies={movies}
+          subcategories={subcategories}
+          initialVotes={userVoteIds}
+        />
       )}
     </div>
   );
@@ -713,71 +643,11 @@ async function SubcategoryVotingForm({ week, currentUserId, roundVotedUserIds }:
           No movies added in this subcategory yet. Go to the Catalog tab to add movies under "{subcategory?.name}"!
         </p>
       ) : (
-        <form
-          action={async (formData) => {
-            "use server";
-            const movieIds = formData.getAll("movieIds") as string[];
-            await submitSubMovieVotesAction(week.id, movieIds);
-          }}
-          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-        >
-          {movies.map((movie) => (
-            <div
-              key={movie.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "14px 18px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid " + (userVoteIds.includes(movie.id) ? "var(--primary)" : "var(--glass-border)"),
-                backgroundColor: userVoteIds.includes(movie.id) ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              }}
-            >
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  cursor: "pointer",
-                  flex: 1,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  name="movieIds"
-                  value={movie.id}
-                  defaultChecked={userVoteIds.includes(movie.id)}
-                  style={{ cursor: "pointer", accentColor: "var(--primary)" }}
-                />
-                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <span style={{ fontWeight: 600 }}>{movie.title}</span>
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    {movie.genres.map((g) => (
-                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                        #{g.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </label>
-              {movie.imdbUrl && (
-                <a
-                  href={movie.imdbUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
-                >
-                  IMDb ↗
-                </a>
-              )}
-            </div>
-          ))}
-
-          <button type="submit" className="btn btn-primary" style={{ marginTop: "12px" }}>
-            {userVotes.length > 0 ? "Update Subcategory Votes" : "Cast Subcategory Votes"}
-          </button>
-        </form>
+        <SubcategoryVotingFormClient
+          weekId={week.id}
+          movies={movies}
+          initialVotes={userVoteIds}
+        />
       )}
     </div>
   );
@@ -804,74 +674,11 @@ async function ShortlistVotingForm({ week, currentUserId, roundVotedUserIds }: a
       {movies.length === 0 ? (
         <p style={{ color: "var(--text-muted)", fontStyle: "italic" }}>No movies advanced to the shortlist.</p>
       ) : (
-        <form
-          action={async (formData) => {
-            "use server";
-            const movieIds = formData.getAll("movieIds") as string[];
-            await submitShortlistVotesAction(week.id, movieIds);
-          }}
-          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-        >
-          {movies.map((movie) => (
-            <div
-              key={movie.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "14px 18px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid " + (userVoteIds.includes(movie.id) ? "var(--primary)" : "var(--glass-border)"),
-                backgroundColor: userVoteIds.includes(movie.id) ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              }}
-            >
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  cursor: "pointer",
-                  flex: 1,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  name="movieIds"
-                  value={movie.id}
-                  defaultChecked={userVoteIds.includes(movie.id)}
-                  style={{ cursor: "pointer", accentColor: "var(--primary)" }}
-                />
-                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <span style={{ fontWeight: 600 }}>{movie.title}</span>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                    Category: {movie.category.name}
-                  </span>
-                  <div style={{ display: "flex", gap: "4px", marginTop: "2px" }}>
-                    {movie.genres.map((g) => (
-                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                        #{g.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </label>
-              {movie.imdbUrl && (
-                <a
-                  href={movie.imdbUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
-                >
-                  IMDb ↗
-                </a>
-              )}
-            </div>
-          ))}
-
-          <button type="submit" className="btn btn-primary" style={{ marginTop: "12px" }}>
-            {userVotes.length > 0 ? "Update Shortlist Votes" : "Cast Shortlist Votes"}
-          </button>
-        </form>
+        <ShortlistVotingFormClient
+          weekId={week.id}
+          movies={movies}
+          initialVotes={userVoteIds}
+        />
       )}
     </div>
   );
@@ -934,8 +741,25 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
                 style={{ cursor: "pointer", accentColor: "var(--primary)" }}
               />
               <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                <span style={{ fontWeight: 600 }}>{movie.title}</span>
-                <div style={{ display: "flex", gap: "4px" }}>
+                <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                {(movie.director || movie.runtime || movie.stars) && (
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "2px", display: "flex", flexDirection: "column", gap: "2px" }}>
+                    {(movie.director || movie.runtime) && (
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                        {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
+                        {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                        {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                      </div>
+                    )}
+                    {movie.stars && (
+                      <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
+                        <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
+                        <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
                   {movie.genres.map((g) => (
                     <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
                       #{g.name}
@@ -944,16 +768,19 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
                 </div>
               </div>
             </label>
-            {movie.imdbUrl && (
-              <a
-                href={movie.imdbUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
-              >
-                IMDb ↗
-              </a>
-            )}
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
+              {movie.imdbUrl && (
+                <a
+                  href={movie.imdbUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
+                >
+                  IMDb ↗
+                </a>
+              )}
+            </div>
           </div>
         ))}
 
@@ -976,27 +803,74 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
         Winning Movie Chosen!
       </span>
       <h2 style={{ fontSize: "2.5rem", fontWeight: 800, marginTop: "8px", marginBottom: "12px" }}>
-        {movie.title}
+        {movie.title}{movie.year ? ` (${movie.year})` : ""}
       </h2>
 
-      {movie.imdbUrl && (
-        <a
-          href={movie.imdbUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            color: "var(--primary)",
-            fontWeight: 600,
-            fontSize: "0.95rem",
-            textDecoration: "underline",
-            marginBottom: "16px",
-          }}
-        >
-          View IMDb Page ↗
-        </a>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
+        {movie.trailerUrl && (
+          <TrailerButton
+            trailerUrl={movie.trailerUrl}
+            style={{
+              padding: "6px 14px",
+              fontSize: "0.85rem",
+              borderRadius: "var(--radius-md)",
+            }}
+          />
+        )}
+        {movie.imdbUrl && (
+          <a
+            href={movie.imdbUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              color: "var(--primary)",
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              textDecoration: "underline",
+            }}
+          >
+            View IMDb Page ↗
+          </a>
+        )}
+      </div>
+
+      {/* Prominent Metadata display for winner */}
+      {(movie.director || movie.runtime || movie.stars) && (
+        <div style={{
+          backgroundColor: "rgba(255, 255, 255, 0.02)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: "var(--radius-md)",
+          padding: "16px",
+          maxWidth: "450px",
+          margin: "0 auto 24px auto",
+          fontSize: "0.9rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          textAlign: "left"
+        }}>
+          {movie.director && (
+            <div>
+              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>🎬 Director:</span>{" "}
+              <span style={{ color: "var(--text-primary)" }}>{movie.director}</span>
+            </div>
+          )}
+          {movie.runtime && (
+            <div>
+              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>⏱️ Runtime:</span>{" "}
+              <span style={{ color: "var(--text-primary)" }}>{movie.runtime}</span>
+            </div>
+          )}
+          {movie.stars && (
+            <div>
+              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>👥 Starring:</span>{" "}
+              <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+            </div>
+          )}
+        </div>
       )}
 
       {week.isRandomlyChosen && (

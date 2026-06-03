@@ -23,6 +23,7 @@ interface AddMovieFormProps {
 export default function AddMovieForm({ categories, genres }: AddMovieFormProps) {
   const [title, setTitle] = useState("");
   const [imdbUrl, setImdbUrl] = useState("");
+  const [trailerUrl, setTrailerUrl] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -61,9 +62,10 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
 
     startTransition(async () => {
       try {
-        await addMovieAction(title, imdbUrl, categoryId, selectedGenreIds);
+        await addMovieAction(title, imdbUrl, categoryId, selectedGenreIds, trailerUrl);
         setTitle("");
         setImdbUrl("");
+        setTrailerUrl("");
         setCategoryId("");
         setSelectedGenreIds([]);
         setSuccess(true);
@@ -128,6 +130,29 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
           value={imdbUrl}
           onChange={(e) => setImdbUrl(e.target.value)}
           placeholder="https://www.imdb.com/title/..."
+          disabled={isPending}
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.2)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--glass-border)",
+            borderRadius: "var(--radius-sm)",
+            padding: "10px 12px",
+            fontSize: "0.9rem",
+            outline: "none",
+          }}
+        />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        <label htmlFor="movie-trailer" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+          YouTube Trailer Link
+        </label>
+        <input
+          id="movie-trailer"
+          type="url"
+          value={trailerUrl}
+          onChange={(e) => setTrailerUrl(e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=..."
           disabled={isPending}
           style={{
             backgroundColor: "rgba(0, 0, 0, 0.2)",

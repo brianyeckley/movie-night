@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { fetchMovieMetadata } from "@/lib/imdb";
 
 // Helper to get active user role and id from cookies
 export async function getActiveUser() {
@@ -618,14 +619,38 @@ export async function addSubcategoryAction(name: string, parentId: string) {
 }
 
 // 14. Catalog Management: Add Movie
-export async function addMovieAction(title: string, imdbUrl: string, categoryId: string, genreIds: string[]) {
+export async function addMovieAction(title: string, imdbUrl: string, categoryId: string, genreIds: string[], trailerUrl?: string) {
   const currentUser = await getActiveUser();
   if (!currentUser) throw new Error("You must pick a user first.");
+
+  let year = null;
+  let director = null;
+  let stars = null;
+  let runtime = null;
+
+  if (imdbUrl) {
+    try {
+      const meta = await fetchMovieMetadata(imdbUrl);
+      if (meta) {
+        year = meta.year || null;
+        director = meta.director || null;
+        stars = meta.stars || null;
+        runtime = meta.runtime || null;
+      }
+    } catch (e) {
+      console.error("Failed to fetch movie metadata during creation:", e);
+    }
+  }
 
   const movie = await db.movie.create({
     data: {
       title,
       imdbUrl: imdbUrl || null,
+      trailerUrl: trailerUrl || null,
+      year,
+      director,
+      stars,
+      runtime,
       categoryId,
       genres: {
         connect: genreIds.map((id) => ({ id })),

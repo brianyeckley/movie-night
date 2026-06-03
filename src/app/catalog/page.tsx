@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { getActiveUser, addCategoryAction, addSubcategoryAction, deleteMovieAction, deleteCategoryAction } from "@/app/actions";
 import AddMovieForm from "@/components/AddMovieForm";
 import Link from "next/link";
+import TrailerButton from "@/components/TrailerButton";
 
 export const dynamic = "force-dynamic";
 
@@ -130,8 +131,9 @@ export default async function CatalogPage() {
                               }}
                             >
                               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                                  <span style={{ fontWeight: 600 }}>{movie.title}</span>
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                                  <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                                  {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                                   {movie.imdbUrl && (
                                     <a href={movie.imdbUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.8rem", color: "var(--primary)", textDecoration: "underline" }}>
                                       IMDb ↗
@@ -143,7 +145,24 @@ export default async function CatalogPage() {
                                     </span>
                                   )}
                                 </div>
-                                <div style={{ display: "flex", gap: "6px" }}>
+                                {(movie.director || movie.runtime || movie.stars) && (
+                                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "2px", display: "flex", flexDirection: "column", gap: "2px" }}>
+                                    {(movie.director || movie.runtime) && (
+                                      <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                                        {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
+                                        {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                                        {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                                      </div>
+                                    )}
+                                    {movie.stars && (
+                                      <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
+                                        <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
+                                        <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                <div style={{ display: "flex", gap: "6px", marginTop: "2px" }}>
                                   {movie.genres.map((g) => (
                                     <span key={g.id} style={{ fontSize: "0.75rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "1px 6px", borderRadius: "var(--radius-sm)" }}>
                                       {g.name}
@@ -203,8 +222,9 @@ export default async function CatalogPage() {
                                       }}
                                     >
                                       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                          <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{movie.title}</span>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                                          <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                                          {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                                           {movie.imdbUrl && (
                                             <a href={movie.imdbUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}>
                                               IMDb ↗
@@ -216,7 +236,24 @@ export default async function CatalogPage() {
                                             </span>
                                           )}
                                         </div>
-                                        <div style={{ display: "flex", gap: "6px" }}>
+                                        {(movie.director || movie.runtime || movie.stars) && (
+                                          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px", display: "flex", flexDirection: "column", gap: "2px" }}>
+                                            {(movie.director || movie.runtime) && (
+                                              <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                                                {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
+                                                {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                                                {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                                              </div>
+                                            )}
+                                            {movie.stars && (
+                                              <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
+                                                <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
+                                                <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                        <div style={{ display: "flex", gap: "6px", marginTop: "2px" }}>
                                           {movie.genres.map((g) => (
                                             <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "1px 5px", borderRadius: "var(--radius-sm)" }}>
                                               {g.name}

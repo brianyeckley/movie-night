@@ -42,6 +42,11 @@ model Movie {
   id         String   @id @default(uuid())
   title      String
   imdbUrl    String?
+  trailerUrl String?
+  year       Int?
+  director   String?
+  stars      String?
+  runtime    String?
   watched    Boolean  @default(false)
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
