@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id              String   @id @default(uuid())
+  username        String   @unique
+  name            String
+  avatar          String?
+  createdAt       DateTime @default(now())
+  suggestedMovies Movie[]  @relation("UserSuggestions")
+  votes           Vote[]
+}
+
+model Movie {
+  id            String    @id @default(uuid())
+  title         String
+  description   String?
+  imageUrl      String?
+  releaseYear   Int?
+  tmdbId        String?
+  suggestedById String
+  suggestedBy   User      @relation("UserSuggestions", fields: [suggestedById], references: [id], onDelete: Cascade)
+  watched       Boolean   @default(false)
+  watchedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  votes         Vote[]
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movieId   String
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, movieId]) // A user can only vote for a specific movie once
+}
