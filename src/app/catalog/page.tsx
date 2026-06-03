@@ -255,12 +255,12 @@ export default async function CatalogPage() {
             {/* Catalog Controls Forms */}
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               {/* Form 1: Add Movie */}
-              <div className="glass-panel" style={{ padding: "24px" }}>
+              <div className="glass-panel no-hover" style={{ padding: "24px" }}>
                 <AddMovieForm categories={flatCategories} genres={genres} />
               </div>
 
               {/* Form 2: Add Category */}
-              <div className="glass-panel" style={{ padding: "24px" }}>
+              <div className="glass-panel no-hover" style={{ padding: "24px" }}>
                 <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "16px" }}>Add Category</h3>
                 <form
                   action={async (formData) => {
@@ -305,7 +305,7 @@ export default async function CatalogPage() {
               </div>
 
               {/* Form 3: Add Subcategory */}
-              <div className="glass-panel" style={{ padding: "24px" }}>
+              <div className="glass-panel no-hover" style={{ padding: "24px" }}>
                 <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "16px" }}>Add Subcategory</h3>
                 <form
                   action={async (formData) => {
