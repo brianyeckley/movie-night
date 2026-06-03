@@ -13,10 +13,17 @@ A modern web application to vote on and track weekly movies to watch.
    ```bash
    npm install
    ```
+   *(Note: This will automatically generate the Prisma Client via the `postinstall` script.)*
 
-2. Run the development server:
+2. Initialize the database and apply migrations:
+   ```bash
+   npx prisma migrate dev
+   ```
+   *(Note: This will create your local SQLite database file `dev.db` and automatically seed it with initial data.)*
+
+3. Run the development server:
    ```bash
    npm run dev
    ```
 
-3. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
