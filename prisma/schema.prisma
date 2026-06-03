@@ -11,37 +11,67 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(uuid())
-  username        String   @unique
-  name            String
-  avatar          String?
-  createdAt       DateTime @default(now())
-  suggestedMovies Movie[]  @relation("UserSuggestions")
-  votes           Vote[]
+  id        String     @id @default(uuid())
+  username  String     @unique // "brian", "stew", "nick"
+  name      String             // "Brian", "Stew", "Nick"
+  role      String     @default("USER") // "ADMIN" or "USER"
+  votes     WeekVote[]
+}
+
+model Category {
+  id            String           @id @default(uuid())
+  name          String           @unique
+  isThemed      Boolean          @default(false)
+  isActive      Boolean          @default(true) // For archiving old theme categories
+  parentId      String?
+  parent        Category?        @relation("Subcategories", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories Category[]       @relation("Subcategories")
+  movies        Movie[]
+  weeks         MovieNightWeek[] @relation("ThemeCategory")
+  createdAt     DateTime         @default(now())
+}
+
+model Genre {
+  id        String   @id @default(uuid())
+  name      String   @unique // "Horror", "Sci-Fi", "Action", "Comedy", "Crime", "Schlock"
+  movies    Movie[]
+  createdAt DateTime @default(now())
 }
 
 model Movie {
-  id            String    @id @default(uuid())
-  title         String
-  description   String?
-  imageUrl      String?
-  releaseYear   Int?
-  tmdbId        String?
-  suggestedById String
-  suggestedBy   User      @relation("UserSuggestions", fields: [suggestedById], references: [id], onDelete: Cascade)
-  watched       Boolean   @default(false)
-  watchedAt     DateTime?
-  createdAt     DateTime  @default(now())
-  votes         Vote[]
+  id         String   @id @default(uuid())
+  title      String
+  imdbUrl    String?
+  watched    Boolean  @default(false)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  genres     Genre[]
+  createdAt  DateTime @default(now())
 }
 
-model Vote {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movieId   String
-  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+model MovieNightWeek {
+  id                    String     @id @default(uuid())
+  weekNumber            Int        @unique
+  status                String     @default("CATEGORY_VOTING") 
+  // Statuses: "CATEGORY_VOTING", "MOVIE_VOTING", "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", "FINAL_VOTING", "COMPLETED"
+  themeCategoryId       String?
+  themeCategory         Category?  @relation("ThemeCategory", fields: [themeCategoryId], references: [id])
+  selectedCategoryId    String?    // Winning category from Round 1
+  selectedSubcategoryId String?    // Winning subcategory from Round 2 (if applicable)
+  winningMovieId        String?    // Final winner
+  isRandomlyChosen      Boolean    @default(false)
+  createdAt             DateTime   @default(now())
+  closedAt              DateTime?
+  votes                 WeekVote[]
+}
 
-  @@unique([userId, movieId]) // A user can only vote for a specific movie once
+model WeekVote {
+  id         String         @id @default(uuid())
+  weekId     String
+  week       MovieNightWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  round      String         // "ROUND_1_CATEGORY", "ROUND_2_MOVIE", "ROUND_2_SUB_MOVIE", "ROUND_3_SHORTLIST", "ROUND_4_TIEBREAKER"
+  targetId   String         // Can represent Category ID, Subcategory ID, or Movie ID
+  createdAt  DateTime       @default(now())
 }

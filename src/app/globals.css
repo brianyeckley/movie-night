@@ -185,3 +185,7 @@ a {
   display: grid;
   gap: 24px;
 }
+
+.nav-link:hover {
+  color: var(--primary) !important;
+}
