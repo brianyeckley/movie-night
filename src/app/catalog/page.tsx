@@ -72,7 +72,7 @@ export default async function CatalogPage() {
         {currentUser && (
           <div className="grid" style={{ gridTemplateColumns: "2fr 1fr", alignItems: "start" }}>
             {/* Catalog List */}
-            <div className="glass-panel" style={{ padding: "32px" }}>
+            <div className="glass-panel no-hover" style={{ padding: "32px" }}>
               <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "24px" }}>Movie Catalog</h2>
 
               {categories.length === 0 ? (

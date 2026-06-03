@@ -106,6 +106,12 @@ export default async function DashboardPage() {
     orderBy: { name: "asc" },
   });
 
+  // Fetch themed categories
+  const themeCategories = await db.category.findMany({
+    where: { isThemed: true },
+    orderBy: { name: "asc" },
+  });
+
   // Fetch past movie night weeks (closed weeks)
   const closedWeeks = await db.movieNightWeek.findMany({
     where: { NOT: { closedAt: null } },
@@ -179,7 +185,7 @@ export default async function DashboardPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
             
             {/* Active Week / Voting Dashboard */}
-            <div className="glass-panel" style={{ padding: "32px" }}>
+            <div className="glass-panel no-hover" style={{ padding: "32px" }}>
               {!activeWeek ? (
                 // ----------------------------------------
                 // NO ACTIVE WEEK STATE
@@ -206,24 +212,48 @@ export default async function DashboardPage() {
                       >
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                           <label htmlFor="week-theme" style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                            Theme Category Name
+                            Theme Category
                           </label>
-                          <input
-                            id="week-theme"
-                            name="theme"
-                            type="text"
-                            defaultValue="Godzilla"
-                            required
-                            style={{
-                              backgroundColor: "rgba(0, 0, 0, 0.2)",
-                              color: "var(--text-primary)",
-                              border: "1px solid var(--glass-border)",
-                              borderRadius: "var(--radius-sm)",
-                              padding: "8px 12px",
-                              fontSize: "0.9rem",
-                              outline: "none",
-                            }}
-                          />
+                          {themeCategories.length > 0 ? (
+                            <select
+                              id="week-theme"
+                              name="theme"
+                              required
+                              style={{
+                                backgroundColor: "var(--bg-tertiary)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--glass-border)",
+                                borderRadius: "var(--radius-sm)",
+                                padding: "8px 12px",
+                                fontSize: "0.9rem",
+                                outline: "none",
+                                width: "100%",
+                              }}
+                            >
+                              {themeCategories.map((theme) => (
+                                <option key={theme.id} value={theme.name}>
+                                  {theme.name}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              id="week-theme"
+                              name="theme"
+                              type="text"
+                              placeholder="No themes found. Type to create..."
+                              required
+                              style={{
+                                backgroundColor: "rgba(0, 0, 0, 0.2)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--glass-border)",
+                                borderRadius: "var(--radius-sm)",
+                                padding: "8px 12px",
+                                fontSize: "0.9rem",
+                                outline: "none",
+                              }}
+                            />
+                          )}
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "10px" }}>
                           Start Week
@@ -372,7 +402,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Past Movie Nights Log */}
-            <div className="glass-panel" style={{ padding: "32px" }}>
+            <div className="glass-panel no-hover" style={{ padding: "32px" }}>
               <h2 style={{ fontSize: "1.6rem", fontWeight: 800, marginBottom: "20px" }}>🎬 Past Movie Nights</h2>
               {pastWeeks.length === 0 ? (
                 <p style={{ color: "var(--text-secondary)", fontStyle: "italic" }}>No movie nights have completed yet.</p>

@@ -114,6 +114,11 @@ a {
   background: var(--glass-hover);
 }
 
+.glass-panel.no-hover:hover {
+  border-color: var(--glass-border);
+  background: var(--glass-bg);
+}
+
 /* Gradient text utility */
 .text-gradient {
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
