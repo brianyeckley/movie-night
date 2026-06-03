@@ -3,6 +3,7 @@ import { getActiveUser, addCategoryAction, addSubcategoryAction, deleteMovieActi
 import AddMovieForm from "@/components/AddMovieForm";
 import Link from "next/link";
 import TrailerButton from "@/components/TrailerButton";
+import EditMovieButton from "@/components/EditMovieButton";
 
 export const dynamic = "force-dynamic";
 
@@ -170,16 +171,19 @@ export default async function CatalogPage() {
                                   ))}
                                 </div>
                               </div>
-                              <form
-                                action={async () => {
-                                  "use server";
-                                  await deleteMovieAction(movie.id);
-                                }}
-                              >
-                                <button type="submit" style={{ backgroundColor: "transparent", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: "0.85rem" }}>
-                                  Remove
-                                </button>
-                              </form>
+                              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                                <EditMovieButton movie={movie} categories={flatCategories} genres={genres} />
+                                <form
+                                  action={async () => {
+                                    "use server";
+                                    await deleteMovieAction(movie.id);
+                                  }}
+                                >
+                                  <button type="submit" style={{ backgroundColor: "transparent", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: "0.85rem" }}>
+                                    Remove
+                                  </button>
+                                </form>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -261,16 +265,19 @@ export default async function CatalogPage() {
                                           ))}
                                         </div>
                                       </div>
-                                      <form
-                                        action={async () => {
-                                          "use server";
-                                          await deleteMovieAction(movie.id);
-                                        }}
-                                      >
-                                        <button type="submit" style={{ backgroundColor: "transparent", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: "0.8rem" }}>
-                                          Remove
-                                        </button>
-                                      </form>
+                                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                                        <EditMovieButton movie={movie} categories={flatCategories} genres={genres} />
+                                        <form
+                                          action={async () => {
+                                            "use server";
+                                            await deleteMovieAction(movie.id);
+                                          }}
+                                        >
+                                          <button type="submit" style={{ backgroundColor: "transparent", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: "0.8rem" }}>
+                                            Remove
+                                          </button>
+                                        </form>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>

@@ -683,3 +683,76 @@ export async function deleteCategoryAction(categoryId: string) {
   revalidatePath("/catalog");
   revalidatePath("/");
 }
+
+// 17. Catalog Management: Update Movie
+export async function updateMovieAction(
+  movieId: string,
+  title: string,
+  imdbUrl: string,
+  trailerUrl?: string,
+  categoryId?: string,
+  genreIds?: string[]
+) {
+  const currentUser = await getActiveUser();
+  if (!currentUser) throw new Error("You must pick a user first.");
+
+  const existingMovie = await db.movie.findUnique({
+    where: { id: movieId },
+  });
+
+  if (!existingMovie) throw new Error("Movie not found.");
+
+  let year = existingMovie.year;
+  let director = existingMovie.director;
+  let stars = existingMovie.stars;
+  let runtime = existingMovie.runtime;
+
+  if (imdbUrl && imdbUrl !== existingMovie.imdbUrl) {
+    try {
+      const meta = await fetchMovieMetadata(imdbUrl);
+      if (meta) {
+        year = meta.year || null;
+        director = meta.director || null;
+        stars = meta.stars || null;
+        runtime = meta.runtime || null;
+      }
+    } catch (e) {
+      console.error("Failed to fetch movie metadata during update:", e);
+    }
+  } else if (!imdbUrl) {
+    year = null;
+    director = null;
+    stars = null;
+    runtime = null;
+  }
+
+  const updateData: any = {
+    title,
+    imdbUrl: imdbUrl || null,
+    trailerUrl: trailerUrl || null,
+    year,
+    director,
+    stars,
+    runtime,
+  };
+
+  if (categoryId) {
+    updateData.categoryId = categoryId;
+  }
+
+  if (genreIds) {
+    updateData.genres = {
+      set: genreIds.map((id) => ({ id })),
+    };
+  }
+
+  const updatedMovie = await db.movie.update({
+    where: { id: movieId },
+    data: updateData,
+  });
+
+  revalidatePath("/catalog");
+  revalidatePath("/");
+  return updatedMovie;
+}
+
