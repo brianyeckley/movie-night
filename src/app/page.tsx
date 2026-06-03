@@ -139,8 +139,10 @@ export default async function DashboardPage() {
   // Compute round status details
   let roundTitle = "";
   let roundVotedUserIds: string[] = [];
+  let activeRoundCode = "";
+  let completedRoundsData: any[] = [];
+
   if (activeWeek) {
-    let activeRoundCode = "";
     if (activeWeek.status === "CATEGORY_VOTING") activeRoundCode = "ROUND_1_CATEGORY";
     else if (activeWeek.status === "MOVIE_VOTING") activeRoundCode = "ROUND_2_MOVIE";
     else if (activeWeek.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
@@ -151,6 +153,79 @@ export default async function DashboardPage() {
     roundVotedUserIds = activeWeek.votes
       .filter((v) => v.round === activeRoundCode)
       .map((v) => v.userId);
+
+    // Resolve display names for votes
+    const targetIds = Array.from(new Set(activeWeek.votes.map((v) => v.targetId)));
+
+    const votedCategories = await db.category.findMany({
+      where: { id: { in: targetIds } },
+    });
+
+    const votedMovies = await db.movie.findMany({
+      where: { id: { in: targetIds } },
+    });
+
+    const targetLookup: Record<string, string> = {};
+    votedCategories.forEach((c) => {
+      targetLookup[c.id] = c.name;
+    });
+    votedMovies.forEach((m) => {
+      targetLookup[m.id] = m.title + (m.year ? ` (${m.year})` : "");
+    });
+
+    const votesByRound: Record<string, any[]> = {};
+    activeWeek.votes.forEach((v) => {
+      if (v.round !== activeRoundCode) {
+        if (!votesByRound[v.round]) {
+          votesByRound[v.round] = [];
+        }
+        votesByRound[v.round].push(v);
+      }
+    });
+
+    const roundTitles: Record<string, string> = {
+      ROUND_1_CATEGORY: "Round 1: Category Selection",
+      ROUND_2_MOVIE: "Round 2: Movie Selection",
+      ROUND_2_SUB_MOVIE: "Round 2b: Subcategory Movie Selection",
+      ROUND_3_SHORTLIST: "Round 3: Shortlist Selection",
+      ROUND_4_TIEBREAKER: "Round 4: Final Tiebreaker",
+    };
+
+    const parsedRounds = Object.entries(votesByRound).map(([roundCode, roundVotes]) => {
+      const targetCounts: Record<string, { targetId: string; name: string; count: number; voters: string[] }> = {};
+      
+      roundVotes.forEach((v) => {
+        if (!targetCounts[v.targetId]) {
+          targetCounts[v.targetId] = {
+            targetId: v.targetId,
+            name: targetLookup[v.targetId] || "Unknown Option",
+            count: 0,
+            voters: [],
+          };
+        }
+        targetCounts[v.targetId].count += 1;
+        targetCounts[v.targetId].voters.push(v.user.name);
+      });
+
+      const sortedTargets = Object.values(targetCounts).sort((a, b) => b.count - a.count);
+
+      return {
+        roundCode,
+        title: roundTitles[roundCode] || roundCode,
+        targets: sortedTargets,
+      };
+    });
+
+    const roundOrder = [
+      "ROUND_1_CATEGORY",
+      "ROUND_2_MOVIE",
+      "ROUND_2_SUB_MOVIE",
+      "ROUND_3_SHORTLIST",
+      "ROUND_4_TIEBREAKER",
+    ];
+
+    parsedRounds.sort((a, b) => roundOrder.indexOf(a.roundCode) - roundOrder.indexOf(b.roundCode));
+    completedRoundsData = parsedRounds;
   }
 
   return (
@@ -370,6 +445,65 @@ export default async function DashboardPage() {
                       {/* COMPLETED / WINNER STATE */}
                       {activeWeek.status === "COMPLETED" && activeWinnerMovie && (
                         <CompletedWeekView week={activeWeek} movie={activeWinnerMovie} currentUser={currentUser} />
+                      )}
+
+                      {/* PRIOR ROUND RESULTS */}
+                      {completedRoundsData.length > 0 && (
+                        <div style={{ marginTop: "32px", display: "flex", flexDirection: "column", gap: "20px", borderTop: "1px solid var(--glass-border)", paddingTop: "24px" }}>
+                          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                            📊 Prior Round Results
+                          </h3>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                            {completedRoundsData.map((round) => (
+                              <div 
+                                key={round.roundCode} 
+                                style={{ 
+                                  backgroundColor: "rgba(0, 0, 0, 0.15)", 
+                                  border: "1px solid var(--glass-border)", 
+                                  borderRadius: "var(--radius-md)", 
+                                  padding: "16px" 
+                                }}
+                              >
+                                <h4 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--primary)", marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                  <span>{round.title}</span>
+                                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Closed</span>
+                                </h4>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                  {round.targets.map((target, idx) => {
+                                    const isWinner = idx === 0 || target.count === round.targets[0].count;
+                                    return (
+                                      <div 
+                                        key={target.targetId} 
+                                        style={{ 
+                                          display: "flex", 
+                                          justifyContent: "space-between", 
+                                          alignItems: "center", 
+                                          padding: "8px 12px", 
+                                          backgroundColor: isWinner ? "rgba(99, 102, 241, 0.04)" : "rgba(255, 255, 255, 0.01)", 
+                                          border: "1px solid " + (isWinner ? "rgba(99, 102, 241, 0.2)" : "var(--glass-border)"), 
+                                          borderRadius: "var(--radius-sm)",
+                                          fontSize: "0.9rem"
+                                        }}
+                                      >
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                                          <span style={{ fontWeight: 600, color: isWinner ? "var(--text-primary)" : "var(--text-secondary)" }}>
+                                            {target.name} {isWinner && "🏆"}
+                                          </span>
+                                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                            Voters: {target.voters.join(", ")}
+                                          </span>
+                                        </div>
+                                        <span style={{ fontSize: "0.8rem", fontWeight: 700, backgroundColor: isWinner ? "var(--primary-light)" : "var(--bg-tertiary)", color: isWinner ? "var(--primary)" : "var(--text-secondary)", padding: "2px 8px", borderRadius: "var(--radius-full)", border: isWinner ? "1px solid var(--primary)" : "none" }}>
+                                          {target.count} {target.count === 1 ? "vote" : "votes"}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
 
                     </div>
