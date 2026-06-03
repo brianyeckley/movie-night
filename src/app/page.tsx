@@ -158,7 +158,7 @@ export default async function DashboardPage() {
           // ----------------------------------------
           // NO USER SELECTED VIEW
           // ----------------------------------------
-          <div className="glass-panel" style={{ padding: "48px", textAlign: "center", maxWidth: "600px", margin: "40px auto" }}>
+          <div className="glass-panel no-hover" style={{ padding: "48px", textAlign: "center", maxWidth: "600px", margin: "40px auto" }}>
             <h1 className="text-gradient" style={{ fontSize: "2.5rem", fontWeight: 800, marginBottom: "16px" }}>
               🎬 Welcome to Movie Night
             </h1>

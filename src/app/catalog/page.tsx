@@ -52,7 +52,7 @@ export default async function CatalogPage() {
     <div style={{ padding: "40px 0" }}>
       <main className="container">
         {/* Banner */}
-        <div className="glass-panel" style={{ padding: "32px", marginBottom: "40px" }}>
+        <div className="glass-panel no-hover" style={{ padding: "32px", marginBottom: "40px" }}>
           <h1 className="text-gradient" style={{ fontSize: "2.5rem", fontWeight: 800, marginBottom: "8px", letterSpacing: "-0.03em" }}>
             📚 Catalog Management
           </h1>
@@ -62,7 +62,7 @@ export default async function CatalogPage() {
         </div>
 
         {!currentUser && (
-          <div className="glass-panel" style={{ padding: "24px", textAlign: "center", border: "1px solid var(--accent)" }}>
+          <div className="glass-panel no-hover" style={{ padding: "24px", textAlign: "center", border: "1px solid var(--accent)" }}>
             <p style={{ color: "var(--accent)", fontWeight: 600 }}>
               ⚠️ You must select a user profile in the header dropdown to view or edit the catalog.
             </p>
