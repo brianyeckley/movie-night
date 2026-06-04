@@ -229,6 +229,8 @@ export default async function DashboardPage() {
     completedRoundsData = parsedRounds;
   }
 
+  const allVotesIn = activeWeek ? users.every((u) => roundVotedUserIds.includes(u.id)) : false;
+
   return (
     <div style={{ padding: "40px 0" }}>
       <main className="container">
@@ -409,6 +411,25 @@ export default async function DashboardPage() {
                           </button>
                         </form>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Non-Admin Round Advance Controls (shows up only when all votes are cast) */}
+                  {currentUser.role !== "ADMIN" && allVotesIn && activeWeek.status !== "COMPLETED" && (
+                    <div style={{ padding: "16px 20px", backgroundColor: "rgba(16, 185, 129, 0.05)", border: "1px solid rgba(16, 185, 129, 0.2)", borderRadius: "var(--radius-md)", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+                      <span style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: 600 }}>
+                        🎉 Everyone has voted! Anyone can advance the round:
+                      </span>
+                      <form
+                        action={async () => {
+                          "use server";
+                          await advanceWeekRoundAction(activeWeek.id);
+                        }}
+                      >
+                        <button type="submit" className="btn btn-primary" style={{ padding: "6px 14px", fontSize: "0.85rem", backgroundColor: "var(--success)", borderColor: "var(--success)" }}>
+                          Close Round & Advance ➔
+                        </button>
+                      </form>
                     </div>
                   )}
 

@@ -104,8 +104,8 @@ export async function resetRoundAction(weekId: string) {
 // 10. Advance Voting Round (State Machine)
 export async function advanceWeekRoundAction(weekId: string) {
   const currentUser = await getActiveUser();
-  if (!currentUser || currentUser.role !== "ADMIN") {
-    throw new Error("Unauthorized: Only Admin can advance rounds.");
+  if (!currentUser) {
+    throw new Error("Unauthorized: Must be logged in.");
   }
 
   const week = await db.movieNightWeek.findUnique({
@@ -113,6 +113,26 @@ export async function advanceWeekRoundAction(weekId: string) {
     include: { votes: true },
   });
   if (!week) throw new Error("Week not found.");
+
+  // Determine if everyone has voted in the current active round
+  let activeRoundCode = "";
+  if (week.status === "CATEGORY_VOTING") activeRoundCode = "ROUND_1_CATEGORY";
+  else if (week.status === "MOVIE_VOTING") activeRoundCode = "ROUND_2_MOVIE";
+  else if (week.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
+  else if (week.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
+  else if (week.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
+
+  const roundVotedUserIds = week.votes
+    .filter((v) => v.round === activeRoundCode)
+    .map((v) => v.userId);
+
+  const allUsers = await db.user.findMany();
+  const allVotesIn = allUsers.every((u) => roundVotedUserIds.includes(u.id));
+
+  const isAdmin = currentUser.role === "ADMIN";
+  if (!isAdmin && !allVotesIn) {
+    throw new Error("Unauthorized: Only Admin can advance before all votes are in.");
+  }
 
   // State Machine Transitions
   if (week.status === "CATEGORY_VOTING") {
