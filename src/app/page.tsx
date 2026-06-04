@@ -210,10 +210,25 @@ export default async function DashboardPage() {
 
       const sortedTargets = Object.values(targetCounts).sort((a, b) => b.count - a.count);
 
+      // Check if there was a tie in this round
+      const isTie = sortedTargets.length > 1 && sortedTargets[0].count === sortedTargets[1].count;
+
+      // Identify which target was chosen by a random tiebreaker draw
+      let chosenTargetId: string | null = null;
+      if (isTie) {
+        if (roundCode === "ROUND_1_CATEGORY") {
+          chosenTargetId = activeWeek.selectedCategoryId;
+        } else if (roundCode === "ROUND_4_TIEBREAKER") {
+          chosenTargetId = activeWeek.winningMovieId;
+        }
+      }
+
       return {
         roundCode,
         title: roundTitles[roundCode] || roundCode,
         targets: sortedTargets,
+        isTie,
+        chosenTargetId,
       };
     });
 
@@ -230,6 +245,10 @@ export default async function DashboardPage() {
   }
 
   const allVotesIn = activeWeek ? users.every((u) => roundVotedUserIds.includes(u.id)) : false;
+  const round1TieInfo = completedRoundsData.find((r) => r.roundCode === "ROUND_1_CATEGORY" && r.isTie);
+  const round1ChosenName = round1TieInfo && activeWeek?.selectedCategoryId
+    ? round1TieInfo.targets.find((t: any) => t.targetId === activeWeek.selectedCategoryId)?.name
+    : null;
 
   return (
     <div style={{ padding: "40px 0" }}>
@@ -369,6 +388,28 @@ export default async function DashboardPage() {
                     </div>
                   </div>
 
+                  {/* Tiebreaker Alert Banner */}
+                  {round1ChosenName && (
+                    <div style={{
+                      padding: "16px 20px",
+                      backgroundColor: "var(--accent-light)",
+                      border: "1px solid var(--accent)",
+                      borderRadius: "var(--radius-md)",
+                      color: "var(--text-primary)",
+                      fontSize: "0.95rem",
+                      marginBottom: "24px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      boxShadow: "var(--shadow-glow-accent)"
+                    }}>
+                      <span style={{ fontSize: "1.4rem" }}>🎲</span>
+                      <div>
+                        <strong>Random Tiebreaker Draw occurred!</strong> Round 1: Category Selection resulted in a tie. The category <strong style={{ color: "var(--accent)", fontWeight: 700 }}>{round1ChosenName}</strong> was randomly selected to resolve the tie.
+                      </div>
+                    </div>
+                  )}
+
                   {/* Admin Controls */}
                   {currentUser.role === "ADMIN" && (
                     <div style={{ padding: "16px 20px", backgroundColor: "rgba(99, 102, 241, 0.05)", border: "1px solid rgba(99, 102, 241, 0.2)", borderRadius: "var(--radius-md)", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
@@ -490,9 +531,51 @@ export default async function DashboardPage() {
                                   <span>{round.title}</span>
                                   <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Closed</span>
                                 </h4>
+
+                                {round.isTie && (
+                                  <div style={{ 
+                                    padding: "8px 12px", 
+                                    backgroundColor: round.chosenTargetId ? "var(--accent-light)" : "var(--primary-light)", 
+                                    border: "1px solid " + (round.chosenTargetId ? "var(--accent)" : "var(--primary)"), 
+                                    borderRadius: "var(--radius-sm)", 
+                                    fontSize: "0.8rem", 
+                                    color: "var(--text-primary)", 
+                                    marginBottom: "12px",
+                                    fontWeight: 600,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "6px"
+                                  }}>
+                                    {round.chosenTargetId ? (
+                                      <>
+                                        🎲 <strong>Tiebreaker:</strong> Random draw selected{" "}
+                                        <strong style={{ color: "var(--accent)" }}>
+                                          {round.targets.find((t: any) => t.targetId === round.chosenTargetId)?.name || "Option"}
+                                        </strong>
+                                      </>
+                                    ) : (
+                                      <>
+                                        ⚖️ <strong>Tie:</strong> Round tied! All tied options advanced to the next round.
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                   {round.targets.map((target: any, idx: number) => {
                                     const isWinner = idx === 0 || target.count === round.targets[0].count;
+                                    const isChosenRandomly = round.chosenTargetId === target.targetId;
+
+                                    let itemBgColor = "rgba(255, 255, 255, 0.01)";
+                                    let itemBorderColor = "var(--glass-border)";
+                                    if (isChosenRandomly) {
+                                      itemBgColor = "var(--accent-light)";
+                                      itemBorderColor = "var(--accent)";
+                                    } else if (isWinner) {
+                                      itemBgColor = "rgba(99, 102, 241, 0.04)";
+                                      itemBorderColor = "rgba(99, 102, 241, 0.2)";
+                                    }
+
                                     return (
                                       <div 
                                         key={target.targetId} 
@@ -501,21 +584,30 @@ export default async function DashboardPage() {
                                           justifyContent: "space-between", 
                                           alignItems: "center", 
                                           padding: "8px 12px", 
-                                          backgroundColor: isWinner ? "rgba(99, 102, 241, 0.04)" : "rgba(255, 255, 255, 0.01)", 
-                                          border: "1px solid " + (isWinner ? "rgba(99, 102, 241, 0.2)" : "var(--glass-border)"), 
+                                          backgroundColor: itemBgColor, 
+                                          border: `1px solid ${itemBorderColor}`, 
                                           borderRadius: "var(--radius-sm)",
                                           fontSize: "0.9rem"
                                         }}
                                       >
                                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                                          <span style={{ fontWeight: 600, color: isWinner ? "var(--text-primary)" : "var(--text-secondary)" }}>
-                                            {target.name} {isWinner && "🏆"}
+                                          <span style={{ fontWeight: 600, color: (isWinner || isChosenRandomly) ? "var(--text-primary)" : "var(--text-secondary)" }}>
+                                            {target.name}{" "}
+                                            {isChosenRandomly ? "🎲" : (isWinner && !round.isTie) ? "🏆" : ""}
                                           </span>
                                           <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                                             Voters: {target.voters.join(", ")}
                                           </span>
                                         </div>
-                                        <span style={{ fontSize: "0.8rem", fontWeight: 700, backgroundColor: isWinner ? "var(--primary-light)" : "var(--bg-tertiary)", color: isWinner ? "var(--primary)" : "var(--text-secondary)", padding: "2px 8px", borderRadius: "var(--radius-full)", border: isWinner ? "1px solid var(--primary)" : "none" }}>
+                                        <span style={{ 
+                                          fontSize: "0.8rem", 
+                                          fontWeight: 700, 
+                                          backgroundColor: isChosenRandomly ? "var(--accent-light)" : isWinner ? "var(--primary-light)" : "var(--bg-tertiary)", 
+                                          color: isChosenRandomly ? "var(--accent)" : isWinner ? "var(--primary)" : "var(--text-secondary)", 
+                                          padding: "2px 8px", 
+                                          borderRadius: "var(--radius-full)", 
+                                          border: isChosenRandomly ? "1px solid var(--accent)" : isWinner ? "1px solid var(--primary)" : "none" 
+                                        }}>
                                           {target.count} {target.count === 1 ? "vote" : "votes"}
                                         </span>
                                       </div>
