@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { cookies } from "next/headers";
 import Link from "next/link";
-import { db } from "@/lib/db";
-import UserSwitcher from "@/components/UserSwitcher";
+import { getActiveUser, logoutAction } from "@/app/actions/user";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,19 +45,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch users from the database for simulated switching
-  let users: any[] = [];
-  try {
-    users = await db.user.findMany({
-      orderBy: { name: "asc" },
-    });
-  } catch (error) {
-    console.error("Failed to load users in layout:", error);
-  }
-
-  // Get current simulated user ID from cookies
-  const cookieStore = await cookies();
-  const activeUserId = cookieStore.get("movie_night_user")?.value || null;
+  // Get currently logged in user
+  const currentUser = await getActiveUser();
 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
@@ -103,34 +90,83 @@ export default async function RootLayout({
                   🎬 Movie Night
                 </span>
               </Link>
-              <nav style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-                <Link
-                  href="/"
-                  style={{
-                    fontSize: "0.95rem",
-                    fontWeight: 500,
-                    color: "var(--text-secondary)",
-                    transition: "color var(--transition-fast)",
-                  }}
-                  className="nav-link"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/catalog"
-                  style={{
-                    fontSize: "0.95rem",
-                    fontWeight: 500,
-                    color: "var(--text-secondary)",
-                    transition: "color var(--transition-fast)",
-                  }}
-                  className="nav-link"
-                >
-                  Catalog
-                </Link>
-              </nav>
+
+              {currentUser && (
+                <nav style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+                  <Link
+                    href="/"
+                    style={{
+                      fontSize: "0.95rem",
+                      fontWeight: 500,
+                      color: "var(--text-secondary)",
+                      transition: "color var(--transition-fast)",
+                    }}
+                    className="nav-link"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/catalog"
+                    style={{
+                      fontSize: "0.95rem",
+                      fontWeight: 500,
+                      color: "var(--text-secondary)",
+                      transition: "color var(--transition-fast)",
+                    }}
+                    className="nav-link"
+                  >
+                    Catalog
+                  </Link>
+                  {currentUser.role === "ADMIN" && (
+                    <Link
+                      href="/admin/users"
+                      style={{
+                        fontSize: "0.95rem",
+                        fontWeight: 500,
+                        color: "var(--text-secondary)",
+                        transition: "color var(--transition-fast)",
+                      }}
+                      className="nav-link"
+                    >
+                      Users
+                    </Link>
+                  )}
+                </nav>
+              )}
             </div>
-            <UserSwitcher users={users} activeUserId={activeUserId} />
+
+            {currentUser && (
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <span style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+                  Watching as: <strong style={{ color: "var(--text-primary)" }}>{currentUser.name} {currentUser.role === "ADMIN" ? "👑" : "🍿"}</strong>
+                </span>
+                <Link
+                  href="/settings"
+                  style={{
+                    fontSize: "0.9rem",
+                    fontWeight: 500,
+                    color: "var(--text-secondary)",
+                    transition: "color var(--transition-fast)",
+                  }}
+                  className="nav-link"
+                >
+                  ⚙️ Settings
+                </Link>
+                <form action={logoutAction} style={{ display: "inline" }}>
+                  <button 
+                    type="submit" 
+                    className="btn btn-secondary" 
+                    style={{ 
+                      padding: "6px 12px", 
+                      fontSize: "0.85rem",
+                      cursor: "pointer" 
+                    }}
+                  >
+                    Log Out
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </header>
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>{children}</div>

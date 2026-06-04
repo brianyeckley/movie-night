@@ -11,11 +11,13 @@ datasource db {
 }
 
 model User {
-  id        String     @id @default(uuid())
-  username  String     @unique // "brian", "stew", "nick"
-  name      String             // "Brian", "Stew", "Nick"
-  role      String     @default("USER") // "ADMIN" or "USER"
-  votes     WeekVote[]
+  id           String     @id @default(uuid())
+  username     String     @unique // "brian", "stew", "nick"
+  name         String             // "Brian", "Stew", "Nick"
+  passwordHash String     @default("")
+  role         String     @default("USER") // "ADMIN" or "USER"
+  isApproved   Boolean    @default(false)
+  votes        WeekVote[]
 }
 
 model Category {

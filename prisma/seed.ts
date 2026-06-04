@@ -1,5 +1,6 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import bcrypt from "bcryptjs";
 
 // Instantiate the Prisma adapter with the database configuration
 const adapter = new PrismaBetterSqlite3({
@@ -10,38 +11,65 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("Seeding database...");
 
+  // Load user credentials from environment or fallbacks
+  const adminUsername = (process.env.ADMIN_USERNAME || "Brian").toLowerCase().trim();
+  const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+  const stewPassword = process.env.STEW_PASSWORD || "stew";
+  const nickPassword = process.env.NICK_PASSWORD || "nick";
+
+  // Hash passwords
+  const adminHash = bcrypt.hashSync(adminPassword, 10);
+  const stewHash = bcrypt.hashSync(stewPassword, 10);
+  const nickHash = bcrypt.hashSync(nickPassword, 10);
+
   // 1. Seed Users
   const brian = await prisma.user.upsert({
-    where: { username: "brian" },
-    update: {},
-    create: {
-      username: "brian",
-      name: "Brian",
+    where: { username: adminUsername },
+    update: {
+      passwordHash: adminHash,
       role: "ADMIN",
+      isApproved: true,
+    },
+    create: {
+      username: adminUsername,
+      name: process.env.ADMIN_USERNAME || "Brian",
+      passwordHash: adminHash,
+      role: "ADMIN",
+      isApproved: true,
     },
   });
 
   const stew = await prisma.user.upsert({
     where: { username: "stew" },
-    update: {},
+    update: {
+      passwordHash: stewHash,
+      isApproved: true,
+    },
     create: {
       username: "stew",
       name: "Stew",
+      passwordHash: stewHash,
       role: "USER",
+      isApproved: true,
     },
   });
 
   const nick = await prisma.user.upsert({
     where: { username: "nick" },
-    update: {},
+    update: {
+      passwordHash: nickHash,
+      isApproved: true,
+    },
     create: {
       username: "nick",
       name: "Nick",
+      passwordHash: nickHash,
       role: "USER",
+      isApproved: true,
     },
   });
 
-  console.log("Seeded Users: Brian, Stew, Nick");
+  console.log(`Seeded Users: ${brian.name} (ADMIN), Stew (USER), Nick (USER)`);
 
   // 2. Seed Genres
   const genresList = ["Horror", "Sci-Fi", "Action", "Comedy", "Crime", "Schlock"];
