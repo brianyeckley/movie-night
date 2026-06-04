@@ -16,10 +16,12 @@ export default function AdvanceRoundButton({ weekId, isGreen = false }: Props) {
     setError(null);
     startTransition(async () => {
       try {
-        await advanceWeekRoundAction(weekId);
+        const result = await advanceWeekRoundAction(weekId);
+        if (result && !result.success) {
+          setError(result.error || "An unexpected error occurred.");
+        }
       } catch (err: any) {
         console.error("Failed to advance round:", err);
-        // Extract a clean error message
         const msg = err.message || "An unexpected error occurred.";
         setError(msg.replace("An error occurred in the Server Action: ", ""));
       }

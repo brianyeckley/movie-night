@@ -105,14 +105,14 @@ export async function resetRoundAction(weekId: string) {
 export async function advanceWeekRoundAction(weekId: string) {
   const currentUser = await getActiveUser();
   if (!currentUser) {
-    throw new Error("Unauthorized: Must be logged in.");
+    return { success: false, error: "Unauthorized: Must be logged in." };
   }
 
   const week = await db.movieNightWeek.findUnique({
     where: { id: weekId },
     include: { votes: true },
   });
-  if (!week) throw new Error("Week not found.");
+  if (!week) return { success: false, error: "Week not found." };
 
   // Determine if everyone has voted in the current active round
   let activeRoundCode = "";
@@ -131,7 +131,7 @@ export async function advanceWeekRoundAction(weekId: string) {
 
   const isAdmin = currentUser.role === "ADMIN";
   if (!isAdmin && !allVotesIn) {
-    throw new Error("Unauthorized: Only Admin can advance before all votes are in.");
+    return { success: false, error: "Unauthorized: Only Admin can advance before all votes are in." };
   }
 
   // State Machine Transitions
@@ -140,7 +140,7 @@ export async function advanceWeekRoundAction(weekId: string) {
     // ROUND 1: Category Voting
     // ----------------------------------------
     const votes = week.votes.filter((v) => v.round === "ROUND_1_CATEGORY");
-    if (votes.length === 0) throw new Error("No votes have been cast yet.");
+    if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
 
     // Count votes
     const counts: Record<string, number> = {};
@@ -172,7 +172,7 @@ export async function advanceWeekRoundAction(weekId: string) {
     // ROUND 2: Movie/Subcategory Voting
     // ----------------------------------------
     const votes = week.votes.filter((v) => v.round === "ROUND_2_MOVIE");
-    if (votes.length === 0) throw new Error("No votes have been cast yet.");
+    if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
 
     // Count votes
     const counts: Record<string, number> = {};
@@ -253,7 +253,7 @@ export async function advanceWeekRoundAction(weekId: string) {
     // ROUND 3: Shortlist Voting (3 votes per user)
     // ----------------------------------------
     const votes = week.votes.filter((v) => v.round === "ROUND_3_SHORTLIST");
-    if (votes.length === 0) throw new Error("No votes have been cast yet.");
+    if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
 
     const counts: Record<string, number> = {};
     votes.forEach((v) => {
@@ -287,7 +287,7 @@ export async function advanceWeekRoundAction(weekId: string) {
     // ROUND 4: Tiebreaker (1 vote per user)
     // ----------------------------------------
     const votes = week.votes.filter((v) => v.round === "ROUND_4_TIEBREAKER");
-    if (votes.length === 0) throw new Error("No votes have been cast yet.");
+    if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
 
     const counts: Record<string, number> = {};
     votes.forEach((v) => {
@@ -318,6 +318,7 @@ export async function advanceWeekRoundAction(weekId: string) {
   }
 
   revalidatePath("/");
+  return { success: true };
 }
 
 // 11. Complete Week and prompt watched/legacy actions
