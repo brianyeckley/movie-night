@@ -82,10 +82,36 @@ export default async function CatalogPage() {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
                   {categories.map((cat) => (
-                    <div key={cat.id} style={{ borderBottom: "1px solid var(--glass-border)", paddingBottom: "24px" }}>
+                    <details
+                      key={cat.id}
+                      open={cat.isThemed}
+                      style={{ borderBottom: "1px solid var(--glass-border)" }}
+                      className="category-details"
+                    >
                       {/* Top level Category Header */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                        <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <summary
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          cursor: "pointer",
+                          userSelect: "none",
+                          padding: "16px 0",
+                          outline: "none"
+                        }}
+                      >
+                        <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: "12px" }}>
+                          <span 
+                            className="chevron-icon" 
+                            style={{ 
+                              fontSize: "0.8rem", 
+                              color: "var(--text-muted)", 
+                              display: "inline-block",
+                              transition: "transform var(--transition-fast)" 
+                            }}
+                          >
+                            ▶
+                          </span>
                           {cat.name}
                           {cat.isThemed && (
                             <span style={{ fontSize: "0.75rem", backgroundColor: "var(--accent-light)", color: "var(--accent)", padding: "2px 8px", borderRadius: "var(--radius-full)", border: "1px solid var(--accent)", fontWeight: 600 }}>
@@ -93,27 +119,32 @@ export default async function CatalogPage() {
                             </span>
                           )}
                         </h3>
-                        <form
-                          action={async () => {
-                            "use server";
-                            await deleteCategoryAction(cat.id);
-                          }}
-                        >
-                          <button
-                            type="submit"
-                            style={{
-                              backgroundColor: "transparent",
-                              border: "none",
-                              color: "var(--text-muted)",
-                              cursor: "pointer",
-                              fontSize: "0.85rem",
+                      </summary>
+
+                      <div style={{ paddingLeft: "24px", paddingBottom: "24px", paddingTop: "8px" }}>
+                        {/* Option to Delete Category */}
+                        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+                          <form
+                            action={async () => {
+                              "use server";
+                              await deleteCategoryAction(cat.id);
                             }}
-                            className="nav-link"
                           >
-                            Delete Category
-                          </button>
-                        </form>
-                      </div>
+                            <button
+                              type="submit"
+                              style={{
+                                backgroundColor: "transparent",
+                                border: "none",
+                                color: "var(--text-muted)",
+                                cursor: "pointer",
+                                fontSize: "0.85rem",
+                              }}
+                              className="nav-link"
+                            >
+                              Delete Category
+                            </button>
+                          </form>
+                        </div>
 
                       {/* Direct Movies in Top level Category */}
                       {cat.movies.length > 0 && (
@@ -121,68 +152,150 @@ export default async function CatalogPage() {
                           {cat.movies.map((movie) => (
                             <div
                               key={movie.id}
+                              className="movie-row-card"
                               style={{
                                 display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                padding: "12px 16px",
-                                backgroundColor: "rgba(255, 255, 255, 0.02)",
-                                border: "1px solid var(--glass-border)",
-                                borderRadius: "var(--radius-sm)",
+                                flexDirection: "column",
+                                gap: "10px",
+                                width: "100%"
                               }}
                             >
-                              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-                                  <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
-                                  {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
-                                  {movie.imdbUrl && (
-                                    <a href={movie.imdbUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.8rem", color: "var(--primary)", textDecoration: "underline" }}>
-                                      IMDb ↗
-                                    </a>
-                                  )}
-                                  {movie.watched && (
-                                    <span style={{ fontSize: "0.7rem", backgroundColor: "var(--glass-hover)", color: "var(--text-muted)", padding: "2px 6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--glass-border)" }}>
-                                      Watched
-                                    </span>
-                                  )}
-                                </div>
-                                {(movie.director || movie.runtime || movie.stars) && (
-                                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "2px", display: "flex", flexDirection: "column", gap: "2px" }}>
-                                    {(movie.director || movie.runtime) && (
-                                      <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                                        {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
-                                        {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
-                                        {movie.runtime && <span>⏱️ {movie.runtime}</span>}
-                                      </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "12px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1, minWidth: "250px" }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                                    <span style={{ fontWeight: 600, fontSize: "1.05rem" }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                                    {movie.watched && (
+                                      <span style={{ fontSize: "0.65rem", backgroundColor: "var(--glass-hover)", color: "var(--text-muted)", padding: "1px 5px", borderRadius: "var(--radius-sm)", border: "1px solid var(--glass-border)" }}>
+                                        Watched
+                                      </span>
                                     )}
-                                    {movie.stars && (
-                                      <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
-                                        <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
-                                        <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
-                                      </div>
+                                    {(movie.plot || movie.posterUrl) && (
+                                      <span className="movie-tooltip-trigger" style={{
+                                        fontSize: "0.7rem",
+                                        backgroundColor: "var(--primary-light)",
+                                        color: "var(--primary)",
+                                        padding: "2px 8px",
+                                        borderRadius: "var(--radius-full)",
+                                        border: "1px solid rgba(99, 102, 241, 0.2)",
+                                        fontWeight: 600,
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "4px"
+                                      }}>
+                                        🍿 Plot
+                                        <span className="movie-tooltip-card">
+                                          {movie.posterUrl && (
+                                            <img
+                                              src={movie.posterUrl}
+                                              alt={`${movie.title} Poster`}
+                                              style={{
+                                                width: "90px",
+                                                borderRadius: "var(--radius-sm)",
+                                                border: "1px solid var(--glass-border)",
+                                                boxShadow: "var(--shadow-sm)",
+                                                flexShrink: 0
+                                              }}
+                                            />
+                                          )}
+                                          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", width: "100%", gap: "8px" }}>
+                                              <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{movie.title}</span>
+                                              {movie.imdbRating && (
+                                                <span style={{ fontSize: "0.8rem", color: "var(--warning)", fontWeight: 600, flexShrink: 0 }}>
+                                                  ⭐ {movie.imdbRating}/10
+                                                </span>
+                                              )}
+                                            </div>
+                                            {movie.plot && (
+                                              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", margin: 0 }}>
+                                                {movie.plot}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </span>
+                                      </span>
+                                    )}
+                                    {movie.imdbRating && (
+                                      <span style={{
+                                        fontSize: "0.7rem",
+                                        backgroundColor: "rgba(245, 158, 11, 0.12)",
+                                        color: "var(--warning)",
+                                        padding: "2px 8px",
+                                        borderRadius: "var(--radius-full)",
+                                        border: "1px solid rgba(245, 158, 11, 0.25)",
+                                        fontWeight: 600,
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "4px"
+                                      }}>
+                                        ⭐ {movie.imdbRating}
+                                      </span>
                                     )}
                                   </div>
-                                )}
-                                <div style={{ display: "flex", gap: "6px", marginTop: "2px" }}>
-                                  {movie.genres.map((g) => (
-                                    <span key={g.id} style={{ fontSize: "0.75rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "1px 6px", borderRadius: "var(--radius-sm)" }}>
-                                      {g.name}
-                                    </span>
-                                  ))}
+
+                                  {(movie.director || movie.runtime || movie.stars) && (
+                                    <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
+                                      {(movie.director || movie.runtime) && (
+                                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                                          {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
+                                          {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                                          {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                                        </div>
+                                      )}
+                                      {movie.stars && (
+                                        <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
+                                          <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
+                                          <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
-                              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                                <EditMovieButton movie={movie} categories={flatCategories} genres={genres} />
-                                <form
-                                  action={async () => {
-                                    "use server";
-                                    await deleteMovieAction(movie.id);
-                                  }}
-                                >
-                                  <button type="submit" style={{ backgroundColor: "transparent", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: "0.85rem" }}>
-                                    Remove
-                                  </button>
-                                </form>
+
+                                <div style={{ display: "flex", flexDirection: "column", alignItems: "end", gap: "8px", flexShrink: 0 }}>
+                                  <div style={{ display: "flex", gap: "4px" }}>
+                                    {movie.genres.map((g) => (
+                                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "2px 8px", borderRadius: "var(--radius-sm)" }}>
+                                        {g.name}
+                                      </span>
+                                    ))}
+                                  </div>
+
+                                  <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                                    {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
+                                    {movie.imdbUrl && (
+                                      <a
+                                        href={movie.imdbUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-secondary"
+                                        style={{ padding: "6px 12px", fontSize: "0.75rem" }}
+                                      >
+                                        IMDb ↗
+                                      </a>
+                                    )}
+                                    <EditMovieButton movie={movie} categories={flatCategories} genres={genres} />
+                                    <form
+                                      action={async () => {
+                                        "use server";
+                                        await deleteMovieAction(movie.id);
+                                      }}
+                                    >
+                                      <button
+                                        type="submit"
+                                        className="btn btn-secondary"
+                                        style={{
+                                          padding: "6px 12px",
+                                          fontSize: "0.75rem",
+                                          color: "var(--accent)",
+                                          borderColor: "rgba(244, 63, 94, 0.2)"
+                                        }}
+                                      >
+                                        Remove
+                                      </button>
+                                    </form>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -213,72 +326,120 @@ export default async function CatalogPage() {
                               ) : (
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                   {sub.movies.map((movie) => (
-                                    <div
+                                    <details
                                       key={movie.id}
                                       style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        padding: "10px 14px",
-                                        backgroundColor: "rgba(0, 0, 0, 0.15)",
                                         border: "1px solid var(--glass-border)",
                                         borderRadius: "var(--radius-sm)",
+                                        backgroundColor: "rgba(0, 0, 0, 0.15)",
+                                        transition: "all var(--transition-normal)",
                                       }}
+                                      className="movie-row-details"
                                     >
-                                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                                      <summary
+                                        style={{
+                                          display: "flex",
+                                          justifyContent: "space-between",
+                                          alignItems: "center",
+                                          padding: "10px 14px",
+                                          cursor: "pointer",
+                                          userSelect: "none",
+                                          listStyle: "none",
+                                          outline: "none"
+                                        }}
+                                      >
+                                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                          <span className="movie-chevron" style={{ fontSize: "0.75rem", color: "var(--text-muted)", transition: "transform var(--transition-fast)" }}>▶</span>
                                           <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
-                                          {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
-                                          {movie.imdbUrl && (
-                                            <a href={movie.imdbUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}>
-                                              IMDb ↗
-                                            </a>
-                                          )}
                                           {movie.watched && (
                                             <span style={{ fontSize: "0.65rem", backgroundColor: "var(--glass-hover)", color: "var(--text-muted)", padding: "1px 5px", borderRadius: "var(--radius-sm)", border: "1px solid var(--glass-border)" }}>
                                               Watched
                                             </span>
                                           )}
                                         </div>
-                                        {(movie.director || movie.runtime || movie.stars) && (
-                                          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px", display: "flex", flexDirection: "column", gap: "2px" }}>
-                                            {(movie.director || movie.runtime) && (
-                                              <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                                                {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
-                                                {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
-                                                {movie.runtime && <span>⏱️ {movie.runtime}</span>}
-                                              </div>
-                                            )}
-                                            {movie.stars && (
-                                              <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
-                                                <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
-                                                <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                        <div style={{ display: "flex", gap: "6px", marginTop: "2px" }}>
+                                        <div style={{ display: "flex", gap: "6px" }}>
                                           {movie.genres.map((g) => (
                                             <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "1px 5px", borderRadius: "var(--radius-sm)" }}>
                                               {g.name}
                                             </span>
                                           ))}
                                         </div>
+                                      </summary>
+
+                                      <div 
+                                        style={{ 
+                                          padding: "16px 20px", 
+                                          borderTop: "1px solid var(--glass-border)", 
+                                          backgroundColor: "rgba(0, 0, 0, 0.25)",
+                                          display: "flex",
+                                          gap: "20px",
+                                          alignItems: "start",
+                                          textAlign: "left"
+                                        }}
+                                      >
+                                        {movie.posterUrl && (
+                                          <img 
+                                            src={movie.posterUrl} 
+                                            alt={`${movie.title} Poster`} 
+                                            style={{ 
+                                              width: "80px", 
+                                              borderRadius: "var(--radius-sm)", 
+                                              border: "1px solid var(--glass-border)",
+                                              boxShadow: "var(--shadow-sm)",
+                                              flexShrink: 0
+                                            }} 
+                                          />
+                                        )}
+                                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+                                          {movie.plot && (
+                                            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: "1.45", margin: 0 }}>
+                                              {movie.plot}
+                                            </p>
+                                          )}
+                                          
+                                          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                                            {movie.director && <span>🎬 <strong style={{ color: "var(--text-primary)" }}>Director:</strong> {movie.director}</span>}
+                                            {movie.stars && <span>👥 <strong style={{ color: "var(--text-primary)" }}>Cast:</strong> {movie.stars}</span>}
+                                            {movie.runtime && <span>⏱️ <strong style={{ color: "var(--text-primary)" }}>Runtime:</strong> {movie.runtime}</span>}
+                                          </div>
+
+                                          <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "8px" }}>
+                                            {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
+                                            {movie.imdbUrl && (
+                                              <a 
+                                                href={movie.imdbUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="btn btn-secondary"
+                                                style={{ padding: "6px 12px", fontSize: "0.75rem" }}
+                                              >
+                                                IMDb ↗
+                                              </a>
+                                            )}
+                                            <EditMovieButton movie={movie} categories={flatCategories} genres={genres} />
+                                            <form
+                                              action={async () => {
+                                                "use server";
+                                                await deleteMovieAction(movie.id);
+                                              }}
+                                            >
+                                              <button 
+                                                type="submit" 
+                                                className="btn btn-secondary"
+                                                style={{ 
+                                                  padding: "6px 12px", 
+                                                  fontSize: "0.75rem", 
+                                                  color: "var(--accent)", 
+                                                  borderColor: "rgba(244, 63, 94, 0.2)" 
+                                                }}
+                                              >
+                                                Remove
+                                              </button>
+                                            </form>
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                                        <EditMovieButton movie={movie} categories={flatCategories} genres={genres} />
-                                        <form
-                                          action={async () => {
-                                            "use server";
-                                            await deleteMovieAction(movie.id);
-                                          }}
-                                        >
-                                          <button type="submit" style={{ backgroundColor: "transparent", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: "0.8rem" }}>
-                                            Remove
-                                          </button>
-                                        </form>
-                                      </div>
-                                    </div>
+                                    </details>
                                   ))}
                                 </div>
                               )}
@@ -291,7 +452,8 @@ export default async function CatalogPage() {
                         <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No movies or subcategories created yet.</p>
                       )}
                     </div>
-                  ))}
+                  </details>
+                ))}
                 </div>
               )}
             </div>

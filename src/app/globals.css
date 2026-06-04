@@ -194,3 +194,99 @@ a {
 .nav-link:hover {
   color: var(--primary) !important;
 }
+
+/* Custom Collapsible Category Styling */
+details.category-details summary::-webkit-details-marker {
+  display: none;
+}
+details.category-details summary {
+  list-style: none;
+}
+details.category-details[open] summary .chevron-icon {
+  transform: rotate(90deg);
+  color: var(--primary) !important;
+}
+details.category-details {
+  transition: all var(--transition-normal);
+}
+
+/* Custom Collapsible Movie Card Styling */
+details.movie-row-details summary::-webkit-details-marker {
+  display: none;
+}
+details.movie-row-details summary {
+  list-style: none;
+}
+details.movie-row-details[open] summary .movie-chevron {
+  transform: rotate(90deg);
+  color: var(--primary) !important;
+}
+details.movie-row-details {
+  transition: all var(--transition-normal);
+}
+
+/* Cinematic Floating Movie Tooltip Styles */
+.movie-tooltip-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+
+.movie-tooltip-card {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  width: 380px;
+  background: rgba(10, 15, 26, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), var(--shadow-glow);
+  z-index: 999;
+  transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
+  pointer-events: none; /* Avoid flickering when pointer crosses boundary */
+  display: flex;
+  gap: 16px;
+  align-items: start;
+  font-weight: normal;
+  text-align: left;
+}
+
+/* Tooltip Arrow */
+.movie-tooltip-card::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(10, 15, 26, 0.96) transparent transparent transparent;
+}
+
+.movie-tooltip-trigger:hover .movie-tooltip-card {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Custom styles for movie row card layout */
+.movie-row-card {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background-color: rgba(255, 255, 255, 0.01);
+  padding: 14px 18px;
+  transition: all var(--transition-fast);
+}
+
+.movie-row-card:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+

@@ -54,6 +54,9 @@ export async function addMovieAction(
   let director = null;
   let stars = null;
   let runtime = null;
+  let plot = null;
+  let posterUrl = null;
+  let imdbRating = null;
 
   try {
     const meta = await fetchMovieMetadata(imdbUrl);
@@ -63,6 +66,9 @@ export async function addMovieAction(
       director = meta.director || null;
       stars = meta.stars || null;
       runtime = meta.runtime || null;
+      plot = meta.plot || null;
+      posterUrl = meta.posterUrl || null;
+      imdbRating = meta.imdbRating || null;
     }
   } catch (e) {
     console.error("Failed to fetch movie metadata during creation:", e);
@@ -77,6 +83,9 @@ export async function addMovieAction(
       director,
       stars,
       runtime,
+      plot,
+      posterUrl,
+      imdbRating,
       categoryId,
       genres: {
         connect: genreIds.map((id) => ({ id })),
@@ -132,6 +141,9 @@ export async function updateMovieAction(
   let director = existingMovie.director;
   let stars = existingMovie.stars;
   let runtime = existingMovie.runtime;
+  let plot = existingMovie.plot;
+  let posterUrl = existingMovie.posterUrl;
+  let imdbRating = existingMovie.imdbRating;
 
   if (imdbUrl && imdbUrl !== existingMovie.imdbUrl) {
     try {
@@ -141,6 +153,9 @@ export async function updateMovieAction(
         director = meta.director || null;
         stars = meta.stars || null;
         runtime = meta.runtime || null;
+        plot = meta.plot || null;
+        posterUrl = meta.posterUrl || null;
+        imdbRating = meta.imdbRating || null;
       }
     } catch (e) {
       console.error("Failed to fetch movie metadata during update:", e);
@@ -150,6 +165,9 @@ export async function updateMovieAction(
     director = null;
     stars = null;
     runtime = null;
+    plot = null;
+    posterUrl = null;
+    imdbRating = null;
   }
 
   const updateData: any = {
@@ -160,6 +178,9 @@ export async function updateMovieAction(
     director,
     stars,
     runtime,
+    plot,
+    posterUrl,
+    imdbRating,
   };
 
   if (categoryId) {

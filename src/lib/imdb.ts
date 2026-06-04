@@ -4,6 +4,9 @@ export interface MovieMetadata {
   director?: string;
   stars?: string;
   runtime?: string;
+  plot?: string;
+  posterUrl?: string;
+  imdbRating?: string;
 }
 
 /**
@@ -41,6 +44,9 @@ export async function fetchMovieMetadata(imdbUrl: string): Promise<MovieMetadata
             director: data.Director && data.Director !== "N/A" ? data.Director : undefined,
             stars: data.Actors && data.Actors !== "N/A" ? data.Actors : undefined,
             runtime: data.Runtime && data.Runtime !== "N/A" ? data.Runtime : undefined,
+            plot: data.Plot && data.Plot !== "N/A" ? data.Plot : undefined,
+            posterUrl: data.Poster && data.Poster !== "N/A" ? data.Poster : undefined,
+            imdbRating: data.imdbRating && data.imdbRating !== "N/A" ? data.imdbRating : undefined,
           };
         }
       }

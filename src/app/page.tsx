@@ -951,76 +951,152 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
         }}
         style={{ display: "flex", flexDirection: "column", gap: "12px" }}
       >
-        {movies.map((movie) => (
+        {movies.map((movie: any) => (
           <div
             key={movie.id}
+            className="movie-row-card"
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "14px 18px",
-              borderRadius: "var(--radius-md)",
               border: "1px solid " + (userVote?.targetId === movie.id ? "var(--primary)" : "var(--glass-border)"),
+              borderRadius: "var(--radius-md)",
               backgroundColor: userVote?.targetId === movie.id ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
+              padding: "14px 18px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              width: "100%",
+              textAlign: "left"
             }}
           >
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                flex: 1,
-              }}
-            >
-              <input
-                type="radio"
-                name="movieId"
-                value={movie.id}
-                defaultChecked={userVote?.targetId === movie.id}
-                required
-                style={{ cursor: "pointer", accentColor: "var(--primary)" }}
-              />
-              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
-                {(movie.director || movie.runtime || movie.stars) && (
-                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "2px", display: "flex", flexDirection: "column", gap: "2px" }}>
-                    {(movie.director || movie.runtime) && (
-                      <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                        {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
-                        {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
-                        {movie.runtime && <span>⏱️ {movie.runtime}</span>}
-                      </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "12px" }}>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  cursor: "pointer",
+                  flex: 1,
+                  minWidth: "250px"
+                }}
+              >
+                <input
+                  type="radio"
+                  name="movieId"
+                  value={movie.id}
+                  defaultChecked={userVote?.targetId === movie.id}
+                  required
+                  style={{ cursor: "pointer", accentColor: "var(--primary)" }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                    <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                    {(movie.plot || movie.posterUrl) && (
+                      <span className="movie-tooltip-trigger" style={{
+                        fontSize: "0.7rem",
+                        backgroundColor: "var(--primary-light)",
+                        color: "var(--primary)",
+                        padding: "2px 8px",
+                        borderRadius: "var(--radius-full)",
+                        border: "1px solid rgba(99, 102, 241, 0.2)",
+                        fontWeight: 600,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px"
+                      }}>
+                        🍿 Plot
+                        <span className="movie-tooltip-card">
+                          {movie.posterUrl && (
+                            <img
+                              src={movie.posterUrl}
+                              alt={`${movie.title} Poster`}
+                              style={{
+                                width: "90px",
+                                borderRadius: "var(--radius-sm)",
+                                border: "1px solid var(--glass-border)",
+                                boxShadow: "var(--shadow-sm)",
+                                flexShrink: 0
+                              }}
+                            />
+                          )}
+                          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", width: "100%", gap: "8px" }}>
+                              <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{movie.title}</span>
+                              {movie.imdbRating && (
+                                <span style={{ fontSize: "0.8rem", color: "var(--warning)", fontWeight: 600, flexShrink: 0 }}>
+                                  ⭐ {movie.imdbRating}/10
+                                </span>
+                              )}
+                            </div>
+                            {movie.plot && (
+                              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", margin: 0 }}>
+                                {movie.plot}
+                              </p>
+                            )}
+                          </div>
+                        </span>
+                      </span>
                     )}
-                    {movie.stars && (
-                      <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
-                        <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
-                        <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
-                      </div>
+                    {movie.imdbRating && (
+                      <span style={{
+                        fontSize: "0.7rem",
+                        backgroundColor: "rgba(245, 158, 11, 0.12)",
+                        color: "var(--warning)",
+                        padding: "2px 8px",
+                        borderRadius: "var(--radius-full)",
+                        border: "1px solid rgba(245, 158, 11, 0.25)",
+                        fontWeight: 600,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px"
+                      }}>
+                        ⭐ {movie.imdbRating}
+                      </span>
                     )}
                   </div>
+
+                  {(movie.director || movie.runtime || movie.stars) && (
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
+                      {(movie.director || movie.runtime) && (
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                          {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
+                          {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                          {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                        </div>
+                      )}
+                      {movie.stars && (
+                        <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
+                          <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
+                          <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "end", gap: "8px", flexShrink: 0 }}>
+                {movie.genres && movie.genres.length > 0 && (
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    {movie.genres.map((g: any) => (
+                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "2px 8px", borderRadius: "var(--radius-sm)" }}>
+                        #{g.name}
+                      </span>
+                    ))}
+                  </div>
                 )}
-                <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
-                  {movie.genres.map((g) => (
-                    <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                      #{g.name}
-                    </span>
-                  ))}
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                  {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
+                  {movie.imdbUrl && (
+                    <a
+                      href={movie.imdbUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
+                    >
+                      IMDb ↗
+                    </a>
+                  )}
                 </div>
               </div>
-            </label>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
-              {movie.imdbUrl && (
-                <a
-                  href={movie.imdbUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
-                >
-                  IMDb ↗
-                </a>
-              )}
             </div>
           </div>
         ))}
@@ -1079,38 +1155,48 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
       </div>
 
       {/* Prominent Metadata display for winner */}
-      {(movie.director || movie.runtime || movie.stars) && (
+      {(movie.director || movie.runtime || movie.stars || movie.plot || movie.posterUrl) && (
         <div style={{
+          display: "flex",
+          flexDirection: "row",
+          gap: "24px",
+          maxWidth: "650px",
+          margin: "0 auto 24px auto",
           backgroundColor: "rgba(255, 255, 255, 0.02)",
           border: "1px solid var(--glass-border)",
-          borderRadius: "var(--radius-md)",
-          padding: "16px",
-          maxWidth: "450px",
-          margin: "0 auto 24px auto",
-          fontSize: "0.9rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          textAlign: "left"
+          borderRadius: "var(--radius-lg)",
+          padding: "24px",
+          textAlign: "left",
+          alignItems: "start",
+          flexWrap: "wrap"
         }}>
-          {movie.director && (
-            <div>
-              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>🎬 Director:</span>{" "}
-              <span style={{ color: "var(--text-primary)" }}>{movie.director}</span>
-            </div>
+          {movie.posterUrl && (
+            <img
+              src={movie.posterUrl}
+              alt={`${movie.title} Poster`}
+              style={{
+                width: "130px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--glass-border)",
+                boxShadow: "var(--shadow-lg)",
+                flexShrink: 0,
+                margin: "0 auto"
+              }}
+            />
           )}
-          {movie.runtime && (
-            <div>
-              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>⏱️ Runtime:</span>{" "}
-              <span style={{ color: "var(--text-primary)" }}>{movie.runtime}</span>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "12px", minWidth: "260px" }}>
+            {movie.plot && (
+              <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.5", margin: 0 }}>
+                {movie.plot}
+              </p>
+            )}
+            <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+              {movie.imdbRating && <span>⭐ <strong style={{ color: "var(--text-primary)" }}>IMDb Rating:</strong> <span style={{ color: "var(--warning)", fontWeight: 600 }}>{movie.imdbRating}/10</span></span>}
+              {movie.director && <span>🎬 <strong style={{ color: "var(--text-primary)" }}>Director:</strong> {movie.director}</span>}
+              {movie.stars && <span>👥 <strong style={{ color: "var(--text-primary)" }}>Cast:</strong> {movie.stars}</span>}
+              {movie.runtime && <span>⏱️ <strong style={{ color: "var(--text-primary)" }}>Runtime:</strong> {movie.runtime}</span>}
             </div>
-          )}
-          {movie.stars && (
-            <div>
-              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>👥 Starring:</span>{" "}
-              <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
-            </div>
-          )}
+          </div>
         </div>
       )}
 

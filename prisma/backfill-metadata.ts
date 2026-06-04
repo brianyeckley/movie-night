@@ -53,6 +53,9 @@ async function backfill() {
             director: meta.director || null,
             stars: meta.stars || null,
             runtime: meta.runtime || null,
+            plot: meta.plot || null,
+            posterUrl: meta.posterUrl || null,
+            imdbRating: meta.imdbRating || null,
           }
         });
         console.log(`  ✓ Updated "${movie.title}" with: Year: ${meta.year || 'N/A'}, Dir: ${meta.director || 'N/A'}, Stars: ${meta.stars || 'N/A'}, Runtime: ${meta.runtime || 'N/A'}`);
