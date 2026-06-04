@@ -509,29 +509,28 @@ export default async function DashboardPage() {
 
                     </div>
 
-                    {/* Live Voting Tracker */}
-                    <div className="glass-panel" style={{ padding: "24px", backgroundColor: "rgba(0,0,0,0.15)" }}>
-                      <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "16px" }}>Vote Progress</h3>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                        {users.map((u) => {
-                          const hasVoted = roundVotedUserIds.includes(u.id);
-                          return (
-                            <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", backgroundColor: "rgba(255, 255, 255, 0.02)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-sm)" }}>
-                              <span style={{ fontWeight: 600 }}>{u.name}</span>
-                              <span style={{ fontSize: "0.85rem", color: hasVoted ? "var(--success)" : "var(--accent)" }}>
-                                {hasVoted ? "✅ Voted" : "❌ Waiting"}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      {activeWeek.status !== "COMPLETED" && (
+                    {/* Live Voting Tracker — hidden once a winner is chosen */}
+                    {activeWeek.status !== "COMPLETED" && (
+                      <div className="glass-panel" style={{ padding: "24px", backgroundColor: "rgba(0,0,0,0.15)" }}>
+                        <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "16px" }}>Vote Progress</h3>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                          {users.map((u) => {
+                            const hasVoted = roundVotedUserIds.includes(u.id);
+                            return (
+                              <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", backgroundColor: "rgba(255, 255, 255, 0.02)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-sm)" }}>
+                                <span style={{ fontWeight: 600 }}>{u.name}</span>
+                                <span style={{ fontSize: "0.85rem", color: hasVoted ? "var(--success)" : "var(--accent)" }}>
+                                  {hasVoted ? "✅ Voted" : "❌ Waiting"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                         <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "16px", fontStyle: "italic", textAlign: "center" }}>
                           Selections are hidden until the Admin closes the round.
                         </p>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                   </div>
                 </div>
