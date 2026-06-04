@@ -475,7 +475,7 @@ export default async function DashboardPage() {
                   )}
 
                   {/* Voting Area */}
-                  <div className="grid" style={{ gridTemplateColumns: "3fr 1.5fr", alignItems: "start" }}>
+                  <div className="grid" style={{ gridTemplateColumns: activeWeek.status === "COMPLETED" ? "1fr" : "3fr 1.5fr", alignItems: "start" }}>
                     
                     {/* Active Form based on Week State */}
                     <div style={{ backgroundColor: "rgba(255, 255, 255, 0.015)", border: "1px solid var(--glass-border)", padding: "24px", borderRadius: "var(--radius-md)" }}>
