@@ -454,7 +454,7 @@ export default async function DashboardPage() {
                             📊 Prior Round Results
                           </h3>
                           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                            {completedRoundsData.map((round) => (
+                            {completedRoundsData.map((round: any) => (
                               <div 
                                 key={round.roundCode} 
                                 style={{ 
@@ -469,7 +469,7 @@ export default async function DashboardPage() {
                                   <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Closed</span>
                                 </h4>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                  {round.targets.map((target, idx) => {
+                                  {round.targets.map((target: any, idx: number) => {
                                     const isWinner = idx === 0 || target.count === round.targets[0].count;
                                     return (
                                       <div 
