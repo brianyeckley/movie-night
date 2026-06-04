@@ -362,6 +362,23 @@ export async function completeWeekAction(weekId: string, addToLegacy: boolean) {
   revalidatePath("/");
 }
 
+// 11c. Delete a completed Movie Night week (admin only)
+export async function deleteCompletedWeekAction(weekId: string) {
+  const currentUser = await getActiveUser();
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    throw new Error("Unauthorized: Only Admin can delete past movie nights.");
+  }
+
+  // Confirm it is actually a completed week before deleting
+  const week = await db.movieNightWeek.findUnique({ where: { id: weekId } });
+  if (!week) throw new Error("Week not found.");
+  if (!week.closedAt) throw new Error("Only completed (closed) weeks can be deleted.");
+
+  // Cascade: votes are deleted automatically via Prisma schema onDelete:Cascade
+  await db.movieNightWeek.delete({ where: { id: weekId } });
+  revalidatePath("/");
+}
+
 // 11b. Keep/Remove Legacy Movie prompt action (for movies that were already in Legacy)
 export async function completeWeekLegacyOverrideAction(weekId: string, keepInLegacy: boolean) {
   const currentUser = await getActiveUser();

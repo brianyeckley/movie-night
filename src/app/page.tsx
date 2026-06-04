@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { MovieVotingFormClient, SubcategoryVotingFormClient, ShortlistVotingFormClient } from "@/components/VotingFormClient";
 import TrailerButton from "@/components/TrailerButton";
+import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
 
 export const dynamic = "force-dynamic";
 
@@ -546,10 +547,19 @@ export default async function DashboardPage() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
                   {pastWeeks.map((wk) => (
                     <div key={wk.id} className="glass-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "10px", backgroundColor: "rgba(255, 255, 255, 0.01)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                        <span style={{ fontSize: "0.8rem", color: "var(--primary)", fontWeight: 700 }}>
-                          WEEK #{wk.weekNumber}
-                        </span>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span style={{ fontSize: "0.8rem", color: "var(--primary)", fontWeight: 700 }}>
+                            WEEK #{wk.weekNumber}
+                          </span>
+                          {currentUser?.role === "ADMIN" && (
+                            <DeletePastMovieNightButton
+                              weekId={wk.id}
+                              weekNumber={wk.weekNumber}
+                              movieTitle={wk.winner?.title || "Unknown Movie"}
+                            />
+                          )}
+                        </div>
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                           {wk.closedAt ? new Date(wk.closedAt).toLocaleDateString() : ""}
                         </span>
