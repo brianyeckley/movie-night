@@ -21,12 +21,14 @@ export function MovieVotingFormClient({
   initialVotes,
 }: MovieVotingFormClientProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const maxVotes = 2;
   const isLimitReached = selectedIds.length >= maxVotes;
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
+    setError(null);
     if (checked) {
       if (selectedIds.length < maxVotes) {
         setSelectedIds((prev) => [...prev, id]);
@@ -38,11 +40,17 @@ export function MovieVotingFormClient({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (selectedIds.length === 0) {
+      setError("⚠️ Please select at least one option before casting your votes.");
+      return;
+    }
+    setError(null);
     startTransition(async () => {
       try {
         await submitMovieVotesAction(weekId, selectedIds);
       } catch (err) {
         console.error("Failed to submit votes:", err);
+        setError("Failed to submit votes. Please try again.");
       }
     });
   };
@@ -166,6 +174,21 @@ export function MovieVotingFormClient({
         );
       })}
 
+      {error && (
+        <div style={{
+          padding: "10px 14px",
+          backgroundColor: "var(--accent-light)",
+          border: "1px solid var(--accent)",
+          borderRadius: "var(--radius-sm)",
+          color: "var(--accent)",
+          fontSize: "0.85rem",
+          fontWeight: 600,
+          marginTop: "4px",
+        }}>
+          {error}
+        </div>
+      )}
+
       <button type="submit" disabled={isPending} className="btn btn-primary" style={{ marginTop: "8px" }}>
         {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Votes" : "Cast Votes"}
       </button>
@@ -188,12 +211,14 @@ export function SubcategoryVotingFormClient({
   initialVotes,
 }: SubcategoryVotingFormClientProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const maxVotes = 2;
   const isLimitReached = selectedIds.length >= maxVotes;
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
+    setError(null);
     if (checked) {
       if (selectedIds.length < maxVotes) {
         setSelectedIds((prev) => [...prev, id]);
@@ -205,11 +230,17 @@ export function SubcategoryVotingFormClient({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (selectedIds.length === 0) {
+      setError("⚠️ Please select at least one movie before casting your votes.");
+      return;
+    }
+    setError(null);
     startTransition(async () => {
       try {
         await submitSubMovieVotesAction(weekId, selectedIds);
       } catch (err) {
         console.error("Failed to submit sub-movie votes:", err);
+        setError("Failed to submit votes. Please try again.");
       }
     });
   };
@@ -295,6 +326,21 @@ export function SubcategoryVotingFormClient({
         );
       })}
 
+      {error && (
+        <div style={{
+          padding: "10px 14px",
+          backgroundColor: "var(--accent-light)",
+          border: "1px solid var(--accent)",
+          borderRadius: "var(--radius-sm)",
+          color: "var(--accent)",
+          fontSize: "0.85rem",
+          fontWeight: 600,
+          marginTop: "4px",
+        }}>
+          {error}
+        </div>
+      )}
+
       <button type="submit" disabled={isPending} className="btn btn-primary" style={{ marginTop: "8px" }}>
         {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Subcategory Votes" : "Cast Subcategory Votes"}
       </button>
@@ -317,12 +363,14 @@ export function ShortlistVotingFormClient({
   initialVotes,
 }: ShortlistVotingFormClientProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const maxVotes = 3;
   const isLimitReached = selectedIds.length >= maxVotes;
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
+    setError(null);
     if (checked) {
       if (selectedIds.length < maxVotes) {
         setSelectedIds((prev) => [...prev, id]);
@@ -334,11 +382,17 @@ export function ShortlistVotingFormClient({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (selectedIds.length === 0) {
+      setError("⚠️ Please select at least one movie before casting your votes.");
+      return;
+    }
+    setError(null);
     startTransition(async () => {
       try {
         await submitShortlistVotesAction(weekId, selectedIds);
       } catch (err) {
         console.error("Failed to submit shortlist votes:", err);
+        setError("Failed to submit votes. Please try again.");
       }
     });
   };
@@ -426,6 +480,21 @@ export function ShortlistVotingFormClient({
           </div>
         );
       })}
+
+      {error && (
+        <div style={{
+          padding: "10px 14px",
+          backgroundColor: "var(--accent-light)",
+          border: "1px solid var(--accent)",
+          borderRadius: "var(--radius-sm)",
+          color: "var(--accent)",
+          fontSize: "0.85rem",
+          fontWeight: 600,
+          marginTop: "4px",
+        }}>
+          {error}
+        </div>
+      )}
 
       <button type="submit" disabled={isPending} className="btn btn-primary" style={{ marginTop: "8px" }}>
         {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Shortlist Votes" : "Cast Shortlist Votes"}

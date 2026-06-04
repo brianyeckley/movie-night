@@ -790,6 +790,7 @@ async function CategoryVotingForm({ week, currentUserId, roundVotedUserIds }: an
               name="categoryId"
               value={cat.id}
               defaultChecked={userVote?.targetId === cat.id}
+              required
               style={{ cursor: "pointer", accentColor: "var(--primary)" }}
             />
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -994,6 +995,7 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
                 name="movieId"
                 value={movie.id}
                 defaultChecked={userVote?.targetId === movie.id}
+                required
                 style={{ cursor: "pointer", accentColor: "var(--primary)" }}
               />
               <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
