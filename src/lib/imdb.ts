@@ -1,4 +1,5 @@
 export interface MovieMetadata {
+  title?: string;
   year?: number;
   director?: string;
   stars?: string;
@@ -35,6 +36,7 @@ export async function fetchMovieMetadata(imdbUrl: string): Promise<MovieMetadata
         const data = await res.json();
         if (data.Response !== "False") {
           return {
+            title: data.Title || undefined,
             year: data.Year ? parseInt(data.Year, 10) : undefined,
             director: data.Director && data.Director !== "N/A" ? data.Director : undefined,
             stars: data.Actors && data.Actors !== "N/A" ? data.Actors : undefined,
@@ -93,7 +95,9 @@ export async function fetchMovieMetadata(imdbUrl: string): Promise<MovieMetadata
     let runtimeVal: string | null = null;
     let dateVal: string | null = null;
 
+    let titleVal: string | null = null;
     for (const b of bindings) {
+      if (b.movieLabel?.value) titleVal = b.movieLabel.value;
       if (b.directorLabel?.value) directors.add(b.directorLabel.value);
       if (b.runtime?.value) runtimeVal = b.runtime.value;
       if (b.date?.value) dateVal = b.date.value;
@@ -109,6 +113,7 @@ export async function fetchMovieMetadata(imdbUrl: string): Promise<MovieMetadata
     }
 
     return {
+      title: titleVal || undefined,
       year: yearVal,
       director: directors.size > 0 ? Array.from(directors).join(", ") : undefined,
       stars: cast.size > 0 ? Array.from(cast).slice(0, 4).join(", ") : undefined, // Top 4 most popular actors

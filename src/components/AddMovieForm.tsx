@@ -21,7 +21,6 @@ interface AddMovieFormProps {
 }
 
 export default function AddMovieForm({ categories, genres }: AddMovieFormProps) {
-  const [title, setTitle] = useState("");
   const [imdbUrl, setImdbUrl] = useState("");
   const [trailerUrl, setTrailerUrl] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -52,8 +51,8 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !categoryId) {
-      setError("Title and Category are required.");
+    if (!imdbUrl || !categoryId) {
+      setError("IMDb URL and Category are required.");
       return;
     }
 
@@ -62,8 +61,7 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
 
     startTransition(async () => {
       try {
-        await addMovieAction(title, imdbUrl, categoryId, selectedGenreIds, trailerUrl);
-        setTitle("");
+        await addMovieAction(imdbUrl, categoryId, selectedGenreIds, trailerUrl);
         setImdbUrl("");
         setTrailerUrl("");
         setCategoryId("");
@@ -97,32 +95,8 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        <label htmlFor="movie-title" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>
-          Movie Title *
-        </label>
-        <input
-          id="movie-title"
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Bloodsport"
-          disabled={isPending}
-          required
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
-            color: "var(--text-primary)",
-            border: "1px solid var(--glass-border)",
-            borderRadius: "var(--radius-sm)",
-            padding: "10px 12px",
-            fontSize: "0.9rem",
-            outline: "none",
-          }}
-        />
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         <label htmlFor="movie-imdb" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>
-          IMDB Link
+          IMDb Link *
         </label>
         <input
           id="movie-imdb"
@@ -131,6 +105,7 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
           onChange={(e) => setImdbUrl(e.target.value)}
           placeholder="https://www.imdb.com/title/..."
           disabled={isPending}
+          required
           style={{
             backgroundColor: "rgba(0, 0, 0, 0.2)",
             color: "var(--text-primary)",
