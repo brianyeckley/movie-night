@@ -1,6 +1,26 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { fetchMovieMetadata } from "../src/lib/imdb";
+import fs from "fs";
+import path from "path";
+
+// Load .env file manually into process.env for standalone script execution
+const envPath = path.resolve(process.cwd(), ".env");
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, "utf-8");
+  envContent.split(/\r?\n/).forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) return;
+    const eqIdx = trimmed.indexOf("=");
+    if (eqIdx === -1) return;
+    const key = trimmed.slice(0, eqIdx).trim();
+    let val = trimmed.slice(eqIdx + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    process.env[key] = val;
+  });
+}
 
 // Instantiate the Prisma adapter pointing to dev.db in root
 const adapter = new PrismaBetterSqlite3({
@@ -11,16 +31,10 @@ const prisma = new PrismaClient({ adapter });
 async function backfill() {
   console.log("Starting movie metadata backfill...");
 
-  // Find all movies with an IMDb URL that lack metadata
+  // Find all movies with an IMDb URL to update/refresh metadata
   const movies = await prisma.movie.findMany({
     where: {
-      imdbUrl: { not: null },
-      OR: [
-        { year: null },
-        { director: null },
-        { stars: null },
-        { runtime: null }
-      ]
+      imdbUrl: { not: null }
     }
   });
 
