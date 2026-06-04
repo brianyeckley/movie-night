@@ -27,7 +27,7 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Auto-check "Comedy" genre when Comedy category is selected
   useEffect(() => {
@@ -57,17 +57,17 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
     }
 
     setError(null);
-    setSuccess(false);
+    setSuccessMsg(null);
 
     startTransition(async () => {
       try {
-        await addMovieAction(imdbUrl, categoryId, selectedGenreIds, trailerUrl);
+        const movie = await addMovieAction(imdbUrl, categoryId, selectedGenreIds, trailerUrl);
         setImdbUrl("");
         setTrailerUrl("");
         setCategoryId("");
         setSelectedGenreIds([]);
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
+        setSuccessMsg(`"${movie.title}" added successfully!`);
+        setTimeout(() => setSuccessMsg(null), 5000);
       } catch (err: any) {
         setError(err.message || "Failed to add movie.");
       }
@@ -88,9 +88,9 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
         </div>
       )}
 
-      {success && (
+      {successMsg && (
         <div style={{ color: "var(--success)", backgroundColor: "rgba(16, 185, 129, 0.15)", padding: "12px", borderRadius: "var(--radius-sm)", fontSize: "0.9rem", border: "1px solid var(--success)" }}>
-          Movie added successfully!
+          {successMsg}
         </div>
       )}
 
