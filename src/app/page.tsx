@@ -17,6 +17,7 @@ import Link from "next/link";
 import { MovieVotingFormClient, SubcategoryVotingFormClient, ShortlistVotingFormClient } from "@/components/VotingFormClient";
 import TrailerButton from "@/components/TrailerButton";
 import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
+import AdvanceRoundButton from "@/components/AdvanceRoundButton";
 
 export const dynamic = "force-dynamic";
 
@@ -429,16 +430,7 @@ export default async function DashboardPage() {
                                 Reset Current Round Votes
                               </button>
                             </form>
-                            <form
-                              action={async () => {
-                                "use server";
-                                await advanceWeekRoundAction(activeWeek.id);
-                              }}
-                            >
-                              <button type="submit" className="btn btn-primary" style={{ padding: "6px 14px", fontSize: "0.85rem" }}>
-                                Close Round & Advance ➔
-                              </button>
-                            </form>
+                            <AdvanceRoundButton weekId={activeWeek.id} />
                           </>
                         )}
                         <form
@@ -461,16 +453,7 @@ export default async function DashboardPage() {
                       <span style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: 600 }}>
                         🎉 Everyone has voted! Anyone can advance the round:
                       </span>
-                      <form
-                        action={async () => {
-                          "use server";
-                          await advanceWeekRoundAction(activeWeek.id);
-                        }}
-                      >
-                        <button type="submit" className="btn btn-primary" style={{ padding: "6px 14px", fontSize: "0.85rem", backgroundColor: "var(--success)", borderColor: "var(--success)" }}>
-                          Close Round & Advance ➔
-                        </button>
-                      </form>
+                      <AdvanceRoundButton weekId={activeWeek.id} isGreen />
                     </div>
                   )}
 
