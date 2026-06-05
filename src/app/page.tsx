@@ -252,26 +252,26 @@ export default async function DashboardPage() {
     : null;
 
   return (
-    <div style={{ padding: "40px 0" }}>
+    <div className="py-xl">
       <main className="container">
         {!currentUser ? (
           // ----------------------------------------
           // NO USER SELECTED VIEW
           // ----------------------------------------
-          <div className="glass-panel no-hover" style={{ padding: "48px", textAlign: "center", maxWidth: "600px", margin: "40px auto" }}>
-            <h1 className="text-gradient" style={{ fontSize: "2.5rem", fontWeight: 800, marginBottom: "16px" }}>
+          <div className="glass-panel no-hover p-2xl text-center max-w-2xl mx-auto my-3xl">
+            <h1 className="text-gradient text-8xl font-extrabold mb-lg">
               🎬 Welcome to Movie Night
             </h1>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "32px", fontSize: "1.1rem" }}>
+            <p className="text-secondary mb-2xl text-xl">
               Please pick your profile in the header dropdown to enter the movie night dashboard, participate in voting, or manage the catalog.
             </p>
-            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "24px" }}>
-              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: "12px" }}>
+            <div className="border-t pt-lg">
+              <span className="text-base text-muted block mb-md">
                 Simulating profiles for:
               </span>
-              <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+              <div className="flex-center gap-lg">
                 {users.map((u) => (
-                  <span key={u.id} style={{ fontSize: "0.95rem", color: "var(--text-primary)", padding: "6px 12px", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-sm)", backgroundColor: "var(--bg-secondary)" }}>
+                  <span key={u.id} className="dashboard-user-badge">
                     {u.name} {u.role === "ADMIN" && "👑"}
                   </span>
                 ))}
@@ -282,7 +282,7 @@ export default async function DashboardPage() {
           // ----------------------------------------
           // MAIN DASHBOARD (ACTIVE USER)
           // ----------------------------------------
-          <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
+          <div className="flex-col gap-3xl">
             
             {/* Active Week / Voting Dashboard */}
             <div className="glass-panel no-hover dashboard-panel">
@@ -290,16 +290,16 @@ export default async function DashboardPage() {
                 // ----------------------------------------
                 // NO ACTIVE WEEK STATE
                 // ----------------------------------------
-                <div style={{ textAlign: "center", padding: "40px 0" }}>
-                  <span style={{ fontSize: "3rem", display: "block", marginBottom: "16px" }}>🍿</span>
-                  <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "8px" }}>No Active Week</h2>
-                  <p style={{ color: "var(--text-secondary)", marginBottom: "32px", maxWidth: "500px", margin: "0 auto 32px auto" }}>
+                <div className="text-center py-xl">
+                  <span className="text-9xl block mb-lg">🍿</span>
+                  <h2 className="text-5xl font-extrabold mb-sm">No Active Week</h2>
+                  <p className="text-secondary max-w-xl mx-auto mb-2xl">
                     There is currently no movie night week in progress.
                   </p>
                   
                   {currentUser.role === "ADMIN" ? (
-                    <div style={{ maxWidth: "400px", margin: "0 auto", padding: "24px", backgroundColor: "rgba(0, 0, 0, 0.15)", borderRadius: "var(--radius-md)", border: "1px solid var(--glass-border)", textAlign: "left" }}>
-                      <h3 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: "12px", color: "var(--text-primary)" }}>
+                    <div className="admin-start-week-card">
+                      <h3 className="text-lg font-bold mb-md text-primary-var">
                         Admin: Start New Movie Night Week
                       </h3>
                       <form
@@ -308,10 +308,10 @@ export default async function DashboardPage() {
                           const theme = formData.get("theme") as string;
                           if (theme) await createWeekAction(theme);
                         }}
-                        style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+                        className="flex-col gap-md"
                       >
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <label htmlFor="week-theme" style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                        <div className="form-group">
+                          <label htmlFor="week-theme" className="form-label">
                             Theme Category
                           </label>
                           {themeCategories.length > 0 ? (
@@ -319,16 +319,7 @@ export default async function DashboardPage() {
                               id="week-theme"
                               name="theme"
                               required
-                              style={{
-                                backgroundColor: "var(--bg-tertiary)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--glass-border)",
-                                borderRadius: "var(--radius-sm)",
-                                padding: "8px 12px",
-                                fontSize: "0.9rem",
-                                outline: "none",
-                                width: "100%",
-                              }}
+                              className="form-select w-full"
                             >
                               {themeCategories.map((theme) => (
                                 <option key={theme.id} value={theme.name}>
@@ -343,25 +334,17 @@ export default async function DashboardPage() {
                               type="text"
                               placeholder="No themes found. Type to create..."
                               required
-                              style={{
-                                backgroundColor: "rgba(0, 0, 0, 0.2)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--glass-border)",
-                                borderRadius: "var(--radius-sm)",
-                                padding: "8px 12px",
-                                fontSize: "0.9rem",
-                                outline: "none",
-                              }}
+                              className="form-input w-full"
                             />
                           )}
                         </div>
-                        <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "10px" }}>
+                        <button type="submit" className="btn btn-primary w-full">
                           Start Week
                         </button>
                       </form>
                     </div>
                   ) : (
-                    <div style={{ display: "inline-block", padding: "12px 24px", backgroundColor: "var(--primary-light)", border: "1px solid var(--primary)", borderRadius: "var(--radius-md)", color: "var(--primary)" }}>
+                    <div className="waiting-banner">
                       <strong>Waiting for Brian (Admin) to start the next week!</strong>
                     </div>
                   )}
@@ -372,18 +355,18 @@ export default async function DashboardPage() {
                 // ----------------------------------------
                 <div>
                   {/* Top Bar Info */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: "1px solid var(--glass-border)", paddingBottom: "20px", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
+                  <div className="dashboard-header-bar">
                     <div>
-                      <h2 style={{ fontSize: "1.8rem", fontWeight: 800 }}>
+                      <h2 className="text-5xl font-extrabold">
                         Week #{activeWeek.weekNumber} Voting
                       </h2>
-                      <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", marginTop: "4px" }}>
-                        Active Theme: <strong style={{ color: "var(--primary)" }}>{activeWeek.themeCategory?.name}</strong>
+                      <p className="text-secondary text-md mt-xs">
+                        Active Theme: <strong className="text-primary-color">{activeWeek.themeCategory?.name}</strong>
                       </p>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-secondary)" }}>Status:</span>
-                      <span style={{ fontSize: "0.85rem", backgroundColor: "var(--primary-light)", color: "var(--primary)", padding: "4px 12px", borderRadius: "var(--radius-full)", fontWeight: 700, border: "1px solid var(--primary)" }}>
+                    <div className="flex-row items-center gap-sm">
+                      <span className="text-sm-alt text-uppercase tracking-widest text-secondary">Status:</span>
+                      <span className="badge badge-admin">
                         {roundTitle}
                       </span>
                     </div>
@@ -391,33 +374,21 @@ export default async function DashboardPage() {
 
                   {/* Tiebreaker Alert Banner */}
                   {round1ChosenName && (
-                    <div style={{
-                      padding: "16px 20px",
-                      backgroundColor: "var(--accent-light)",
-                      border: "1px solid var(--accent)",
-                      borderRadius: "var(--radius-md)",
-                      color: "var(--text-primary)",
-                      fontSize: "0.95rem",
-                      marginBottom: "24px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      boxShadow: "var(--shadow-glow-accent)"
-                    }}>
-                      <span style={{ fontSize: "1.4rem" }}>🎲</span>
+                    <div className="tiebreaker-banner">
+                      <span className="text-xl">🎲</span>
                       <div>
-                        <strong>Random Tiebreaker Draw occurred!</strong> Round 1: Category Selection resulted in a tie. The category <strong style={{ color: "var(--accent)", fontWeight: 700 }}>{round1ChosenName}</strong> was randomly selected to resolve the tie.
+                        <strong>Random Tiebreaker Draw occurred!</strong> Round 1: Category Selection resulted in a tie. The category <strong className="text-accent-color font-bold">{round1ChosenName}</strong> was randomly selected to resolve the tie.
                       </div>
                     </div>
                   )}
 
                   {/* Admin Controls */}
                   {currentUser.role === "ADMIN" && (
-                    <div style={{ padding: "16px 20px", backgroundColor: "rgba(99, 102, 241, 0.05)", border: "1px solid rgba(99, 102, 241, 0.2)", borderRadius: "var(--radius-md)", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
-                      <span style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: 600 }}>
+                    <div className="admin-actions-bar">
+                      <span className="text-md text-primary-var font-semibold">
                         👑 Admin Actions ({currentUser.name}):
                       </span>
-                      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                      <div className="flex-row gap-md flex-wrap">
                         {activeWeek.status !== "COMPLETED" && (
                           <>
                             <form
@@ -426,7 +397,7 @@ export default async function DashboardPage() {
                                 await resetRoundAction(activeWeek.id);
                               }}
                             >
-                              <button type="submit" className="btn btn-secondary" style={{ padding: "6px 14px", fontSize: "0.85rem" }}>
+                              <button type="submit" className="btn btn-secondary btn-sm">
                                 Reset Current Round Votes
                               </button>
                             </form>
@@ -439,7 +410,7 @@ export default async function DashboardPage() {
                             await deleteWeekAction(activeWeek.id);
                           }}
                         >
-                          <button type="submit" className="btn btn-secondary" style={{ padding: "6px 14px", fontSize: "0.85rem", color: "var(--accent)", borderColor: "rgba(244, 63, 94, 0.2)" }}>
+                          <button type="submit" className="btn btn-secondary btn-delete-week">
                             Delete Week
                           </button>
                         </form>
@@ -449,8 +420,8 @@ export default async function DashboardPage() {
 
                   {/* Non-Admin Round Advance Controls (shows up only when all votes are cast) */}
                   {currentUser.role !== "ADMIN" && allVotesIn && activeWeek.status !== "COMPLETED" && (
-                    <div style={{ padding: "16px 20px", backgroundColor: "rgba(16, 185, 129, 0.05)", border: "1px solid rgba(16, 185, 129, 0.2)", borderRadius: "var(--radius-md)", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
-                      <span style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: 600 }}>
+                    <div className="voted-all-bar">
+                      <span className="text-md text-primary-var font-semibold">
                         🎉 Everyone has voted! Anyone can advance the round:
                       </span>
                       <AdvanceRoundButton weekId={activeWeek.id} isGreen />
@@ -458,10 +429,10 @@ export default async function DashboardPage() {
                   )}
 
                   {/* Voting Area */}
-                  <div className="grid" style={{ gridTemplateColumns: activeWeek.status === "COMPLETED" ? "1fr" : "3fr 1.5fr", alignItems: "start" }}>
+                  <div className={`dashboard-layout ${activeWeek.status === "COMPLETED" ? "completed" : ""}`}>
                     
                     {/* Active Form based on Week State */}
-                    <div style={{ backgroundColor: "rgba(255, 255, 255, 0.015)", border: "1px solid var(--glass-border)", padding: "24px", borderRadius: "var(--radius-md)" }}>
+                    <div className="dashboard-form-container">
                       
                       {/* ROUND 1: Category Voting */}
                       {activeWeek.status === "CATEGORY_VOTING" && (
@@ -495,44 +466,27 @@ export default async function DashboardPage() {
 
                       {/* PRIOR ROUND RESULTS */}
                       {completedRoundsData.length > 0 && (
-                        <div style={{ marginTop: "32px", display: "flex", flexDirection: "column", gap: "20px", borderTop: "1px solid var(--glass-border)", paddingTop: "24px" }}>
-                          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div className="border-t pt-lg mt-2xl flex-col gap-xl">
+                          <h3 className="text-2xl font-bold text-primary-var flex-row items-center gap-sm">
                             📊 Prior Round Results
                           </h3>
-                          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                          <div className="flex-col gap-lg">
                             {completedRoundsData.map((round: any) => (
                               <div 
                                 key={round.roundCode} 
-                                style={{ 
-                                  backgroundColor: "rgba(0, 0, 0, 0.15)", 
-                                  border: "1px solid var(--glass-border)", 
-                                  borderRadius: "var(--radius-md)", 
-                                  padding: "16px" 
-                                }}
+                                className="dashboard-form-container"
                               >
-                                <h4 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--primary)", marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <h4 className="text-md font-bold text-primary-color mb-md flex-row justify-between items-center">
                                   <span>{round.title}</span>
-                                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Closed</span>
+                                  <span className="text-sm-alt text-muted text-uppercase tracking-widest">Closed</span>
                                 </h4>
 
                                 {round.isTie && (
-                                  <div style={{ 
-                                    padding: "8px 12px", 
-                                    backgroundColor: round.chosenTargetId ? "var(--accent-light)" : "var(--primary-light)", 
-                                    border: "1px solid " + (round.chosenTargetId ? "var(--accent)" : "var(--primary)"), 
-                                    borderRadius: "var(--radius-sm)", 
-                                    fontSize: "0.8rem", 
-                                    color: "var(--text-primary)", 
-                                    marginBottom: "12px",
-                                    fontWeight: 600,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "6px"
-                                  }}>
+                                  <div className={`alert-box mb-md font-semibold flex-row items-center gap-xs ${round.chosenTargetId ? "alert-error" : "alert-success alert-sm"}`}>
                                     {round.chosenTargetId ? (
                                       <>
                                         🎲 <strong>Tiebreaker:</strong> Random draw selected{" "}
-                                        <strong style={{ color: "var(--accent)" }}>
+                                        <strong className="text-accent-color">
                                           {round.targets.find((t: any) => t.targetId === round.chosenTargetId)?.name || "Option"}
                                         </strong>
                                       </>
@@ -544,7 +498,7 @@ export default async function DashboardPage() {
                                   </div>
                                 )}
 
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                <div className="flex-col gap-sm">
                                   {round.targets.map((target: any, idx: number) => {
                                     const isWinner = idx === 0 || target.count === round.targets[0].count;
                                     const isChosenRandomly = round.chosenTargetId === target.targetId;
@@ -573,24 +527,16 @@ export default async function DashboardPage() {
                                           fontSize: "0.9rem"
                                         }}
                                       >
-                                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                                          <span style={{ fontWeight: 600, color: (isWinner || isChosenRandomly) ? "var(--text-primary)" : "var(--text-secondary)" }}>
+                                        <div className="flex-col gap-xxs">
+                                          <span className={`font-semibold ${isChosenRandomly || isWinner ? "text-primary-var" : "text-secondary"}`}>
                                             {target.name}{" "}
                                             {isChosenRandomly ? "🎲" : (isWinner && !round.isTie) ? "🏆" : ""}
                                           </span>
-                                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                          <span className="text-sm-alt text-muted">
                                             Voters: {target.voters.join(", ")}
                                           </span>
                                         </div>
-                                        <span style={{ 
-                                          fontSize: "0.8rem", 
-                                          fontWeight: 700, 
-                                          backgroundColor: isChosenRandomly ? "var(--accent-light)" : isWinner ? "var(--primary-light)" : "var(--bg-tertiary)", 
-                                          color: isChosenRandomly ? "var(--accent)" : isWinner ? "var(--primary)" : "var(--text-secondary)", 
-                                          padding: "2px 8px", 
-                                          borderRadius: "var(--radius-full)", 
-                                          border: isChosenRandomly ? "1px solid var(--accent)" : isWinner ? "1px solid var(--primary)" : "none" 
-                                        }}>
+                                        <span className={`badge ${isChosenRandomly ? "badge-pending" : isWinner ? "badge-admin" : "badge-user"}`}>
                                           {target.count} {target.count === 1 ? "vote" : "votes"}
                                         </span>
                                       </div>
@@ -607,22 +553,22 @@ export default async function DashboardPage() {
 
                     {/* Live Voting Tracker — hidden once a winner is chosen */}
                     {activeWeek.status !== "COMPLETED" && (
-                      <div className="glass-panel" style={{ padding: "24px", backgroundColor: "rgba(0,0,0,0.15)" }}>
-                        <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "16px" }}>Vote Progress</h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      <div className="glass-panel p-lg bg-white-05">
+                        <h3 className="text-xl font-bold mb-lg">Vote Progress</h3>
+                        <div className="flex-col gap-md">
                           {users.map((u) => {
                             const hasVoted = roundVotedUserIds.includes(u.id);
                             return (
-                              <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", backgroundColor: "rgba(255, 255, 255, 0.02)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-sm)" }}>
-                                <span style={{ fontWeight: 600 }}>{u.name}</span>
-                                <span style={{ fontSize: "0.85rem", color: hasVoted ? "var(--success)" : "var(--accent)" }}>
+                              <div key={u.id} className="flex-between p-sm border-b bg-white-05">
+                                <span className="font-semibold">{u.name}</span>
+                                <span className={`text-base ${hasVoted ? "text-success-color" : "text-accent-color"}`}>
                                   {hasVoted ? "✅ Voted" : "❌ Waiting"}
                                 </span>
                               </div>
                             );
                           })}
                         </div>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "16px", fontStyle: "italic", textAlign: "center" }}>
+                        <p className="text-sm text-muted mt-lg italic text-center">
                           Selections are hidden until the Admin closes the round.
                         </p>
                       </div>
@@ -634,17 +580,17 @@ export default async function DashboardPage() {
             </div>
 
             {/* Past Movie Nights Log */}
-            <div className="glass-panel no-hover" style={{ padding: "32px" }}>
-              <h2 style={{ fontSize: "1.6rem", fontWeight: 800, marginBottom: "20px" }}>🎬 Past Movie Nights</h2>
+            <div className="glass-panel no-hover p-xl">
+              <h2 className="text-6xl font-extrabold mb-lg">🎬 Past Movie Nights</h2>
               {pastWeeks.length === 0 ? (
-                <p style={{ color: "var(--text-secondary)", fontStyle: "italic" }}>No movie nights have completed yet.</p>
+                <p className="text-secondary italic">No movie nights have completed yet.</p>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
                   {pastWeeks.map((wk) => (
-                    <div key={wk.id} className="glass-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "10px", backgroundColor: "rgba(255, 255, 255, 0.01)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <span style={{ fontSize: "0.8rem", color: "var(--primary)", fontWeight: 700 }}>
+                    <div key={wk.id} className="glass-panel p-lg flex-col gap-sm bg-white-05">
+                      <div className="flex-between">
+                        <div className="flex-row items-center gap-xs">
+                          <span className="text-sm-alt text-primary-color font-bold">
                             WEEK #{wk.weekNumber}
                           </span>
                           {currentUser?.role === "ADMIN" && (
@@ -655,48 +601,48 @@ export default async function DashboardPage() {
                             />
                           )}
                         </div>
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                        <span className="text-sm-alt text-muted">
                           {wk.closedAt ? new Date(wk.closedAt).toLocaleDateString() : ""}
                         </span>
                       </div>
-                      <h3 style={{ fontSize: "1.2rem", fontWeight: 700 }}>
+                      <h3 className="text-xl font-bold">
                         {wk.winner?.title || "Unknown Movie"}{wk.winner?.year ? ` (${wk.winner.year})` : ""}
                       </h3>
-                      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "2px" }}>
+                      <div className="flex-row gap-sm items-center mt-xxs">
                         {wk.winner?.trailerUrl && <TrailerButton trailerUrl={wk.winner.trailerUrl} />}
                         {wk.winner?.imdbUrl && (
-                          <a href={wk.winner.imdbUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.8rem", color: "var(--primary)", textDecoration: "underline" }}>
+                          <a href={wk.winner.imdbUrl} target="_blank" rel="noopener noreferrer" className="text-sm-alt text-primary-color underline">
                             IMDb Link ↗
                           </a>
                         )}
                       </div>
                       {wk.winner && (wk.winner.director || wk.winner.runtime || wk.winner.stars) && (
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", margin: "2px 0 4px 0" }}>
+                        <div className="text-sm-alt text-secondary flex-col gap-xxs mt-xxs mb-xs">
                           {(wk.winner.director || wk.winner.runtime) && (
-                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                            <div className="flex-row gap-xs items-center">
                               {wk.winner.director && <span>🎬 {wk.winner.director}</span>}
-                              {wk.winner.director && wk.winner.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                              {wk.winner.director && wk.winner.runtime && <span className="text-glass-border">•</span>}
                               {wk.winner.runtime && <span>⏱️ {wk.winner.runtime}</span>}
                             </div>
                           )}
                           {wk.winner.stars && (
-                            <div style={{ color: "var(--text-muted)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                            <div style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
                               👥 {wk.winner.stars}
                             </div>
                           )}
                         </div>
                       )}
-                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                      <div className="flex-row gap-xs flex-wrap mt-xs">
                         {wk.winner?.genres.map((g) => (
-                          <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "2px 6px", borderRadius: "var(--radius-sm)" }}>
+                          <span key={g.id} className="badge-genre">
                             {g.name}
                           </span>
                         ))}
                       </div>
-                      <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "8px", marginTop: "8px", display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                      <div className="border-t pt-sm mt-sm flex-between text-sm-alt text-muted">
                         <span>Theme: {wk.themeCategory?.name || "None"}</span>
                         {wk.isRandomlyChosen && (
-                          <span style={{ color: "var(--accent)", fontWeight: 600 }}>🎲 Random Draw</span>
+                          <span className="text-accent-color font-semibold">🎲 Random Draw</span>
                         )}
                       </div>
                     </div>
@@ -738,8 +684,8 @@ async function CategoryVotingForm({ week, currentUserId, roundVotedUserIds }: an
 
   return (
     <div>
-      <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "12px" }}>Round 1: Select Category</h3>
-      <p style={{ color: "var(--text-secondary)", marginBottom: "20px", fontSize: "0.95rem" }}>
+      <h3 className="text-3xl font-bold mb-md">Round 1: Select Category</h3>
+      <p className="text-secondary mb-xl text-md">
         Vote for the high-level category of movies to watch this week. Tie-breaks will result in a random pick. (1 Vote)
       </p>
 
@@ -751,22 +697,12 @@ async function CategoryVotingForm({ week, currentUserId, roundVotedUserIds }: an
             await submitCategoryVoteAction(week.id, categoryId);
           }
         }}
-        style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+        className="flex-col gap-md"
       >
         {categories.map((cat) => (
           <label
             key={cat.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "14px 18px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid " + (userVote?.targetId === cat.id ? "var(--primary)" : "var(--glass-border)"),
-              backgroundColor: userVote?.targetId === cat.id ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              cursor: "pointer",
-              transition: "all var(--transition-fast)",
-            }}
+            className={`voting-card items-center gap-md ${userVote?.targetId === cat.id ? "checked" : ""}`}
           >
             <input
               type="radio"
@@ -774,16 +710,16 @@ async function CategoryVotingForm({ week, currentUserId, roundVotedUserIds }: an
               value={cat.id}
               defaultChecked={userVote?.targetId === cat.id}
               required
-              style={{ cursor: "pointer", accentColor: "var(--primary)" }}
+              className="vote-checkbox"
             />
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontWeight: 600, fontSize: "1rem", color: "var(--text-primary)" }}>{cat.name}</span>
-              {cat.isThemed && <span style={{ fontSize: "0.75rem", color: "var(--accent)" }}>Current Theme Category</span>}
+            <div className="flex-col">
+              <span className="font-semibold text-lg text-primary-var">{cat.name}</span>
+              {cat.isThemed && <span className="text-sm text-accent-color">Current Theme Category</span>}
             </div>
           </label>
         ))}
 
-        <button type="submit" className="btn btn-primary" style={{ marginTop: "12px" }}>
+        <button type="submit" className="btn btn-primary mt-md">
           {userVote ? "Update Category Vote" : "Cast Category Vote"}
         </button>
       </form>
@@ -825,15 +761,15 @@ async function MovieVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
 
   return (
     <div>
-      <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "6px" }}>
-        Round 2: Select Movies in <span style={{ color: "var(--primary)" }}>{category?.name}</span>
+      <h3 className="text-3xl font-bold mb-sm">
+        Round 2: Select Movies in <span className="text-primary-color">{category?.name}</span>
       </h3>
-      <p style={{ color: "var(--text-secondary)", marginBottom: "20px", fontSize: "0.95rem" }}>
+      <p className="text-secondary mb-xl text-md">
         Select movies or subcategories from the winning category. If one movie wins outright, it becomes the weekly winner immediately! (Max 2 Votes)
       </p>
 
       {movies.length === 0 && subcategories.length === 0 ? (
-        <p style={{ color: "var(--text-muted)", fontStyle: "italic", padding: "12px 0" }}>
+        <p className="text-muted italic py-sm">
           No options created in this category yet. Go to the Catalog tab to add movies or subcategories!
         </p>
       ) : (
@@ -871,15 +807,15 @@ async function SubcategoryVotingForm({ week, currentUserId, roundVotedUserIds }:
 
   return (
     <div>
-      <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "6px" }}>
-        Round 2b: Select Movies in Subcategory <span style={{ color: "var(--primary)" }}>{subcategory?.name}</span>
+      <h3 className="text-3xl font-bold mb-sm">
+        Round 2b: Select Movies in Subcategory <span className="text-primary-color">{subcategory?.name}</span>
       </h3>
-      <p style={{ color: "var(--text-secondary)", marginBottom: "20px", fontSize: "0.95rem" }}>
+      <p className="text-secondary mb-xl text-md">
         Select movies inside the winning subcategory. The top voted movies will enter the shortlist. (Max 2 Votes)
       </p>
 
       {movies.length === 0 ? (
-        <p style={{ color: "var(--text-muted)", fontStyle: "italic", padding: "12px 0" }}>
+        <p className="text-muted italic py-sm">
           No movies added in this subcategory yet. Go to the Catalog tab to add movies under "{subcategory?.name}"!
         </p>
       ) : (
@@ -906,13 +842,13 @@ async function ShortlistVotingForm({ week, currentUserId, roundVotedUserIds }: a
 
   return (
     <div>
-      <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "6px" }}>Round 3: Shortlist Voting</h3>
-      <p style={{ color: "var(--text-secondary)", marginBottom: "20px", fontSize: "0.95rem" }}>
+      <h3 className="text-3xl font-bold mb-sm">Round 3: Shortlist Voting</h3>
+      <p className="text-secondary mb-xl text-md">
         Vote on the compiled shortlist of tied movies. Outright highest voted movie wins! (Max 3 Votes)
       </p>
 
       {movies.length === 0 ? (
-        <p style={{ color: "var(--text-muted)", fontStyle: "italic" }}>No movies advanced to the shortlist.</p>
+        <p className="text-muted italic">No movies advanced to the shortlist.</p>
       ) : (
         <ShortlistVotingFormClient
           weekId={week.id}
@@ -936,8 +872,8 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
 
   return (
     <div>
-      <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "6px" }}>Round 4: Final Tiebreaker</h3>
-      <p style={{ color: "var(--text-secondary)", marginBottom: "20px", fontSize: "0.95rem" }}>
+      <h3 className="text-3xl font-bold mb-sm">Round 4: Final Tiebreaker</h3>
+      <p className="text-secondary mb-xl text-md">
         A tie has occurred in the shortlist round! Vote on the remaining tied options. If a tie persists here, a random winner will be selected. (1 Vote)
       </p>
 
@@ -949,34 +885,16 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
             await submitFinalVoteAction(week.id, movieId);
           }
         }}
-        style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+        className="flex-col gap-md"
       >
         {movies.map((movie: any) => (
           <div
             key={movie.id}
-            className="movie-row-card"
-            style={{
-              border: "1px solid " + (userVote?.targetId === movie.id ? "var(--primary)" : "var(--glass-border)"),
-              borderRadius: "var(--radius-md)",
-              backgroundColor: userVote?.targetId === movie.id ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              padding: "14px 18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              width: "100%",
-              textAlign: "left"
-            }}
+            className={`movie-row-card text-left ${userVote?.targetId === movie.id ? "checked" : ""}`}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "12px" }}>
+            <div className="flex-row justify-between items-start flex-wrap gap-md">
               <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  cursor: "pointer",
-                  flex: 1,
-                  minWidth: "250px"
-                }}
+                className="flex-row items-center gap-md flex-1 min-w-250 cursor-pointer"
               >
                 <input
                   type="radio"
@@ -984,50 +902,33 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
                   value={movie.id}
                   defaultChecked={userVote?.targetId === movie.id}
                   required
-                  style={{ cursor: "pointer", accentColor: "var(--primary)" }}
+                  className="vote-checkbox"
                 />
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                    <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                <div className="flex-col gap-xs">
+                  <div className="flex-row items-center gap-sm-plus flex-wrap">
+                    <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger" style={{
-                        fontSize: "0.7rem",
-                        backgroundColor: "var(--primary-light)",
-                        color: "var(--primary)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid rgba(99, 102, 241, 0.2)",
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <span className="movie-tooltip-trigger btn-plot">
                         🍿 Plot
                         <span className="movie-tooltip-card">
                           {movie.posterUrl && (
                             <img
                               src={movie.posterUrl}
                               alt={`${movie.title} Poster`}
-                              style={{
-                                width: "90px",
-                                borderRadius: "var(--radius-sm)",
-                                border: "1px solid var(--glass-border)",
-                                boxShadow: "var(--shadow-sm)",
-                                flexShrink: 0
-                              }}
+                              className="tooltip-poster"
                             />
                           )}
-                          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", width: "100%", gap: "8px" }}>
-                              <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{movie.title}</span>
+                          <div className="flex-1 flex-col gap-xs">
+                            <div className="flex-row justify-between items-baseline w-full gap-sm">
+                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
                               {movie.imdbRating && (
-                                <span style={{ fontSize: "0.8rem", color: "var(--warning)", fontWeight: 600, flexShrink: 0 }}>
+                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
                                   ⭐ {movie.imdbRating}/10
                                 </span>
                               )}
                             </div>
                             {movie.plot && (
-                              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", margin: 0 }}>
+                              <p className="tooltip-plot">
                                 {movie.plot}
                               </p>
                             )}
@@ -1036,36 +937,25 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
                       </span>
                     )}
                     {movie.imdbRating && (
-                      <span style={{
-                        fontSize: "0.7rem",
-                        backgroundColor: "rgba(245, 158, 11, 0.12)",
-                        color: "var(--warning)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid rgba(245, 158, 11, 0.25)",
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <span className="badge-rating">
                         ⭐ {movie.imdbRating}
                       </span>
                     )}
                   </div>
 
                   {(movie.director || movie.runtime || movie.stars) && (
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
+                    <div className="text-sm text-secondary flex-col gap-xxs mt-xxs">
                       {(movie.director || movie.runtime) && (
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                          {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
-                          {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                        <div className="flex-row gap-sm items-center flex-wrap">
+                          {movie.director && <span>🎬 <span className="text-muted">Dir:</span> {movie.director}</span>}
+                          {movie.director && movie.runtime && <span className="text-glass-border">•</span>}
                           {movie.runtime && <span>⏱️ {movie.runtime}</span>}
                         </div>
                       )}
                       {movie.stars && (
-                        <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
-                          <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
-                          <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                        <div className="flex-row gap-xs items-baseline">
+                          <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                          <span className="text-secondary">{movie.stars}</span>
                         </div>
                       )}
                     </div>
@@ -1073,24 +963,24 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
                 </div>
               </label>
 
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "end", gap: "8px", flexShrink: 0 }}>
+              <div className="flex-col items-end gap-sm flex-shrink-0">
                 {movie.genres && movie.genres.length > 0 && (
-                  <div style={{ display: "flex", gap: "4px" }}>
+                  <div className="flex-row gap-xs">
                     {movie.genres.map((g: any) => (
-                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "2px 8px", borderRadius: "var(--radius-sm)" }}>
+                      <span key={g.id} className="badge-genre">
                         #{g.name}
                       </span>
                     ))}
                   </div>
                 )}
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                <div className="flex-row gap-sm items-center mt-xs">
                   {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                   {movie.imdbUrl && (
                     <a
                       href={movie.imdbUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
+                      className="text-sm text-primary-color underline"
                     >
                       IMDb ↗
                     </a>
@@ -1101,7 +991,7 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
           </div>
         ))}
 
-        <button type="submit" className="btn btn-primary" style={{ marginTop: "12px" }}>
+        <button type="submit" className="btn btn-primary mt-md">
           {userVote ? "Update Final Vote" : "Cast Final Vote"}
         </button>
       </form>
@@ -1114,24 +1004,20 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
   const isLegacyMovie = movie.category.name === "Legacy";
 
   return (
-    <div style={{ textAlign: "center", padding: "20px 0" }}>
-      <span style={{ fontSize: "4rem", display: "block", marginBottom: "8px" }}>🏆</span>
-      <span style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--primary)", fontWeight: 700 }}>
+    <div className="text-center py-md">
+      <span className="text-10xl block mb-sm">🏆</span>
+      <span className="text-base text-uppercase tracking-widest-2 text-primary-color font-bold">
         Winning Movie Chosen!
       </span>
-      <h2 style={{ fontSize: "2.5rem", fontWeight: 800, marginTop: "8px", marginBottom: "12px" }}>
+      <h2 className="text-8xl font-extrabold mt-sm mb-md">
         {movie.title}{movie.year ? ` (${movie.year})` : ""}
       </h2>
 
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
+      <div className="flex-center gap-lg mb-lg">
         {movie.trailerUrl && (
           <TrailerButton
             trailerUrl={movie.trailerUrl}
-            style={{
-              padding: "6px 14px",
-              fontSize: "0.85rem",
-              borderRadius: "var(--radius-md)",
-            }}
+            className="btn-sm"
           />
         )}
         {movie.imdbUrl && (
@@ -1139,15 +1025,7 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
             href={movie.imdbUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              color: "var(--primary)",
-              fontWeight: 600,
-              fontSize: "0.95rem",
-              textDecoration: "underline",
-            }}
+            className="inline-flex items-center gap-sm text-primary-color font-semibold text-md underline"
           >
             View IMDb Page ↗
           </a>
@@ -1177,37 +1055,25 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
                 {movie.plot}
               </p>
             )}
-            <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
-              {movie.imdbRating && <span>⭐ <strong style={{ color: "var(--text-primary)" }}>IMDb Rating:</strong> <span style={{ color: "var(--warning)", fontWeight: 600 }}>{movie.imdbRating}/10</span></span>}
-              {movie.director && <span>🎬 <strong style={{ color: "var(--text-primary)" }}>Director:</strong> {movie.director}</span>}
-              {movie.stars && <span>👥 <strong style={{ color: "var(--text-primary)" }}>Cast:</strong> {movie.stars}</span>}
-              {movie.runtime && <span>⏱️ <strong style={{ color: "var(--text-primary)" }}>Runtime:</strong> {movie.runtime}</span>}
+            <div className="text-sm text-secondary flex-col gap-sm mt-xs">
+              {movie.imdbRating && <span>⭐ <strong className="text-primary-var">IMDb Rating:</strong> <span className="text-warning-color font-semibold">{movie.imdbRating}/10</span></span>}
+              {movie.director && <span>🎬 <strong className="text-primary-var">Director:</strong> {movie.director}</span>}
+              {movie.stars && <span>👥 <strong className="text-primary-var">Cast:</strong> {movie.stars}</span>}
+              {movie.runtime && <span>⏱️ <strong className="text-primary-var">Runtime:</strong> {movie.runtime}</span>}
             </div>
           </div>
         </div>
       )}
 
       {week.isRandomlyChosen && (
-        <div
-          style={{
-            maxWidth: "320px",
-            margin: "0 auto 24px auto",
-            padding: "6px 12px",
-            backgroundColor: "var(--accent-light)",
-            border: "1px solid var(--accent)",
-            borderRadius: "var(--radius-full)",
-            color: "var(--accent)",
-            fontSize: "0.85rem",
-            fontWeight: 600,
-          }}
-        >
+        <div className="random-chosen-badge">
           🎲 Chosen by random tiebreaker draw!
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }}>
+      <div className="flex-center gap-sm flex-wrap mb-2xl">
         {movie.genres.map((g: any) => (
-          <span key={g.id} style={{ fontSize: "0.8rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "4px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--glass-border)" }}>
+          <span key={g.id} className="badge badge-user">
             {g.name}
           </span>
         ))}
@@ -1215,24 +1081,24 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
 
       {/* Admin Close-out Prompt */}
       {currentUser.role === "ADMIN" && (
-        <div style={{ maxWidth: "450px", margin: "0 auto", padding: "24px", backgroundColor: "rgba(99, 102, 241, 0.05)", border: "1px solid rgba(99, 102, 241, 0.2)", borderRadius: "var(--radius-md)" }}>
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "12px", color: "var(--text-primary)" }}>
+        <div className="admin-actions-bar max-w-xl mx-auto text-left flex-col gap-md">
+          <h3 className="text-lg font-bold mb-xs text-primary-var">
             👑 Admin: Close out Movie Night Week
           </h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "20px", lineHeight: "1.5" }}>
+          <p className="text-sm text-secondary mb-md">
             Ready to finalize the week? Choose an action below. This will mark the movie as watched and archive the week's history.
           </p>
 
           {!isLegacyMovie ? (
             // Form for Non-Legacy winning movies
-            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+            <div className="flex-row gap-md justify-center">
               <form
                 action={async () => {
                   "use server";
                   await completeWeekAction(week.id, false);
                 }}
               >
-                <button type="submit" className="btn btn-secondary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
+                <button type="submit" className="btn btn-secondary btn-sm">
                   Mark Watched & Close
                 </button>
               </form>
@@ -1242,21 +1108,21 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
                   await completeWeekAction(week.id, true);
                 }}
               >
-                <button type="submit" className="btn btn-primary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
+                <button type="submit" className="btn btn-primary btn-sm">
                   Move to Legacy List & Close
                 </button>
               </form>
             </div>
           ) : (
             // Form for Legacy winning movies
-            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+            <div className="flex-row gap-md justify-center">
               <form
                 action={async () => {
                   "use server";
                   await completeWeekLegacyOverrideAction(week.id, false);
                 }}
               >
-                <button type="submit" className="btn btn-secondary" style={{ padding: "8px 16px", fontSize: "0.85rem", color: "var(--accent)", borderColor: "rgba(244, 63, 94, 0.2)" }}>
+                <button type="submit" className="btn btn-secondary btn-delete-week">
                   Remove from Legacy & Close
                 </button>
               </form>
@@ -1266,7 +1132,7 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
                   await completeWeekLegacyOverrideAction(week.id, true);
                 }}
               >
-                <button type="submit" className="btn btn-primary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
+                <button type="submit" className="btn btn-primary btn-sm">
                   Keep on Legacy & Close
                 </button>
               </form>

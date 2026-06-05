@@ -56,7 +56,7 @@ export function MovieVotingFormClient({
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <form onSubmit={handleSubmit} className="flex-col gap-md">
       {/* Subcategories */}
       {subcategories.map((sub) => {
         const isChecked = selectedIds.includes(sub.id);
@@ -64,29 +64,18 @@ export function MovieVotingFormClient({
         return (
           <label
             key={sub.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "14px 18px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid " + (isChecked ? "var(--primary)" : "var(--glass-border)"),
-              backgroundColor: isChecked ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              cursor: isDisabled ? "not-allowed" : "pointer",
-              opacity: isDisabled ? 0.4 : 1,
-              transition: "all var(--transition-fast)",
-            }}
+            className={`voting-card items-center gap-md ${isChecked ? "checked" : ""} ${isDisabled ? "disabled" : "enabled"}`}
           >
             <input
               type="checkbox"
               checked={isChecked}
               disabled={isDisabled || isPending}
               onChange={(e) => handleCheckboxChange(sub.id, e.target.checked)}
-              style={{ cursor: isDisabled ? "not-allowed" : "pointer", accentColor: "var(--primary)" }}
+              className="vote-checkbox"
             />
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontWeight: 700, fontSize: "1.05rem" }}>📂 {sub.name} (Subcategory)</span>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+            <div className="flex-col">
+              <span className="font-bold text-lg">📂 {sub.name} (Subcategory)</span>
+              <span className="text-sm-alt text-secondary">
                 Triggers an additional voting round for movies in this subcategory if selected
               </span>
             </div>
@@ -101,80 +90,44 @@ export function MovieVotingFormClient({
         return (
           <div
             key={movie.id}
-            className="movie-row-card"
-            style={{
-              border: "1px solid " + (isChecked ? "var(--primary)" : "var(--glass-border)"),
-              borderRadius: "var(--radius-md)",
-              backgroundColor: isChecked ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              opacity: isDisabled ? 0.4 : 1,
-              padding: "14px 18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              width: "100%",
-              textAlign: "left"
-            }}
+            className={`movie-row-card text-left ${isChecked ? "checked" : ""} ${isDisabled ? "disabled" : ""}`}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "12px" }}>
+            <div className="flex-row justify-between items-start flex-wrap gap-md">
               <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  cursor: isDisabled ? "not-allowed" : "pointer",
-                  flex: 1,
-                  minWidth: "250px"
-                }}
+                className={`flex-row items-center gap-md flex-1 min-w-250 ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}
               >
                 <input
                   type="checkbox"
                   checked={isChecked}
                   disabled={isDisabled || isPending}
                   onChange={(e) => handleCheckboxChange(movie.id, e.target.checked)}
-                  style={{ cursor: isDisabled ? "not-allowed" : "pointer", accentColor: "var(--primary)" }}
+                  className="vote-checkbox"
                 />
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                    <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                <div className="flex-col gap-xs">
+                  <div className="flex-row items-center gap-sm-plus flex-wrap">
+                    <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger" style={{
-                        fontSize: "0.7rem",
-                        backgroundColor: "var(--primary-light)",
-                        color: "var(--primary)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid rgba(99, 102, 241, 0.2)",
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <span className="movie-tooltip-trigger btn-plot">
                         🍿 Plot
                         <span className="movie-tooltip-card">
                           {movie.posterUrl && (
                             <img
                               src={movie.posterUrl}
                               alt={`${movie.title} Poster`}
-                              style={{
-                                width: "90px",
-                                borderRadius: "var(--radius-sm)",
-                                border: "1px solid var(--glass-border)",
-                                boxShadow: "var(--shadow-sm)",
-                                flexShrink: 0
-                              }}
+                              className="tooltip-poster"
                             />
                           )}
-                          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", width: "100%", gap: "8px" }}>
-                              <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{movie.title}</span>
+                          <div className="flex-1 flex-col gap-xs">
+                            <div className="flex-row justify-between items-baseline w-full gap-sm">
+                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
                               {movie.imdbRating && (
-                                <span style={{ fontSize: "0.8rem", color: "var(--warning)", fontWeight: 600, flexShrink: 0 }}>
+                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
                                   ⭐ {movie.imdbRating}/10
                                 </span>
                               )}
                             </div>
                             {movie.plot && (
-                              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", margin: 0 }}>
+                              <p className="tooltip-plot">
                                 {movie.plot}
                               </p>
                             )}
@@ -183,36 +136,25 @@ export function MovieVotingFormClient({
                       </span>
                     )}
                     {movie.imdbRating && (
-                      <span style={{
-                        fontSize: "0.7rem",
-                        backgroundColor: "rgba(245, 158, 11, 0.12)",
-                        color: "var(--warning)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid rgba(245, 158, 11, 0.25)",
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <span className="badge-rating">
                         ⭐ {movie.imdbRating}
                       </span>
                     )}
                   </div>
 
                   {(movie.director || movie.runtime || movie.stars) && (
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
+                    <div className="text-sm text-secondary flex-col gap-xxs mt-xxs">
                       {(movie.director || movie.runtime) && (
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                          {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
-                          {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                        <div className="flex-row gap-sm items-center flex-wrap">
+                          {movie.director && <span>🎬 <span className="text-muted">Dir:</span> {movie.director}</span>}
+                          {movie.director && movie.runtime && <span className="text-glass-border">•</span>}
                           {movie.runtime && <span>⏱️ {movie.runtime}</span>}
                         </div>
                       )}
                       {movie.stars && (
-                        <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
-                          <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
-                          <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                        <div className="flex-row gap-xs items-baseline">
+                          <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                          <span className="text-secondary">{movie.stars}</span>
                         </div>
                       )}
                     </div>
@@ -220,24 +162,24 @@ export function MovieVotingFormClient({
                 </div>
               </label>
 
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "end", gap: "8px", flexShrink: 0 }}>
+              <div className="flex-col items-end gap-sm flex-shrink-0">
                 {movie.genres && movie.genres.length > 0 && (
-                  <div style={{ display: "flex", gap: "4px" }}>
+                  <div className="flex-row gap-xs">
                     {movie.genres.map((g: any) => (
-                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "2px 8px", borderRadius: "var(--radius-sm)" }}>
+                      <span key={g.id} className="badge-genre">
                         #{g.name}
                       </span>
                     ))}
                   </div>
                 )}
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                <div className="flex-row gap-sm items-center mt-xs">
                   {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                   {movie.imdbUrl && (
                     <a
                       href={movie.imdbUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
+                      className="text-sm text-primary-color underline"
                     >
                       IMDb ↗
                     </a>
@@ -250,21 +192,12 @@ export function MovieVotingFormClient({
       })}
 
       {error && (
-        <div style={{
-          padding: "10px 14px",
-          backgroundColor: "var(--accent-light)",
-          border: "1px solid var(--accent)",
-          borderRadius: "var(--radius-sm)",
-          color: "var(--accent)",
-          fontSize: "0.85rem",
-          fontWeight: 600,
-          marginTop: "4px",
-        }}>
+        <div className="vote-error mt-xs">
           {error}
         </div>
       )}
 
-      <button type="submit" disabled={isPending} className="btn btn-primary" style={{ marginTop: "8px" }}>
+      <button type="submit" disabled={isPending} className="btn btn-primary mt-sm">
         {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Votes" : "Cast Votes"}
       </button>
     </form>
@@ -321,87 +254,51 @@ export function SubcategoryVotingFormClient({
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <form onSubmit={handleSubmit} className="flex-col gap-md">
       {movies.map((movie) => {
         const isChecked = selectedIds.includes(movie.id);
         const isDisabled = isLimitReached && !isChecked;
         return (
           <div
             key={movie.id}
-            className="movie-row-card"
-            style={{
-              border: "1px solid " + (isChecked ? "var(--primary)" : "var(--glass-border)"),
-              borderRadius: "var(--radius-md)",
-              backgroundColor: isChecked ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              opacity: isDisabled ? 0.4 : 1,
-              padding: "14px 18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              width: "100%",
-              textAlign: "left"
-            }}
+            className={`movie-row-card text-left ${isChecked ? "checked" : ""} ${isDisabled ? "disabled" : ""}`}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "12px" }}>
+            <div className="flex-row justify-between items-start flex-wrap gap-md">
               <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  cursor: isDisabled ? "not-allowed" : "pointer",
-                  flex: 1,
-                  minWidth: "250px"
-                }}
+                className={`flex-row items-center gap-md flex-1 min-w-250 ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}
               >
                 <input
                   type="checkbox"
                   checked={isChecked}
                   disabled={isDisabled || isPending}
                   onChange={(e) => handleCheckboxChange(movie.id, e.target.checked)}
-                  style={{ cursor: isDisabled ? "not-allowed" : "pointer", accentColor: "var(--primary)" }}
+                  className="vote-checkbox"
                 />
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                    <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                <div className="flex-col gap-xs">
+                  <div className="flex-row items-center gap-sm-plus flex-wrap">
+                    <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger" style={{
-                        fontSize: "0.7rem",
-                        backgroundColor: "var(--primary-light)",
-                        color: "var(--primary)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid rgba(99, 102, 241, 0.2)",
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <span className="movie-tooltip-trigger btn-plot">
                         🍿 Plot
                         <span className="movie-tooltip-card">
                           {movie.posterUrl && (
                             <img
                               src={movie.posterUrl}
                               alt={`${movie.title} Poster`}
-                              style={{
-                                width: "90px",
-                                borderRadius: "var(--radius-sm)",
-                                border: "1px solid var(--glass-border)",
-                                boxShadow: "var(--shadow-sm)",
-                                flexShrink: 0
-                              }}
+                              className="tooltip-poster"
                             />
                           )}
-                          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", width: "100%", gap: "8px" }}>
-                              <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{movie.title}</span>
+                          <div className="flex-1 flex-col gap-xs">
+                            <div className="flex-row justify-between items-baseline w-full gap-sm">
+                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
                               {movie.imdbRating && (
-                                <span style={{ fontSize: "0.8rem", color: "var(--warning)", fontWeight: 600, flexShrink: 0 }}>
+                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
                                   ⭐ {movie.imdbRating}/10
                                 </span>
                               )}
                             </div>
                             {movie.plot && (
-                              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", margin: 0 }}>
+                              <p className="tooltip-plot">
                                 {movie.plot}
                               </p>
                             )}
@@ -410,36 +307,25 @@ export function SubcategoryVotingFormClient({
                       </span>
                     )}
                     {movie.imdbRating && (
-                      <span style={{
-                        fontSize: "0.7rem",
-                        backgroundColor: "rgba(245, 158, 11, 0.12)",
-                        color: "var(--warning)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid rgba(245, 158, 11, 0.25)",
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <span className="badge-rating">
                         ⭐ {movie.imdbRating}
                       </span>
                     )}
                   </div>
 
                   {(movie.director || movie.runtime || movie.stars) && (
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
+                    <div className="text-sm text-secondary flex-col gap-xxs mt-xxs">
                       {(movie.director || movie.runtime) && (
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                          {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
-                          {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                        <div className="flex-row gap-sm items-center flex-wrap">
+                          {movie.director && <span>🎬 <span className="text-muted">Dir:</span> {movie.director}</span>}
+                          {movie.director && movie.runtime && <span className="text-glass-border">•</span>}
                           {movie.runtime && <span>⏱️ {movie.runtime}</span>}
                         </div>
                       )}
                       {movie.stars && (
-                        <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
-                          <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
-                          <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                        <div className="flex-row gap-xs items-baseline">
+                          <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                          <span className="text-secondary">{movie.stars}</span>
                         </div>
                       )}
                     </div>
@@ -447,24 +333,24 @@ export function SubcategoryVotingFormClient({
                 </div>
               </label>
 
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "end", gap: "8px", flexShrink: 0 }}>
+              <div className="flex-col items-end gap-sm flex-shrink-0">
                 {movie.genres && movie.genres.length > 0 && (
-                  <div style={{ display: "flex", gap: "4px" }}>
+                  <div className="flex-row gap-xs">
                     {movie.genres.map((g: any) => (
-                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "2px 8px", borderRadius: "var(--radius-sm)" }}>
+                      <span key={g.id} className="badge-genre">
                         #{g.name}
                       </span>
                     ))}
                   </div>
                 )}
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                <div className="flex-row gap-sm items-center mt-xs">
                   {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                   {movie.imdbUrl && (
                     <a
                       href={movie.imdbUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
+                      className="text-sm text-primary-color underline"
                     >
                       IMDb ↗
                     </a>
@@ -477,21 +363,12 @@ export function SubcategoryVotingFormClient({
       })}
 
       {error && (
-        <div style={{
-          padding: "10px 14px",
-          backgroundColor: "var(--accent-light)",
-          border: "1px solid var(--accent)",
-          borderRadius: "var(--radius-sm)",
-          color: "var(--accent)",
-          fontSize: "0.85rem",
-          fontWeight: 600,
-          marginTop: "4px",
-        }}>
+        <div className="vote-error mt-xs">
           {error}
         </div>
       )}
 
-      <button type="submit" disabled={isPending} className="btn btn-primary" style={{ marginTop: "8px" }}>
+      <button type="submit" disabled={isPending} className="btn btn-primary mt-sm">
         {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Subcategory Votes" : "Cast Subcategory Votes"}
       </button>
     </form>
@@ -548,87 +425,51 @@ export function ShortlistVotingFormClient({
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <form onSubmit={handleSubmit} className="flex-col gap-md">
       {movies.map((movie) => {
         const isChecked = selectedIds.includes(movie.id);
         const isDisabled = isLimitReached && !isChecked;
         return (
           <div
             key={movie.id}
-            className="movie-row-card"
-            style={{
-              border: "1px solid " + (isChecked ? "var(--primary)" : "var(--glass-border)"),
-              borderRadius: "var(--radius-md)",
-              backgroundColor: isChecked ? "var(--primary-light)" : "rgba(255,255,255,0.01)",
-              opacity: isDisabled ? 0.4 : 1,
-              padding: "14px 18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              width: "100%",
-              textAlign: "left"
-            }}
+            className={`movie-row-card text-left ${isChecked ? "checked" : ""} ${isDisabled ? "disabled" : ""}`}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "12px" }}>
+            <div className="flex-row justify-between items-start flex-wrap gap-md">
               <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  cursor: isDisabled ? "not-allowed" : "pointer",
-                  flex: 1,
-                  minWidth: "250px"
-                }}
+                className={`flex-row items-center gap-md flex-1 min-w-250 ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}
               >
                 <input
                   type="checkbox"
                   checked={isChecked}
                   disabled={isDisabled || isPending}
                   onChange={(e) => handleCheckboxChange(movie.id, e.target.checked)}
-                  style={{ cursor: isDisabled ? "not-allowed" : "pointer", accentColor: "var(--primary)" }}
+                  className="vote-checkbox"
                 />
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                    <span style={{ fontWeight: 600 }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                <div className="flex-col gap-xs">
+                  <div className="flex-row items-center gap-sm-plus flex-wrap">
+                    <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger" style={{
-                        fontSize: "0.7rem",
-                        backgroundColor: "var(--primary-light)",
-                        color: "var(--primary)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid rgba(99, 102, 241, 0.2)",
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <span className="movie-tooltip-trigger btn-plot">
                         🍿 Plot
                         <span className="movie-tooltip-card">
                           {movie.posterUrl && (
                             <img
                               src={movie.posterUrl}
                               alt={`${movie.title} Poster`}
-                              style={{
-                                width: "90px",
-                                borderRadius: "var(--radius-sm)",
-                                border: "1px solid var(--glass-border)",
-                                boxShadow: "var(--shadow-sm)",
-                                flexShrink: 0
-                              }}
+                              className="tooltip-poster"
                             />
                           )}
-                          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", width: "100%", gap: "8px" }}>
-                              <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{movie.title}</span>
+                          <div className="flex-1 flex-col gap-xs">
+                            <div className="flex-row justify-between items-baseline w-full gap-sm">
+                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
                               {movie.imdbRating && (
-                                <span style={{ fontSize: "0.8rem", color: "var(--warning)", fontWeight: 600, flexShrink: 0 }}>
+                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
                                   ⭐ {movie.imdbRating}/10
                                 </span>
                               )}
                             </div>
                             {movie.plot && (
-                              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", margin: 0 }}>
+                              <p className="tooltip-plot">
                                 {movie.plot}
                               </p>
                             )}
@@ -637,36 +478,25 @@ export function ShortlistVotingFormClient({
                       </span>
                     )}
                     {movie.imdbRating && (
-                      <span style={{
-                        fontSize: "0.7rem",
-                        backgroundColor: "rgba(245, 158, 11, 0.12)",
-                        color: "var(--warning)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid rgba(245, 158, 11, 0.25)",
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <span className="badge-rating">
                         ⭐ {movie.imdbRating}
                       </span>
                     )}
                   </div>
 
                   {(movie.director || movie.runtime || movie.stars) && (
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
+                    <div className="text-sm text-secondary flex-col gap-xxs mt-xxs">
                       {(movie.director || movie.runtime) && (
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                          {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
-                          {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                        <div className="flex-row gap-sm items-center flex-wrap">
+                          {movie.director && <span>🎬 <span className="text-muted">Dir:</span> {movie.director}</span>}
+                          {movie.director && movie.runtime && <span className="text-glass-border">•</span>}
                           {movie.runtime && <span>⏱️ {movie.runtime}</span>}
                         </div>
                       )}
                       {movie.stars && (
-                        <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
-                          <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
-                          <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                        <div className="flex-row gap-xs items-baseline">
+                          <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                          <span className="text-secondary">{movie.stars}</span>
                         </div>
                       )}
                     </div>
@@ -674,24 +504,24 @@ export function ShortlistVotingFormClient({
                 </div>
               </label>
 
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "end", gap: "8px", flexShrink: 0 }}>
+              <div className="flex-col items-end gap-sm flex-shrink-0">
                 {movie.genres && movie.genres.length > 0 && (
-                  <div style={{ display: "flex", gap: "4px" }}>
+                  <div className="flex-row gap-xs">
                     {movie.genres.map((g: any) => (
-                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "2px 8px", borderRadius: "var(--radius-sm)" }}>
+                      <span key={g.id} className="badge-genre">
                         #{g.name}
                       </span>
                     ))}
                   </div>
                 )}
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                <div className="flex-row gap-sm items-center mt-xs">
                   {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                   {movie.imdbUrl && (
                     <a
                       href={movie.imdbUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline" }}
+                      className="text-sm text-primary-color underline"
                     >
                       IMDb ↗
                     </a>
@@ -704,21 +534,12 @@ export function ShortlistVotingFormClient({
       })}
 
       {error && (
-        <div style={{
-          padding: "10px 14px",
-          backgroundColor: "var(--accent-light)",
-          border: "1px solid var(--accent)",
-          borderRadius: "var(--radius-sm)",
-          color: "var(--accent)",
-          fontSize: "0.85rem",
-          fontWeight: 600,
-          marginTop: "4px",
-        }}>
+        <div className="vote-error mt-xs">
           {error}
         </div>
       )}
 
-      <button type="submit" disabled={isPending} className="btn btn-primary" style={{ marginTop: "8px" }}>
+      <button type="submit" disabled={isPending} className="btn btn-primary mt-sm">
         {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Shortlist Votes" : "Cast Shortlist Votes"}
       </button>
     </form>

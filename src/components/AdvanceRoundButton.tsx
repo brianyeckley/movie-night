@@ -29,31 +29,16 @@ export default function AdvanceRoundButton({ weekId, isGreen = false }: Props) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "stretch" }}>
+    <div className="flex-col gap-xs items-stretch">
       <button
         onClick={handleAdvance}
         disabled={isPending}
-        className="btn btn-primary"
-        style={{
-          padding: "6px 14px",
-          fontSize: "0.85rem",
-          backgroundColor: isGreen ? "var(--success)" : "var(--primary)",
-          borderColor: isGreen ? "var(--success)" : "var(--primary)",
-        }}
+        className={`btn btn-sm ${isGreen ? "btn-success" : "btn-primary"}`}
       >
         {isPending ? "Advancing..." : "Close Round & Advance ➔"}
       </button>
       {error && (
-        <div style={{
-          padding: "6px 10px",
-          backgroundColor: "var(--accent-light)",
-          border: "1px solid var(--accent)",
-          borderRadius: "var(--radius-sm)",
-          color: "var(--accent)",
-          fontSize: "0.75rem",
-          fontWeight: 600,
-          textAlign: "center"
-        }}>
+        <div className="alert-box alert-error alert-sm text-center font-semibold text-accent-color">
           ⚠️ {error}
         </div>
       )}

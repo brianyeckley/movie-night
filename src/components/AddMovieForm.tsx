@@ -79,23 +79,23 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
   const subCategories = categories.filter((c) => c.parentId !== null);
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "8px" }}>Add New Movie</h3>
+    <form onSubmit={handleSubmit} className="form-container">
+      <h3 className="text-2xl font-bold mb-sm">Add New Movie</h3>
 
       {error && (
-        <div style={{ color: "var(--accent)", backgroundColor: "var(--accent-light)", padding: "12px", borderRadius: "var(--radius-sm)", fontSize: "0.9rem", border: "1px solid var(--accent)" }}>
+        <div className="alert-box alert-error text-accent-color text-base font-semibold">
           {error}
         </div>
       )}
 
       {successMsg && (
-        <div style={{ color: "var(--success)", backgroundColor: "rgba(16, 185, 129, 0.15)", padding: "12px", borderRadius: "var(--radius-sm)", fontSize: "0.9rem", border: "1px solid var(--success)" }}>
+        <div className="alert-box alert-success text-success-color text-base font-semibold">
           {successMsg}
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        <label htmlFor="movie-imdb" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+      <div className="form-group">
+        <label htmlFor="movie-imdb" className="form-label">
           IMDb Link *
         </label>
         <input
@@ -106,20 +106,12 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
           placeholder="https://www.imdb.com/title/..."
           disabled={isPending}
           required
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
-            color: "var(--text-primary)",
-            border: "1px solid var(--glass-border)",
-            borderRadius: "var(--radius-sm)",
-            padding: "10px 12px",
-            fontSize: "0.9rem",
-            outline: "none",
-          }}
+          className="form-input"
         />
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        <label htmlFor="movie-trailer" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+      <div className="form-group">
+        <label htmlFor="movie-trailer" className="form-label">
           YouTube Trailer Link
         </label>
         <input
@@ -129,20 +121,12 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
           onChange={(e) => setTrailerUrl(e.target.value)}
           placeholder="https://www.youtube.com/watch?v=..."
           disabled={isPending}
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
-            color: "var(--text-primary)",
-            border: "1px solid var(--glass-border)",
-            borderRadius: "var(--radius-sm)",
-            padding: "10px 12px",
-            fontSize: "0.9rem",
-            outline: "none",
-          }}
+          className="form-input"
         />
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        <label htmlFor="movie-category" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+      <div className="form-group">
+        <label htmlFor="movie-category" className="form-label">
           Category *
         </label>
         <select
@@ -151,16 +135,7 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
           onChange={(e) => setCategoryId(e.target.value)}
           disabled={isPending}
           required
-          style={{
-            backgroundColor: "var(--bg-tertiary)",
-            color: "var(--text-primary)",
-            border: "1px solid var(--glass-border)",
-            borderRadius: "var(--radius-sm)",
-            padding: "10px 12px",
-            fontSize: "0.9rem",
-            outline: "none",
-            cursor: "pointer",
-          }}
+          className="form-select"
         >
           <option value="">-- Select Category --</option>
           {topLevelCategories.map((cat) => (
@@ -178,17 +153,17 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
         </select>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>Genres / Tags</span>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: "10px", padding: "12px", backgroundColor: "rgba(0, 0, 0, 0.15)", borderRadius: "var(--radius-sm)", border: "1px solid var(--glass-border)" }}>
+      <div className="form-group">
+        <span className="form-label">Genres / Tags</span>
+        <div className="checkbox-group">
           {genres.map((genre) => (
-            <label key={genre.id} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", cursor: "pointer", color: "var(--text-primary)" }}>
+            <label key={genre.id} className="checkbox-label">
               <input
                 type="checkbox"
                 checked={selectedGenreIds.includes(genre.id)}
                 onChange={(e) => handleGenreChange(genre.id, e.target.checked)}
                 disabled={isPending}
-                style={{ cursor: "pointer", accentColor: "var(--primary)" }}
+                className="checkbox-input"
               />
               {genre.name}
             </label>
@@ -196,7 +171,7 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
         </div>
       </div>
 
-      <button type="submit" disabled={isPending} className="btn btn-primary" style={{ marginTop: "8px", width: "100%" }}>
+      <button type="submit" disabled={isPending} className="btn btn-primary mt-sm w-full">
         {isPending ? "Adding Movie..." : "Add Movie"}
       </button>
     </form>

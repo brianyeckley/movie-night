@@ -15,13 +15,13 @@ export default async function UserManagementPage() {
   // Additional server safety check
   if (!currentUser || currentUser.role !== "ADMIN") {
     return (
-      <div className="container" style={{ padding: "80px 24px", textAlign: "center" }}>
-        <div className="glass-panel no-hover" style={{ padding: "48px", maxWidth: "600px", margin: "0 auto", border: "1px solid var(--accent)" }}>
-          <span style={{ fontSize: "3rem" }}>⚠️</span>
-          <h1 style={{ fontSize: "2rem", color: "var(--accent)", margin: "16px 0 8px 0", fontWeight: 800 }}>
+      <div className="container py-2xl text-center">
+        <div className="glass-panel no-hover denied-card">
+          <span className="text-9xl">⚠️</span>
+          <h1 className="text-6xl text-accent-color font-extrabold mt-lg mb-sm">
             Access Denied
           </h1>
-          <p style={{ color: "var(--text-secondary)", marginBottom: "32px" }}>
+          <p className="text-secondary mb-2xl">
             You do not have administrative permissions to access this dashboard.
           </p>
           <Link href="/" className="btn btn-primary">
@@ -38,16 +38,16 @@ export default async function UserManagementPage() {
   });
 
   return (
-    <div style={{ padding: "40px 0" }}>
+    <div className="py-xl">
       <main className="container">
         {/* Banner */}
-        <div className="glass-panel no-hover" style={{ padding: "32px", marginBottom: "40px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+        <div className="glass-panel no-hover p-xl mb-3xl">
+          <div className="flex-between flex-wrap gap-lg">
             <div>
-              <h1 className="text-gradient" style={{ fontSize: "2.5rem", fontWeight: 800, marginBottom: "8px", letterSpacing: "-0.03em" }}>
+              <h1 className="text-gradient text-8xl font-extrabold mb-sm tracking-tighter">
                 👥 User Management
               </h1>
-              <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem" }}>
+              <p className="text-secondary text-xl">
                 Approve new signups, manage user roles, and revoke account permissions.
               </p>
             </div>
@@ -58,15 +58,15 @@ export default async function UserManagementPage() {
         </div>
 
         {/* Users Table */}
-        <div className="glass-panel no-hover" style={{ padding: "32px", overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "700px" }}>
+        <div className="glass-panel no-hover p-xl overflow-x-auto">
+          <table className="admin-table">
             <thead>
-              <tr style={{ borderBottom: "2px solid var(--glass-border)", textAlign: "left" }}>
-                <th style={{ padding: "12px 16px", color: "var(--text-secondary)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>Display Name</th>
-                <th style={{ padding: "12px 16px", color: "var(--text-secondary)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>Username</th>
-                <th style={{ padding: "12px 16px", color: "var(--text-secondary)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>Role</th>
-                <th style={{ padding: "12px 16px", color: "var(--text-secondary)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>Status</th>
-                <th style={{ padding: "12px 16px", color: "var(--text-secondary)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", textAlign: "right" }}>Actions</th>
+              <tr className="admin-table-header-row">
+                <th>Display Name</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -76,59 +76,35 @@ export default async function UserManagementPage() {
                 return (
                   <tr 
                     key={user.id} 
-                    style={{ 
-                      borderBottom: "1px solid var(--glass-border)", 
-                      transition: "background var(--transition-fast)" 
-                    }}
-                    className="user-table-row"
+                    className="admin-table-row"
                   >
                     {/* Display Name */}
-                    <td style={{ padding: "16px", fontWeight: 600 }}>
-                      {user.name} {isSelf && <span style={{ fontSize: "0.75rem", backgroundColor: "rgba(255, 255, 255, 0.08)", color: "var(--text-secondary)", padding: "2px 6px", borderRadius: "var(--radius-sm)", marginLeft: "4px" }}>You</span>}
+                    <td className="font-semibold">
+                      {user.name} {isSelf && <span className="badge-you">You</span>}
                     </td>
 
                     {/* Username */}
-                    <td style={{ padding: "16px", color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontSize: "0.9rem" }}>
+                    <td className="user-table-username">
                       @{user.username}
                     </td>
 
                     {/* Role Badge */}
-                    <td style={{ padding: "16px" }}>
-                      <span 
-                        style={{ 
-                          fontSize: "0.75rem", 
-                          backgroundColor: user.role === "ADMIN" ? "var(--primary-light)" : "var(--bg-tertiary)", 
-                          color: user.role === "ADMIN" ? "var(--primary)" : "var(--text-secondary)", 
-                          padding: "4px 10px", 
-                          borderRadius: "var(--radius-full)", 
-                          fontWeight: 700,
-                          border: user.role === "ADMIN" ? "1px solid var(--primary)" : "1px solid var(--glass-border)"
-                        }}
-                      >
+                    <td>
+                      <span className={`badge ${user.role === "ADMIN" ? "badge-admin" : "badge-user"}`}>
                         {user.role === "ADMIN" ? "👑 Admin" : "🍿 User"}
                       </span>
                     </td>
 
                     {/* Status Badge */}
-                    <td style={{ padding: "16px" }}>
-                      <span 
-                        style={{ 
-                          fontSize: "0.75rem", 
-                          backgroundColor: user.isApproved ? "rgba(16, 185, 129, 0.12)" : "rgba(245, 158, 11, 0.12)", 
-                          color: user.isApproved ? "var(--success)" : "var(--warning)", 
-                          padding: "4px 10px", 
-                          borderRadius: "var(--radius-full)", 
-                          fontWeight: 700,
-                          border: user.isApproved ? "1px solid var(--success)" : "1px solid var(--warning)"
-                        }}
-                      >
+                    <td>
+                      <span className={`badge ${user.isApproved ? "badge-approved" : "badge-pending"}`}>
                         {user.isApproved ? "Approved" : "Pending Approval"}
                       </span>
                     </td>
 
                     {/* Action Controls */}
-                    <td style={{ padding: "16px", textAlign: "right" }}>
-                      <div style={{ display: "inline-flex", gap: "12px", alignItems: "center" }}>
+                    <td className="text-right">
+                      <div className="inline-flex items-center gap-md">
                         
                         {/* Approval Toggle (disabled for self) */}
                         {!isSelf && (
@@ -140,14 +116,7 @@ export default async function UserManagementPage() {
                           >
                             <button 
                               type="submit" 
-                              className="btn btn-secondary" 
-                              style={{ 
-                                padding: "6px 12px", 
-                                fontSize: "0.8rem", 
-                                color: user.isApproved ? "var(--warning)" : "var(--success)", 
-                                borderColor: user.isApproved ? "rgba(245, 158, 11, 0.2)" : "rgba(16, 185, 129, 0.2)",
-                                minWidth: "90px"
-                              }}
+                              className={`btn btn-secondary btn-approve-toggle ${user.isApproved ? "approved" : "pending"}`}
                             >
                               {user.isApproved ? "Revoke" : "Approve"}
                             </button>
@@ -165,8 +134,7 @@ export default async function UserManagementPage() {
                           >
                             <button 
                               type="submit" 
-                              className="btn btn-secondary" 
-                              style={{ padding: "6px 12px", fontSize: "0.8rem" }}
+                              className="btn btn-secondary btn-role-toggle"
                             >
                               {user.role === "ADMIN" ? "Demote" : "Promote"}
                             </button>

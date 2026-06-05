@@ -52,7 +52,7 @@ export default async function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <Header currentUser={currentUser} />
-        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>{children}</div>
+        <div className="flex-1 flex-col">{children}</div>
       </body>
     </html>
   );

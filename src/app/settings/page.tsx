@@ -16,62 +16,40 @@ export default function SettingsPage() {
   }, [state]);
 
   return (
-    <div style={{ padding: "40px 0" }}>
-      <main className="container" style={{ maxWidth: "550px" }}>
+    <div className="py-xl">
+      <main className="container max-w-xl">
         
         {/* Banner */}
-        <div className="glass-panel no-hover" style={{ padding: "24px", marginBottom: "32px", textAlign: "center" }}>
-          <h1 className="text-gradient" style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "6px", letterSpacing: "-0.02em" }}>
+        <div className="glass-panel no-hover p-lg mb-2xl text-center">
+          <h1 className="text-gradient text-6xl font-extrabold mb-xs tracking-tight">
             ⚙️ Profile Settings
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+          <p className="text-secondary text-md">
             Manage your password and security credentials
           </p>
         </div>
 
         {/* Change Password Form */}
-        <div className="glass-panel no-hover" style={{ padding: "32px" }}>
-          <h2 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "20px", color: "var(--text-primary)" }}>
+        <div className="glass-panel no-hover p-xl">
+          <h2 className="text-3xl font-bold mb-xl text-primary-var">
             Change Password
           </h2>
 
           {state?.error && (
-            <div
-              style={{
-                padding: "12px 16px",
-                backgroundColor: "var(--accent-light)",
-                border: "1px solid var(--accent)",
-                borderRadius: "var(--radius-sm)",
-                color: "var(--text-primary)",
-                fontSize: "0.85rem",
-                fontWeight: 500,
-                marginBottom: "20px",
-              }}
-            >
+            <div className="alert-box alert-error mb-xl">
               ⚠️ {state.error}
             </div>
           )}
 
           {state?.success && (
-            <div
-              style={{
-                padding: "12px 16px",
-                backgroundColor: "rgba(16, 185, 129, 0.12)",
-                border: "1px solid var(--success)",
-                borderRadius: "var(--radius-sm)",
-                color: "var(--text-primary)",
-                fontSize: "0.85rem",
-                fontWeight: 500,
-                marginBottom: "20px",
-              }}
-            >
+            <div className="alert-box alert-success mb-xl">
               ✅ Password updated successfully!
             </div>
           )}
 
-          <form ref={formRef} action={formAction} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label htmlFor="currentPassword" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+          <form ref={formRef} action={formAction} className="form-container gap-lg">
+            <div className="form-group">
+              <label htmlFor="currentPassword" className="form-label-bold">
                 Current Password
               </label>
               <input
@@ -80,21 +58,12 @@ export default function SettingsPage() {
                 type="password"
                 placeholder="Enter current password"
                 required
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.25)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--glass-border)",
-                  borderRadius: "var(--radius-sm)",
-                  padding: "10px 14px",
-                  fontSize: "0.95rem",
-                  outline: "none",
-                  transition: "border-color var(--transition-fast)",
-                }}
+                className="form-input form-input-dark"
               />
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label htmlFor="newPassword" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+            <div className="form-group">
+              <label htmlFor="newPassword" className="form-label-bold">
                 New Password
               </label>
               <input
@@ -103,21 +72,12 @@ export default function SettingsPage() {
                 type="password"
                 placeholder="Enter new password"
                 required
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.25)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--glass-border)",
-                  borderRadius: "var(--radius-sm)",
-                  padding: "10px 14px",
-                  fontSize: "0.95rem",
-                  outline: "none",
-                  transition: "border-color var(--transition-fast)",
-                }}
+                className="form-input form-input-dark"
               />
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label htmlFor="confirmPassword" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+            <div className="form-group">
+              <label htmlFor="confirmPassword" className="form-label-bold">
                 Confirm New Password
               </label>
               <input
@@ -126,29 +86,19 @@ export default function SettingsPage() {
                 type="password"
                 placeholder="Confirm new password"
                 required
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.25)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--glass-border)",
-                  borderRadius: "var(--radius-sm)",
-                  padding: "10px 14px",
-                  fontSize: "0.95rem",
-                  outline: "none",
-                  transition: "border-color var(--transition-fast)",
-                }}
+                className="form-input form-input-dark"
               />
             </div>
 
-            <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
+            <div className="flex-row gap-md mt-sm">
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary btn-lg flex-1"
                 disabled={isPending}
-                style={{ flex: 1, padding: "12px", fontWeight: 600 }}
               >
                 {isPending ? "Updating Password..." : "Update Password"}
               </button>
-              <Link href="/" className="btn btn-secondary" style={{ padding: "12px 20px" }}>
+              <Link href="/" className="btn btn-secondary btn-lg">
                 Cancel
               </Link>
             </div>

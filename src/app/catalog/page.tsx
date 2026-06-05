@@ -51,21 +51,21 @@ export default async function CatalogPage() {
   });
 
   return (
-    <div style={{ padding: "40px 0" }}>
+    <div className="py-xl">
       <main className="container">
         {/* Banner */}
-        <div className="glass-panel no-hover" style={{ padding: "32px", marginBottom: "40px" }}>
-          <h1 className="text-gradient" style={{ fontSize: "2.5rem", fontWeight: 800, marginBottom: "8px", letterSpacing: "-0.03em" }}>
+        <div className="glass-panel no-hover p-xl mb-3xl">
+          <h1 className="text-gradient text-8xl font-extrabold mb-sm tracking-tighter">
             📚 Catalog Management
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem" }}>
+          <p className="text-secondary text-xl">
             Manage the movie list, group them into categories or subcategories, and tag their genres.
           </p>
         </div>
 
         {!currentUser && (
-          <div className="glass-panel no-hover" style={{ padding: "24px", textAlign: "center", border: "1px solid var(--accent)" }}>
-            <p style={{ color: "var(--accent)", fontWeight: 600 }}>
+          <div className="glass-panel no-hover p-lg text-center alert-error">
+            <p className="text-accent-color font-semibold">
               ⚠️ You must select a user profile in the header dropdown to view or edit the catalog.
             </p>
           </div>
@@ -74,56 +74,37 @@ export default async function CatalogPage() {
         {currentUser && (
           <div className="catalog-layout">
             {/* Catalog List */}
-            <div className="glass-panel no-hover catalog-list-container" style={{ padding: "32px" }}>
-              <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "24px" }}>Movie Catalog</h2>
+            <div className="glass-panel no-hover catalog-list-container p-xl">
+              <h2 className="text-4xl font-bold mb-xl">Movie Catalog</h2>
 
               {categories.length === 0 ? (
-                <p style={{ color: "var(--text-secondary)" }}>No categories created yet.</p>
+                <p className="text-secondary">No categories created yet.</p>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+                <div className="flex-col gap-2xl">
                   {categories.map((cat) => (
                     <details
                       key={cat.id}
                       open={cat.isThemed}
-                      style={{ borderBottom: "1px solid var(--glass-border)" }}
-                      className="category-details"
+                      className="category-details border-b"
                     >
                       {/* Top level Category Header */}
-                      <summary
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          cursor: "pointer",
-                          userSelect: "none",
-                          padding: "16px 0",
-                          outline: "none"
-                        }}
-                      >
-                        <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: "12px" }}>
-                          <span 
-                            className="chevron-icon" 
-                            style={{ 
-                              fontSize: "0.8rem", 
-                              color: "var(--text-muted)", 
-                              display: "inline-block",
-                              transition: "transform var(--transition-fast)" 
-                            }}
-                          >
+                      <summary className="category-summary">
+                        <h3 className="text-3xl font-bold text-primary-color flex-row items-center gap-md">
+                          <span className="chevron-icon">
                             ▶
                           </span>
                           {cat.name}
                           {cat.isThemed && (
-                            <span style={{ fontSize: "0.75rem", backgroundColor: "var(--accent-light)", color: "var(--accent)", padding: "2px 8px", borderRadius: "var(--radius-full)", border: "1px solid var(--accent)", fontWeight: 600 }}>
+                            <span className="badge-theme">
                               Theme
                             </span>
                           )}
                         </h3>
                       </summary>
 
-                      <div style={{ paddingLeft: "24px", paddingBottom: "24px", paddingTop: "8px" }}>
+                      <div className="category-details-content">
                         {/* Option to Delete Category */}
-                        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+                        <div className="flex-row justify-end mb-lg">
                           <form
                             action={async () => {
                               "use server";
@@ -132,14 +113,7 @@ export default async function CatalogPage() {
                           >
                             <button
                               type="submit"
-                              style={{
-                                backgroundColor: "transparent",
-                                border: "none",
-                                color: "var(--text-muted)",
-                                cursor: "pointer",
-                                fontSize: "0.85rem",
-                              }}
-                              className="nav-link"
+                              className="text-btn nav-link"
                             >
                               Delete Category
                             </button>
@@ -148,66 +122,43 @@ export default async function CatalogPage() {
 
                       {/* Direct Movies in Top level Category */}
                       {cat.movies.length > 0 && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+                        <div className="flex-col gap-sm-plus mb-xl">
                           {cat.movies.map((movie) => (
                             <div
                               key={movie.id}
                               className="movie-row-card"
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "10px",
-                                width: "100%"
-                              }}
                             >
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "12px" }}>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1, minWidth: "250px" }}>
-                                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                                    <span style={{ fontWeight: 600, fontSize: "1.05rem" }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                              <div className="flex-row justify-between items-start flex-wrap gap-md">
+                                <div className="flex-col gap-xs flex-1 min-w-250">
+                                  <div className="flex-row items-center gap-sm-plus flex-wrap">
+                                    <span className="font-semibold text-lg">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                                     {movie.watched && (
-                                      <span style={{ fontSize: "0.65rem", backgroundColor: "var(--glass-hover)", color: "var(--text-muted)", padding: "1px 5px", borderRadius: "var(--radius-sm)", border: "1px solid var(--glass-border)" }}>
+                                      <span className="badge-watched">
                                         Watched
                                       </span>
                                     )}
                                     {(movie.plot || movie.posterUrl) && (
-                                      <span className="movie-tooltip-trigger" style={{
-                                        fontSize: "0.7rem",
-                                        backgroundColor: "var(--primary-light)",
-                                        color: "var(--primary)",
-                                        padding: "2px 8px",
-                                        borderRadius: "var(--radius-full)",
-                                        border: "1px solid rgba(99, 102, 241, 0.2)",
-                                        fontWeight: 600,
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        gap: "4px"
-                                      }}>
+                                      <span className="movie-tooltip-trigger btn-plot">
                                         🍿 Plot
                                         <span className="movie-tooltip-card">
                                           {movie.posterUrl && (
                                             <img
                                               src={movie.posterUrl}
                                               alt={`${movie.title} Poster`}
-                                              style={{
-                                                width: "90px",
-                                                borderRadius: "var(--radius-sm)",
-                                                border: "1px solid var(--glass-border)",
-                                                boxShadow: "var(--shadow-sm)",
-                                                flexShrink: 0
-                                              }}
+                                              className="tooltip-poster"
                                             />
                                           )}
-                                          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", width: "100%", gap: "8px" }}>
-                                              <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{movie.title}</span>
+                                          <div className="flex-1 flex-col gap-xs">
+                                            <div className="flex-row justify-between items-baseline w-full gap-sm">
+                                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
                                               {movie.imdbRating && (
-                                                <span style={{ fontSize: "0.8rem", color: "var(--warning)", fontWeight: 600, flexShrink: 0 }}>
+                                                <span className="text-sm text-warning font-semibold flex-shrink-0">
                                                   ⭐ {movie.imdbRating}/10
                                                 </span>
                                               )}
                                             </div>
                                             {movie.plot && (
-                                              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", margin: 0 }}>
+                                              <p className="tooltip-plot">
                                                 {movie.plot}
                                               </p>
                                             )}
@@ -216,60 +167,48 @@ export default async function CatalogPage() {
                                       </span>
                                     )}
                                     {movie.imdbRating && (
-                                      <span style={{
-                                        fontSize: "0.7rem",
-                                        backgroundColor: "rgba(245, 158, 11, 0.12)",
-                                        color: "var(--warning)",
-                                        padding: "2px 8px",
-                                        borderRadius: "var(--radius-full)",
-                                        border: "1px solid rgba(245, 158, 11, 0.25)",
-                                        fontWeight: 600,
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        gap: "4px"
-                                      }}>
+                                      <span className="badge-rating">
                                         ⭐ {movie.imdbRating}
                                       </span>
                                     )}
                                   </div>
 
                                   {(movie.director || movie.runtime || movie.stars) && (
-                                    <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
+                                    <div className="text-sm text-secondary flex-col gap-xxs mt-xs">
                                       {(movie.director || movie.runtime) && (
-                                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                                          {movie.director && <span>🎬 <span style={{ color: "var(--text-muted)" }}>Dir:</span> {movie.director}</span>}
-                                          {movie.director && movie.runtime && <span style={{ color: "var(--glass-border)" }}>•</span>}
+                                        <div className="flex-row gap-sm items-center flex-wrap">
+                                          {movie.director && <span>🎬 <span className="text-muted">Dir:</span> {movie.director}</span>}
+                                          {movie.director && movie.runtime && <span className="text-glass-border">•</span>}
                                           {movie.runtime && <span>⏱️ {movie.runtime}</span>}
                                         </div>
                                       )}
                                       {movie.stars && (
-                                        <div style={{ display: "flex", gap: "4px", alignItems: "baseline" }}>
-                                          <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>👥 Cast:</span>
-                                          <span style={{ color: "var(--text-secondary)" }}>{movie.stars}</span>
+                                        <div className="flex-row gap-xs items-baseline">
+                                          <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                                          <span className="text-secondary">{movie.stars}</span>
                                         </div>
                                       )}
                                     </div>
                                   )}
                                 </div>
 
-                                <div style={{ display: "flex", flexDirection: "column", alignItems: "end", gap: "8px", flexShrink: 0 }}>
-                                  <div style={{ display: "flex", gap: "4px" }}>
+                                <div className="flex-col items-end gap-sm flex-shrink-0">
+                                  <div className="flex-row gap-xs">
                                     {movie.genres.map((g) => (
-                                      <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "2px 8px", borderRadius: "var(--radius-sm)" }}>
+                                      <span key={g.id} className="badge-genre">
                                         {g.name}
                                       </span>
                                     ))}
                                   </div>
 
-                                  <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                                  <div className="flex-row gap-sm items-center mt-xs">
                                     {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                                     {movie.imdbUrl && (
                                       <a
                                         href={movie.imdbUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="btn btn-secondary"
-                                        style={{ padding: "6px 12px", fontSize: "0.75rem" }}
+                                        className="btn btn-secondary btn-sm"
                                       >
                                         IMDb ↗
                                       </a>
@@ -283,13 +222,7 @@ export default async function CatalogPage() {
                                     >
                                       <button
                                         type="submit"
-                                        className="btn btn-secondary"
-                                        style={{
-                                          padding: "6px 12px",
-                                          fontSize: "0.75rem",
-                                          color: "var(--accent)",
-                                          borderColor: "rgba(244, 63, 94, 0.2)"
-                                        }}
+                                        className="btn btn-secondary btn-sm btn-danger-outline"
                                       >
                                         Remove
                                       </button>
@@ -304,114 +237,80 @@ export default async function CatalogPage() {
 
                       {/* Nested Subcategories */}
                       {cat.subcategories.length > 0 && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginLeft: "20px", marginTop: "16px" }}>
+                        <div className="flex-col gap-lg ml-lg mt-md">
                           {cat.subcategories.map((sub) => (
-                            <div key={sub.id} style={{ backgroundColor: "rgba(255, 255, 255, 0.01)", padding: "16px", borderRadius: "var(--radius-md)", border: "1px solid var(--glass-border)" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                                <h4 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>↳ {sub.name}</h4>
+                            <div key={sub.id} className="subcategory-card">
+                              <div className="flex-between mb-md">
+                                <h4 className="text-xl font-bold text-primary-var">↳ {sub.name}</h4>
                                 <form
                                   action={async () => {
                                     "use server";
                                     await deleteCategoryAction(sub.id);
                                   }}
                                 >
-                                  <button type="submit" style={{ backgroundColor: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "0.8rem" }}>
+                                  <button type="submit" className="text-btn text-sm">
                                     Delete Subcategory
                                   </button>
                                 </form>
                               </div>
 
                               {sub.movies.length === 0 ? (
-                                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No movies added in this subcategory.</p>
+                                <p className="text-muted text-base">No movies added in this subcategory.</p>
                               ) : (
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                <div className="flex-col gap-sm">
                                   {sub.movies.map((movie) => (
                                     <details
                                       key={movie.id}
-                                      style={{
-                                        border: "1px solid var(--glass-border)",
-                                        borderRadius: "var(--radius-sm)",
-                                        backgroundColor: "rgba(0, 0, 0, 0.15)",
-                                        transition: "all var(--transition-normal)",
-                                      }}
-                                      className="movie-row-details"
+                                      className="movie-row-details movie-details-wrapper"
                                     >
-                                      <summary
-                                        style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                          alignItems: "center",
-                                          padding: "10px 14px",
-                                          cursor: "pointer",
-                                          userSelect: "none",
-                                          listStyle: "none",
-                                          outline: "none"
-                                        }}
-                                      >
-                                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                          <span className="movie-chevron" style={{ fontSize: "0.75rem", color: "var(--text-muted)", transition: "transform var(--transition-fast)" }}>▶</span>
-                                          <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
+                                      <summary className="movie-details-summary">
+                                        <div className="flex-row items-center gap-sm-plus">
+                                          <span className="movie-chevron">▶</span>
+                                          <span className="font-semibold text-md">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                                           {movie.watched && (
-                                            <span style={{ fontSize: "0.65rem", backgroundColor: "var(--glass-hover)", color: "var(--text-muted)", padding: "1px 5px", borderRadius: "var(--radius-sm)", border: "1px solid var(--glass-border)" }}>
+                                            <span className="badge-watched">
                                               Watched
                                             </span>
                                           )}
                                         </div>
-                                        <div style={{ display: "flex", gap: "6px" }}>
+                                        <div className="flex-row gap-xs">
                                           {movie.genres.map((g) => (
-                                            <span key={g.id} style={{ fontSize: "0.7rem", color: "var(--text-secondary)", backgroundColor: "var(--bg-tertiary)", padding: "1px 5px", borderRadius: "var(--radius-sm)" }}>
+                                            <span key={g.id} className="badge-genre">
                                               {g.name}
                                             </span>
                                           ))}
                                         </div>
                                       </summary>
 
-                                      <div 
-                                        style={{ 
-                                          padding: "16px 20px", 
-                                          borderTop: "1px solid var(--glass-border)", 
-                                          backgroundColor: "rgba(0, 0, 0, 0.25)",
-                                          display: "flex",
-                                          gap: "20px",
-                                          alignItems: "start",
-                                          textAlign: "left"
-                                        }}
-                                      >
+                                      <div className="movie-details-expanded">
                                         {movie.posterUrl && (
                                           <img 
                                             src={movie.posterUrl} 
                                             alt={`${movie.title} Poster`} 
-                                            style={{ 
-                                              width: "80px", 
-                                              borderRadius: "var(--radius-sm)", 
-                                              border: "1px solid var(--glass-border)",
-                                              boxShadow: "var(--shadow-sm)",
-                                              flexShrink: 0
-                                            }} 
+                                            className="expanded-poster"
                                           />
                                         )}
-                                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+                                        <div className="flex-1 flex-col gap-sm">
                                           {movie.plot && (
-                                            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: "1.45", margin: 0 }}>
+                                            <p className="expanded-plot">
                                               {movie.plot}
                                             </p>
                                           )}
                                           
-                                          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
-                                            {movie.director && <span>🎬 <strong style={{ color: "var(--text-primary)" }}>Director:</strong> {movie.director}</span>}
-                                            {movie.stars && <span>👥 <strong style={{ color: "var(--text-primary)" }}>Cast:</strong> {movie.stars}</span>}
-                                            {movie.runtime && <span>⏱️ <strong style={{ color: "var(--text-primary)" }}>Runtime:</strong> {movie.runtime}</span>}
+                                          <div className="text-sm text-secondary flex-col gap-xs mt-xs">
+                                            {movie.director && <span>🎬 <strong className="text-primary-var">Director:</strong> {movie.director}</span>}
+                                            {movie.stars && <span>👥 <strong className="text-primary-var">Cast:</strong> {movie.stars}</span>}
+                                            {movie.runtime && <span>⏱️ <strong className="text-primary-var">Runtime:</strong> {movie.runtime}</span>}
                                           </div>
 
-                                          <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "8px" }}>
+                                          <div className="flex-row gap-md items-center mt-sm">
                                             {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                                             {movie.imdbUrl && (
                                               <a 
                                                 href={movie.imdbUrl} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer" 
-                                                className="btn btn-secondary"
-                                                style={{ padding: "6px 12px", fontSize: "0.75rem" }}
+                                                className="btn btn-secondary btn-sm"
                                               >
                                                 IMDb ↗
                                               </a>
@@ -425,13 +324,7 @@ export default async function CatalogPage() {
                                             >
                                               <button 
                                                 type="submit" 
-                                                className="btn btn-secondary"
-                                                style={{ 
-                                                  padding: "6px 12px", 
-                                                  fontSize: "0.75rem", 
-                                                  color: "var(--accent)", 
-                                                  borderColor: "rgba(244, 63, 94, 0.2)" 
-                                                }}
+                                                className="btn btn-secondary btn-sm btn-danger-outline"
                                               >
                                                 Remove
                                               </button>
@@ -449,7 +342,7 @@ export default async function CatalogPage() {
                       )}
 
                       {cat.movies.length === 0 && cat.subcategories.length === 0 && (
-                        <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No movies or subcategories created yet.</p>
+                        <p className="text-muted text-base">No movies or subcategories created yet.</p>
                       )}
                     </div>
                   </details>
@@ -463,17 +356,17 @@ export default async function CatalogPage() {
               <input type="checkbox" id="catalog-sidebar-toggle" className="sidebar-toggle-checkbox" />
               <label htmlFor="catalog-sidebar-toggle" className="sidebar-toggle-label">
                 <span>🛠️ Manage Catalog (Add Movie/Category...)</span>
-                <span className="sidebar-chevron" style={{ display: "inline-block", transition: "transform var(--transition-fast)" }}>▼</span>
+                <span className="sidebar-chevron">▼</span>
               </label>
               <div className="sidebar-content">
               {/* Form 1: Add Movie */}
-              <div className="glass-panel no-hover" style={{ padding: "24px" }}>
+              <div className="glass-panel no-hover p-lg">
                 <AddMovieForm categories={flatCategories} genres={genres} />
               </div>
 
               {/* Form 2: Add Category */}
-              <div className="glass-panel no-hover" style={{ padding: "24px" }}>
-                <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "16px" }}>Add Category</h3>
+              <div className="glass-panel no-hover p-lg">
+                <h3 className="text-2xl font-bold mb-lg">Add Category</h3>
                 <form
                   action={async (formData) => {
                     "use server";
@@ -483,10 +376,10 @@ export default async function CatalogPage() {
                       await addCategoryAction(name, isThemed);
                     }
                   }}
-                  style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+                  className="form-container gap-md"
                 >
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <label htmlFor="cat-name" style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  <div className="form-group">
+                    <label htmlFor="cat-name" className="form-label">
                       Category Name
                     </label>
                     <input
@@ -495,30 +388,22 @@ export default async function CatalogPage() {
                       type="text"
                       placeholder="e.g. Action"
                       required
-                      style={{
-                        backgroundColor: "rgba(0, 0, 0, 0.2)",
-                        color: "var(--text-primary)",
-                        border: "1px solid var(--glass-border)",
-                        borderRadius: "var(--radius-sm)",
-                        padding: "8px 12px",
-                        fontSize: "0.9rem",
-                        outline: "none",
-                      }}
+                      className="form-input"
                     />
                   </div>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "var(--text-primary)", cursor: "pointer" }}>
-                    <input type="checkbox" name="isThemed" style={{ accentColor: "var(--primary)" }} />
+                  <label className="checkbox-label">
+                    <input type="checkbox" name="isThemed" className="checkbox-input" />
                     Mark as Themed Category
                   </label>
-                  <button type="submit" className="btn btn-secondary" style={{ width: "100%", padding: "8px" }}>
+                  <button type="submit" className="btn btn-secondary btn-md w-full">
                     Create Category
                   </button>
                 </form>
               </div>
 
               {/* Form 3: Add Subcategory */}
-              <div className="glass-panel no-hover" style={{ padding: "24px" }}>
-                <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "16px" }}>Add Subcategory</h3>
+              <div className="glass-panel no-hover p-lg">
+                <h3 className="text-2xl font-bold mb-lg">Add Subcategory</h3>
                 <form
                   action={async (formData) => {
                     "use server";
@@ -528,25 +413,17 @@ export default async function CatalogPage() {
                       await addSubcategoryAction(name, parentId);
                     }
                   }}
-                  style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+                  className="form-container gap-md"
                 >
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <label htmlFor="sub-parent" style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  <div className="form-group">
+                    <label htmlFor="sub-parent" className="form-label">
                       Parent Category
                     </label>
                     <select
                       id="sub-parent"
                       name="parentId"
                       required
-                      style={{
-                        backgroundColor: "var(--bg-tertiary)",
-                        color: "var(--text-primary)",
-                        border: "1px solid var(--glass-border)",
-                        borderRadius: "var(--radius-sm)",
-                        padding: "8px 12px",
-                        fontSize: "0.9rem",
-                        outline: "none",
-                      }}
+                      className="form-select"
                     >
                       <option value="">-- Select Parent --</option>
                       {categories.map((cat) => (
@@ -556,8 +433,8 @@ export default async function CatalogPage() {
                       ))}
                     </select>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <label htmlFor="sub-name" style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  <div className="form-group">
+                    <label htmlFor="sub-name" className="form-label">
                       Subcategory Name
                     </label>
                     <input
@@ -566,18 +443,10 @@ export default async function CatalogPage() {
                       type="text"
                       placeholder="e.g. Jean-Claude Van Damme"
                       required
-                      style={{
-                        backgroundColor: "rgba(0, 0, 0, 0.2)",
-                        color: "var(--text-primary)",
-                        border: "1px solid var(--glass-border)",
-                        borderRadius: "var(--radius-sm)",
-                        padding: "8px 12px",
-                        fontSize: "0.9rem",
-                        outline: "none",
-                      }}
+                      className="form-input"
                     />
                   </div>
-                  <button type="submit" className="btn btn-secondary" style={{ width: "100%", padding: "8px" }}>
+                  <button type="submit" className="btn btn-secondary btn-md w-full">
                     Create Subcategory
                   </button>
                 </form>

@@ -17,83 +17,34 @@ export default function Header({ currentUser }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header
-      style={{
-        borderBottom: "1px solid var(--glass-border)",
-        background: "var(--glass-bg)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        padding: "16px 0",
-      }}
-    >
-      <div
-        className="container"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "16px",
-          position: "relative",
-        }}
-      >
+    <header className="site-header">
+      <div className="container flex-between gap-lg relative">
         {/* Left Side: Logo & Desktop Nav */}
-        <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+        <div className="flex-row items-center gap-2xl">
           <Link href="/" onClick={() => setIsOpen(false)}>
-            <span
-              className="text-gradient"
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
+            <span className="text-gradient site-logo">
               🎬 Movie Night
             </span>
           </Link>
-
+ 
           {currentUser && (
             <nav className="desktop-nav">
               <Link
                 href="/"
-                style={{
-                  fontSize: "0.95rem",
-                  fontWeight: 500,
-                  color: "var(--text-secondary)",
-                  transition: "color var(--transition-fast)",
-                }}
-                className="nav-link"
+                className="desktop-nav-link nav-link"
               >
                 Dashboard
               </Link>
               <Link
                 href="/catalog"
-                style={{
-                  fontSize: "0.95rem",
-                  fontWeight: 500,
-                  color: "var(--text-secondary)",
-                  transition: "color var(--transition-fast)",
-                }}
-                className="nav-link"
+                className="desktop-nav-link nav-link"
               >
                 Catalog
               </Link>
               {currentUser.role === "ADMIN" && (
                 <Link
                   href="/admin/users"
-                  style={{
-                    fontSize: "0.95rem",
-                    fontWeight: 500,
-                    color: "var(--text-secondary)",
-                    transition: "color var(--transition-fast)",
-                  }}
-                  className="nav-link"
+                  className="desktop-nav-link nav-link"
                 >
                   Users
                 </Link>
@@ -101,55 +52,35 @@ export default function Header({ currentUser }: HeaderProps) {
             </nav>
           )}
         </div>
-
+ 
         {/* Right Side: Desktop User Info / Mobile Menu Toggle */}
         {currentUser && (
           <>
             {/* Desktop User Navigation */}
             <div className="desktop-user">
-              <span style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: 500 }}>
-                Watching as: <strong style={{ color: "var(--text-primary)" }}>{currentUser.name} {currentUser.role === "ADMIN" ? "👑" : "🍿"}</strong>
+              <span className="text-base text-secondary font-medium">
+                Watching as: <strong className="text-primary-var">{currentUser.name} {currentUser.role === "ADMIN" ? "👑" : "🍿"}</strong>
               </span>
               <Link
                 href="/settings"
-                style={{
-                  fontSize: "0.9rem",
-                  fontWeight: 500,
-                  color: "var(--text-secondary)",
-                  transition: "color var(--transition-fast)",
-                }}
-                className="nav-link"
+                className="desktop-nav-link nav-link"
               >
                 ⚙️ Settings
               </Link>
-              <form action={logoutAction} style={{ display: "inline" }}>
+              <form action={logoutAction} className="inline">
                 <button
                   type="submit"
-                  className="btn btn-secondary"
-                  style={{
-                    padding: "6px 12px",
-                    fontSize: "0.85rem",
-                    cursor: "pointer",
-                  }}
+                  className="btn btn-secondary btn-sm"
                 >
                   Log Out
                 </button>
               </form>
             </div>
-
+ 
             {/* Mobile Hamburger Toggle Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="mobile-menu-toggle"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "8px",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--text-primary)",
-              }}
+              className="mobile-menu-toggle mobile-hamburger-btn"
               aria-label="Toggle navigation menu"
             >
               <svg
@@ -178,34 +109,22 @@ export default function Header({ currentUser }: HeaderProps) {
             </button>
           </>
         )}
-
+ 
         {/* Mobile Absolute Dropdown Menu */}
         {currentUser && isOpen && (
           <div className="mobile-menu-dropdown">
-            <nav style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <nav className="flex-col gap-lg">
               <Link
                 href="/"
                 onClick={() => setIsOpen(false)}
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--glass-border)",
-                }}
+                className="mobile-nav-link"
               >
                 Dashboard
               </Link>
               <Link
                 href="/catalog"
                 onClick={() => setIsOpen(false)}
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--glass-border)",
-                }}
+                className="mobile-nav-link"
               >
                 Catalog
               </Link>
@@ -213,13 +132,7 @@ export default function Header({ currentUser }: HeaderProps) {
                 <Link
                   href="/admin/users"
                   onClick={() => setIsOpen(false)}
-                  style={{
-                    fontSize: "1.1rem",
-                    fontWeight: 500,
-                    color: "var(--text-primary)",
-                    padding: "8px 0",
-                    borderBottom: "1px solid var(--glass-border)",
-                  }}
+                  className="mobile-nav-link"
                 >
                   Users
                 </Link>
@@ -227,33 +140,20 @@ export default function Header({ currentUser }: HeaderProps) {
               <Link
                 href="/settings"
                 onClick={() => setIsOpen(false)}
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--glass-border)",
-                }}
+                className="mobile-nav-link"
               >
                 ⚙️ Settings
               </Link>
             </nav>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "8px" }}>
-              <span style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: 500 }}>
-                Watching as: <strong style={{ color: "var(--text-primary)" }}>{currentUser.name} {currentUser.role === "ADMIN" ? "👑" : "🍿"}</strong>
+ 
+            <div className="flex-col gap-md mt-sm">
+              <span className="text-base text-secondary font-medium">
+                Watching as: <strong className="text-primary-var">{currentUser.name} {currentUser.role === "ADMIN" ? "👑" : "🍿"}</strong>
               </span>
-              <form action={logoutAction} style={{ width: "100%" }}>
+              <form action={logoutAction} className="w-full">
                 <button
                   type="submit"
-                  className="btn btn-secondary"
-                  style={{
-                    width: "100%",
-                    padding: "10px 16px",
-                    fontSize: "0.95rem",
-                    cursor: "pointer",
-                    backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  }}
+                  className="btn btn-secondary w-full bg-white-05"
                 >
                   Log Out
                 </button>

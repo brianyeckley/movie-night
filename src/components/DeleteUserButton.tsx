@@ -20,17 +20,10 @@ export default function DeleteUserButton({ userId, userName }: DeleteUserButtonP
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "inline" }}>
+    <form onSubmit={handleSubmit} className="inline">
       <button 
         type="submit" 
-        className="btn btn-secondary" 
-        style={{ 
-          padding: "6px 12px", 
-          fontSize: "0.8rem", 
-          color: "var(--error)", 
-          borderColor: "rgba(239, 68, 68, 0.2)",
-          cursor: "pointer"
-        }}
+        className="btn btn-secondary btn-sm btn-danger-outline"
       >
         Delete
       </button>
