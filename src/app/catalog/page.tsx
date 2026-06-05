@@ -72,9 +72,9 @@ export default async function CatalogPage() {
         )}
 
         {currentUser && (
-          <div className="grid" style={{ gridTemplateColumns: "2fr 1fr", alignItems: "start" }}>
+          <div className="catalog-layout">
             {/* Catalog List */}
-            <div className="glass-panel no-hover" style={{ padding: "32px" }}>
+            <div className="glass-panel no-hover catalog-list-container" style={{ padding: "32px" }}>
               <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "24px" }}>Movie Catalog</h2>
 
               {categories.length === 0 ? (
@@ -459,7 +459,13 @@ export default async function CatalogPage() {
             </div>
 
             {/* Catalog Controls Forms */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            <div className="catalog-sidebar">
+              <input type="checkbox" id="catalog-sidebar-toggle" className="sidebar-toggle-checkbox" />
+              <label htmlFor="catalog-sidebar-toggle" className="sidebar-toggle-label">
+                <span>🛠️ Manage Catalog (Add Movie/Category...)</span>
+                <span className="sidebar-chevron" style={{ display: "inline-block", transition: "transform var(--transition-fast)" }}>▼</span>
+              </label>
+              <div className="sidebar-content">
               {/* Form 1: Add Movie */}
               <div className="glass-panel no-hover" style={{ padding: "24px" }}>
                 <AddMovieForm categories={flatCategories} genres={genres} />
@@ -578,6 +584,7 @@ export default async function CatalogPage() {
               </div>
             </div>
           </div>
+        </div>
         )}
       </main>
     </div>

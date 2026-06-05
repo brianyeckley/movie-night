@@ -285,7 +285,7 @@ export default async function DashboardPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
             
             {/* Active Week / Voting Dashboard */}
-            <div className="glass-panel no-hover" style={{ padding: "32px" }}>
+            <div className="glass-panel no-hover dashboard-panel">
               {!activeWeek ? (
                 // ----------------------------------------
                 // NO ACTIVE WEEK STATE
@@ -1156,20 +1156,7 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
 
       {/* Prominent Metadata display for winner */}
       {(movie.director || movie.runtime || movie.stars || movie.plot || movie.posterUrl) && (
-        <div style={{
-          display: "flex",
-          flexDirection: "row",
-          gap: "24px",
-          maxWidth: "650px",
-          margin: "0 auto 24px auto",
-          backgroundColor: "rgba(255, 255, 255, 0.02)",
-          border: "1px solid var(--glass-border)",
-          borderRadius: "var(--radius-lg)",
-          padding: "24px",
-          textAlign: "left",
-          alignItems: "start",
-          flexWrap: "wrap"
-        }}>
+        <div className="winner-meta-card">
           {movie.posterUrl && (
             <img
               src={movie.posterUrl}
@@ -1184,7 +1171,7 @@ function CompletedWeekView({ week, movie, currentUser }: any) {
               }}
             />
           )}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "12px", minWidth: "260px" }}>
+          <div className="winner-meta-info">
             {movie.plot && (
               <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.5", margin: 0 }}>
                 {movie.plot}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
-import { getActiveUser, logoutAction } from "@/app/actions/user";
+import { getActiveUser } from "@/app/actions/user";
+import Header from "@/components/Header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -51,124 +51,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <header
-          style={{
-            borderBottom: "1px solid var(--glass-border)",
-            background: "rgba(8, 12, 20, 0.85)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            position: "sticky",
-            top: 0,
-            zIndex: 100,
-            padding: "16px 0",
-          }}
-        >
-          <div
-            className="container"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "16px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-              <Link href="/">
-                <span
-                  className="text-gradient"
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 800,
-                    letterSpacing: "-0.03em",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  🎬 Movie Night
-                </span>
-              </Link>
-
-              {currentUser && (
-                <nav style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-                  <Link
-                    href="/"
-                    style={{
-                      fontSize: "0.95rem",
-                      fontWeight: 500,
-                      color: "var(--text-secondary)",
-                      transition: "color var(--transition-fast)",
-                    }}
-                    className="nav-link"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/catalog"
-                    style={{
-                      fontSize: "0.95rem",
-                      fontWeight: 500,
-                      color: "var(--text-secondary)",
-                      transition: "color var(--transition-fast)",
-                    }}
-                    className="nav-link"
-                  >
-                    Catalog
-                  </Link>
-                  {currentUser.role === "ADMIN" && (
-                    <Link
-                      href="/admin/users"
-                      style={{
-                        fontSize: "0.95rem",
-                        fontWeight: 500,
-                        color: "var(--text-secondary)",
-                        transition: "color var(--transition-fast)",
-                      }}
-                      className="nav-link"
-                    >
-                      Users
-                    </Link>
-                  )}
-                </nav>
-              )}
-            </div>
-
-            {currentUser && (
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <span style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: 500 }}>
-                  Watching as: <strong style={{ color: "var(--text-primary)" }}>{currentUser.name} {currentUser.role === "ADMIN" ? "👑" : "🍿"}</strong>
-                </span>
-                <Link
-                  href="/settings"
-                  style={{
-                    fontSize: "0.9rem",
-                    fontWeight: 500,
-                    color: "var(--text-secondary)",
-                    transition: "color var(--transition-fast)",
-                  }}
-                  className="nav-link"
-                >
-                  ⚙️ Settings
-                </Link>
-                <form action={logoutAction} style={{ display: "inline" }}>
-                  <button 
-                    type="submit" 
-                    className="btn btn-secondary" 
-                    style={{ 
-                      padding: "6px 12px", 
-                      fontSize: "0.85rem",
-                      cursor: "pointer" 
-                    }}
-                  >
-                    Log Out
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
-        </header>
+        <Header currentUser={currentUser} />
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>{children}</div>
       </body>
     </html>
