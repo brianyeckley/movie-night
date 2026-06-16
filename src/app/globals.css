@@ -782,20 +782,36 @@ details.movie-row-details {
 /* Fullscreen Immersive Video Player for Mobile Trailers */
 @media (max-width: 768px) {
   .modal-fullscreen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100dvh;
     background-color: #000000;
     padding: 0;
+    overflow: hidden;
+    touch-action: none;
+    z-index: 1000;
   }
 
   .modal-fullscreen-overlay .modal-fullscreen-card {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100vw;
-    height: 100vh;
-    max-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
     border: none;
     border-radius: 0;
     background-color: #000000;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    overflow: hidden;
     transform: scale(0.95);
     opacity: 0;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
@@ -806,16 +822,15 @@ details.movie-row-details {
     opacity: 1;
   }
 
-  /* Transparent header overlay pinned to top with gradient shadow */
+  /* Transparent header overlay pinned to top with safe area padding */
   .modal-fullscreen-card .modal-header {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: env(safe-area-inset-top, 16px);
+    right: 16px;
     z-index: 10;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0) 100%);
     border-bottom: none;
-    padding: 16px 20px;
+    padding: 0;
+    background: transparent;
     display: flex;
     justify-content: flex-end;
   }
@@ -825,11 +840,11 @@ details.movie-row-details {
     display: none;
   }
 
-  /* Rounded high-contrast close button */
+  /* Rounded close button with blur */
   .modal-fullscreen-card .modal-close-btn {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: var(--radius-full);
     width: 44px;
@@ -839,12 +854,22 @@ details.movie-row-details {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transition: all var(--transition-fast);
   }
 
   .modal-fullscreen-card .modal-close-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Aspect-ratio constrained video container for portrait & landscape viewports */
+  .modal-fullscreen-card .video-container {
+    padding-bottom: 0;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    max-width: calc(100dvh * 16 / 9);
+    margin: 0 auto;
   }
 }
 
@@ -1593,6 +1618,55 @@ details.movie-row-details {
   font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
+}
+
+/* Responsive Catalog overrides to prevent horizontal scroll */
+@media (max-width: 768px) {
+  .catalog-list-container {
+    padding: 16px !important;
+  }
+  .category-details-content {
+    padding-left: 8px;
+    padding-bottom: 16px;
+  }
+  .subcategory-card {
+    padding: 12px;
+  }
+  .movie-row-card > div.flex-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .movie-row-card .min-w-250 {
+    min-width: 0;
+  }
+  .movie-row-card div.items-end {
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+  .movie-row-card div.items-end div.flex-row {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .movie-details-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  .movie-details-summary div.flex-row {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .movie-details-expanded {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 16px;
+  }
+  .expanded-poster {
+    width: 70px;
+  }
 }
 
 
