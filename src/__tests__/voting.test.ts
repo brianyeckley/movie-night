@@ -29,7 +29,7 @@ vi.mock("@/app/actions/user", () => ({
 }));
 
 describe("Voting Server Actions", () => {
-  const mockUser = { id: "user-1", username: "brian", name: "Brian", role: "USER", isApproved: true };
+  const mockUser = { id: "user-1", username: "brian", name: "Brian", passwordHash: "", role: "USER", isApproved: true };
 
   beforeEach(() => {
     vi.clearAllMocks();

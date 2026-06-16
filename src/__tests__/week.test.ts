@@ -38,8 +38,8 @@ vi.mock("next/cache", () => ({
 }));
 
 describe("Week Management Server Actions", () => {
-  const mockAdmin = { id: "admin-1", username: "brian", name: "Brian", role: "ADMIN", isApproved: true };
-  const mockUser = { id: "user-1", username: "stew", name: "Stew", role: "USER", isApproved: true };
+  const mockAdmin = { id: "admin-1", username: "brian", name: "Brian", passwordHash: "", role: "ADMIN", isApproved: true };
+  const mockUser = { id: "user-1", username: "stew", name: "Stew", passwordHash: "", role: "USER", isApproved: true };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -201,11 +201,11 @@ describe("Week Management Server Actions", () => {
         { id: "user-1", isApproved: true },
         { id: "user-2", isApproved: true },
       ] as any);
-      vi.mocked(db.category.findUnique).mockImplementation(async ({ where: { id } }: any) => {
+      vi.mocked(db.category.findUnique).mockImplementation((async ({ where: { id } }: any) => {
         if (id === "cat-1") return { id: "cat-1", name: "Comedy" } as any;
         if (id === "cat-2") return { id: "cat-2", name: "Sci-Fi" } as any;
         return null;
-      });
+      }) as any);
 
       const result = await advanceWeekRoundAction("week-1");
       expect(result).toEqual({ success: true });
