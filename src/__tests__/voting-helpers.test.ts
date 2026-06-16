@@ -52,7 +52,7 @@ describe("Voting Data Compilation Helpers", () => {
   describe("getShortlistMovies", () => {
     it("compiles movies tied in Round 2 and subcategory selections in Round 2b", async () => {
       // Mock Round 2 votes (cat-3 subcategory and movie-1 are tied with 1 approved vote each)
-      vi.mocked(db.weekVote.findMany).mockImplementation(async ({ where }: any) => {
+      vi.mocked(db.weekVote.findMany).mockImplementation((async ({ where }: any) => {
         if (where.round === "ROUND_2_MOVIE") {
           return [
             { targetId: "cat-3", user: { id: "user-1", isApproved: true } }, // Subcategory
@@ -65,7 +65,7 @@ describe("Voting Data Compilation Helpers", () => {
           ] as any;
         }
         return [];
-      });
+      }) as any);
 
       vi.mocked(db.category.findMany).mockResolvedValueOnce([
         { id: "cat-3", name: "Silly Horror" },

@@ -16,6 +16,10 @@ vi.mock("@/lib/db", () => ({
     weekVote: {
       deleteMany: vi.fn(),
       create: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    user: {
+      findMany: vi.fn().mockResolvedValue([]),
     },
   },
 }));

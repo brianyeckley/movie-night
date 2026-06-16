@@ -28,6 +28,36 @@ export async function submitCategoryVoteAction(weekId: string, categoryId: strin
     },
   });
 
+  // Auto-advance checking:
+  // Fetch total number of approved users
+  const approvedUsers = await db.user.findMany({ where: { isApproved: true } });
+  const totalVoters = approvedUsers.length;
+
+  // Fetch all votes in the current round
+  const votes = await db.weekVote.findMany({
+    where: { weekId, round: "ROUND_1_CATEGORY" },
+    include: { user: true },
+  });
+  const approvedVotes = votes.filter((v) => v.user.isApproved);
+  const currentVotesCount = approvedVotes.length;
+  const remainingVotersCount = totalVoters - currentVotesCount;
+
+  // Count votes
+  const counts: Record<string, number> = {};
+  approvedVotes.forEach((v) => {
+    counts[v.targetId] = (counts[v.targetId] || 0) + 1;
+  });
+
+  const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const maxCount = sortedCounts[0]?.[1] || 0;
+  const runnerUpCount = sortedCounts[1]?.[1] || 0;
+
+  if (maxCount > runnerUpCount + remainingVotersCount) {
+    // Leading category has mathematically won! Trigger auto-advancement.
+    const { advanceWeekRoundInternal } = await import("./week");
+    await advanceWeekRoundInternal(weekId);
+  }
+
   revalidatePath("/");
 }
 

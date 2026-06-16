@@ -145,6 +145,24 @@ export async function advanceWeekRoundAction(weekId: string) {
     return { success: false, error: "Unauthorized: Only Admin can advance before all votes are in." };
   }
 
+  return advanceWeekRoundInternal(weekId, week);
+}
+
+// Internal implementation of round advancement (bypass user role checks for auto-advancements)
+export async function advanceWeekRoundInternal(weekId: string, preloadedWeek?: any) {
+  const week = preloadedWeek ?? await db.movieNightWeek.findUnique({
+    where: { id: weekId },
+    include: { votes: { include: { user: true } } },
+  });
+  if (!week) return { success: false, error: "Week not found." };
+
+  const approvedVotes = (week.votes as Array<{
+    round: string;
+    targetId: string;
+    userId: string;
+    user: { isApproved: boolean; name: string };
+  }>).filter((v) => v.user.isApproved);
+
   // State Machine Transitions
   if (week.status === "CATEGORY_VOTING") {
     // ----------------------------------------
