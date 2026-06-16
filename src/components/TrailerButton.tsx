@@ -50,12 +50,12 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
       {isRendered && (
         <div
           onClick={() => setIsOpen(false)}
-          className={`modal-overlay ${isOpen ? "open" : ""}`}
+          className={`modal-overlay modal-fullscreen-overlay ${isOpen ? "open" : ""}`}
         >
           {/* Modal Card */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="modal-card max-w-4xl"
+            className="modal-card modal-fullscreen-card max-w-4xl"
           >
             {/* Header */}
             <div className="modal-header">
