@@ -79,3 +79,18 @@ If hosted on Vercel, you can declare the cron check in a `vercel.json` file in t
 }
 ```
 *(Note: Vercel Cron schedules run in UTC time. For example, `0 17 * * *` runs daily at 17:00 UTC, which corresponds to 12:00 PM EST / 11:00 AM CST).*
+
+## Running Unit Tests
+
+We use [Vitest](https://vitest.dev/) to run unit tests that cover server actions, voting validation, round status transitions, and reminder routes.
+
+To run the unit tests once:
+```bash
+npm run test
+```
+
+To run the tests in interactive watch mode (highly recommended during active development):
+```bash
+npm run test:watch
+```
+
