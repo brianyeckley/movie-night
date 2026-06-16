@@ -185,3 +185,37 @@ export async function notifyRoundAdvanced(
     ],
   });
 }
+
+// 3. Notify reminder for users who haven't voted yet
+export async function notifyReminder(weekId: string, pendingVoterNames: string[]) {
+  const week = await db.movieNightWeek.findUnique({
+    where: { id: weekId },
+  });
+  if (!week) return;
+
+  const weekNum = week.weekNumber;
+  const formatStatus = (s: string) => {
+    switch (s) {
+      case "CATEGORY_VOTING": return "Category Voting";
+      case "MOVIE_VOTING": return "Movie Voting";
+      case "SUBCATEGORY_VOTING": return "Subcategory Voting";
+      case "SHORTLIST_VOTING": return "Shortlist Voting";
+      case "FINAL_VOTING": return "Final Tiebreaker Voting";
+      default: return s;
+    }
+  };
+
+  const roundName = formatStatus(week.status);
+
+  await sendDiscordPayload({
+    content: `🔔 **Movie Night Reminder!** 🎬`,
+    embeds: [
+      {
+        title: `Reminder: Cast Your Votes for Week ${weekNum}!`,
+        description: `We are currently in **${roundName}**.\n\n⚠️ **Waiting on votes from:**\n${pendingVoterNames.map(name => `• **${name}**`).join("\n")}\n\nGo to the website to cast your vote: ${APP_URL}`,
+        color: 0xe67e22, // Orange/Warning color
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  });
+}
