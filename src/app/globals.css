@@ -1557,6 +1557,14 @@ details.movie-row-details {
     padding: 4px 0;
   }
 
+  /* Catch-all rule: ensure all flex rows inside catalog panels wrap on mobile */
+  .movie-row-card div.flex-row,
+  .movie-details-expanded div.flex-row,
+  .movie-details-summary div.flex-row,
+  .subcategory-card div.flex-row {
+    flex-wrap: wrap !important;
+  }
+
   .movie-row-card > div.flex-row {
     flex-direction: column;
     align-items: stretch;
