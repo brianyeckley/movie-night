@@ -18,6 +18,7 @@ import { CategoryVotingFormClient, MovieVotingFormClient, SubcategoryVotingFormC
 import TrailerButton from "@/components/TrailerButton";
 import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
 import AdvanceRoundButton from "@/components/AdvanceRoundButton";
+import AutoRefresh from "@/components/AutoRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -262,6 +263,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="py-xl">
+      {activeWeek && activeWeek.status !== "COMPLETED" && (
+        <AutoRefresh interval={5000} />
+      )}
       <main className="container">
         {!currentUser ? (
           // ----------------------------------------
