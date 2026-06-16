@@ -21,8 +21,18 @@ function getYoutubeEmbedUrl(url: string): string | null {
 export default function TrailerButton({ trailerUrl, style, className }: TrailerButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const embedUrl = trailerUrl ? getYoutubeEmbedUrl(trailerUrl) : null;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -34,6 +44,22 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  if (!trailerUrl) return null;
+
+  if (isMobile) {
+    return (
+      <a
+        href={trailerUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`btn btn-secondary btn-trailer ${className || ""}`}
+        style={style}
+      >
+        <span>🍿</span> Trailer
+      </a>
+    );
+  }
 
   if (!embedUrl) return null;
 
@@ -50,12 +76,12 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
       {isRendered && (
         <div
           onClick={() => setIsOpen(false)}
-          className={`modal-overlay modal-fullscreen-overlay ${isOpen ? "open" : ""}`}
+          className={`modal-overlay ${isOpen ? "open" : ""}`}
         >
           {/* Modal Card */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="modal-card modal-fullscreen-card max-w-4xl"
+            className="modal-card max-w-4xl"
           >
             {/* Header */}
             <div className="modal-header">

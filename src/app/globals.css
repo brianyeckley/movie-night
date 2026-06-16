@@ -779,99 +779,7 @@ details.movie-row-details {
   border: none;
 }
 
-/* Fullscreen Immersive Video Player for Mobile Trailers */
-@media (max-width: 768px) {
-  .modal-fullscreen-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100dvh;
-    background-color: #000000;
-    padding: 0;
-    overflow: hidden;
-    touch-action: none;
-    z-index: 1000;
-  }
-
-  .modal-fullscreen-overlay .modal-fullscreen-card {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100dvh;
-    max-height: 100dvh;
-    border: none;
-    border-radius: 0;
-    background-color: #000000;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-    transform: scale(0.95);
-    opacity: 0;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-  }
-
-  .modal-fullscreen-overlay.open .modal-fullscreen-card {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  /* Transparent header overlay pinned to top with safe area padding */
-  .modal-fullscreen-card .modal-header {
-    position: absolute;
-    top: env(safe-area-inset-top, 16px);
-    right: 16px;
-    z-index: 10;
-    border-bottom: none;
-    padding: 0;
-    background: transparent;
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  /* Hide textual header title to maximize minimalism */
-  .modal-fullscreen-card .modal-header span {
-    display: none;
-  }
-
-  /* Rounded close button with blur */
-  .modal-fullscreen-card .modal-close-btn {
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: var(--radius-full);
-    width: 44px;
-    height: 44px;
-    color: #ffffff;
-    font-size: 1.8rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    transition: all var(--transition-fast);
-  }
-
-  .modal-fullscreen-card .modal-close-btn:hover {
-    background: rgba(15, 23, 42, 0.8);
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-
-  /* Aspect-ratio constrained video container for portrait & landscape viewports */
-  .modal-fullscreen-card .video-container {
-    padding-bottom: 0;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    max-width: calc(100dvh * 16 / 9);
-    margin: 0 auto;
-  }
-}
+/* Video modal on mobile is bypassed via direct external links */
 
 /* Forms layout & controls */
 .form-container {
@@ -1658,11 +1566,18 @@ details.movie-row-details {
   .movie-details-summary div.flex-row {
     width: 100%;
     flex-wrap: wrap;
+    gap: 8px;
   }
   .movie-details-expanded {
     flex-direction: column;
     gap: 16px;
     padding: 12px 16px;
+    align-items: stretch;
+  }
+  .movie-details-expanded div.flex-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
   }
   .expanded-poster {
     width: 70px;
