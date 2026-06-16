@@ -14,7 +14,7 @@ import {
   completeWeekLegacyOverrideAction,
 } from "@/app/actions";
 import Link from "next/link";
-import { MovieVotingFormClient, SubcategoryVotingFormClient, ShortlistVotingFormClient } from "@/components/VotingFormClient";
+import { CategoryVotingFormClient, MovieVotingFormClient, SubcategoryVotingFormClient, ShortlistVotingFormClient, FinalVotingFormClient } from "@/components/VotingFormClient";
 import TrailerButton from "@/components/TrailerButton";
 import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
 import AdvanceRoundButton from "@/components/AdvanceRoundButton";
@@ -689,40 +689,11 @@ async function CategoryVotingForm({ week, currentUserId, roundVotedUserIds }: an
         Vote for the high-level category of movies to watch this week. Tie-breaks will result in a random pick. (1 Vote)
       </p>
 
-      <form
-        action={async (formData) => {
-          "use server";
-          const categoryId = formData.get("categoryId") as string;
-          if (categoryId) {
-            await submitCategoryVoteAction(week.id, categoryId);
-          }
-        }}
-        className="flex-col gap-md"
-      >
-        {categories.map((cat) => (
-          <label
-            key={cat.id}
-            className={`voting-card items-center gap-md ${userVote?.targetId === cat.id ? "checked" : ""}`}
-          >
-            <input
-              type="radio"
-              name="categoryId"
-              value={cat.id}
-              defaultChecked={userVote?.targetId === cat.id}
-              required
-              className="vote-checkbox"
-            />
-            <div className="flex-col">
-              <span className="font-semibold text-lg text-primary-var">{cat.name}</span>
-              {cat.isThemed && <span className="text-sm text-accent-color">Current Theme Category</span>}
-            </div>
-          </label>
-        ))}
-
-        <button type="submit" className="btn btn-primary mt-md">
-          {userVote ? "Update Category Vote" : "Cast Category Vote"}
-        </button>
-      </form>
+      <CategoryVotingFormClient
+        weekId={week.id}
+        categories={categories}
+        initialVoteId={userVote?.targetId || null}
+      />
     </div>
   );
 }
@@ -877,124 +848,11 @@ async function FinalVotingForm({ week, currentUserId, roundVotedUserIds }: any) 
         A tie has occurred in the shortlist round! Vote on the remaining tied options. If a tie persists here, a random winner will be selected. (1 Vote)
       </p>
 
-      <form
-        action={async (formData) => {
-          "use server";
-          const movieId = formData.get("movieId") as string;
-          if (movieId) {
-            await submitFinalVoteAction(week.id, movieId);
-          }
-        }}
-        className="flex-col gap-md"
-      >
-        {movies.map((movie: any) => (
-          <div
-            key={movie.id}
-            className={`movie-row-card text-left ${userVote?.targetId === movie.id ? "checked" : ""}`}
-          >
-            <div className="flex-row justify-between items-start flex-wrap gap-md">
-              <label
-                className="flex-row items-center gap-md flex-1 min-w-250 cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  name="movieId"
-                  value={movie.id}
-                  defaultChecked={userVote?.targetId === movie.id}
-                  required
-                  className="vote-checkbox"
-                />
-                <div className="flex-col gap-xs">
-                  <div className="flex-row items-center gap-sm-plus flex-wrap">
-                    <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
-                    {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot">
-                        🍿 Plot
-                        <span className="movie-tooltip-card">
-                          {movie.posterUrl && (
-                            <img
-                              src={movie.posterUrl}
-                              alt={`${movie.title} Poster`}
-                              className="tooltip-poster"
-                            />
-                          )}
-                          <div className="flex-1 flex-col gap-xs">
-                            <div className="flex-row justify-between items-baseline w-full gap-sm">
-                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
-                              {movie.imdbRating && (
-                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
-                                  ⭐ {movie.imdbRating}/10
-                                </span>
-                              )}
-                            </div>
-                            {movie.plot && (
-                              <p className="tooltip-plot">
-                                {movie.plot}
-                              </p>
-                            )}
-                          </div>
-                        </span>
-                      </span>
-                    )}
-                    {movie.imdbRating && (
-                      <span className="badge-rating">
-                        ⭐ {movie.imdbRating}
-                      </span>
-                    )}
-                  </div>
-
-                  {(movie.director || movie.runtime || movie.stars) && (
-                    <div className="text-sm text-secondary flex-col gap-xxs mt-xxs">
-                      {(movie.director || movie.runtime) && (
-                        <div className="flex-row gap-sm items-center flex-wrap">
-                          {movie.director && <span>🎬 <span className="text-muted">Dir:</span> {movie.director}</span>}
-                          {movie.director && movie.runtime && <span className="text-glass-border">•</span>}
-                          {movie.runtime && <span>⏱️ {movie.runtime}</span>}
-                        </div>
-                      )}
-                      {movie.stars && (
-                        <div className="flex-row gap-xs items-baseline">
-                          <span className="text-muted flex-shrink-0">👥 Cast:</span>
-                          <span className="text-secondary">{movie.stars}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </label>
-
-              <div className="flex-col items-end gap-sm flex-shrink-0">
-                {movie.genres && movie.genres.length > 0 && (
-                  <div className="flex-row gap-xs">
-                    {movie.genres.map((g: any) => (
-                      <span key={g.id} className="badge-genre">
-                        #{g.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="flex-row gap-sm items-center mt-xs">
-                  {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
-                  {movie.imdbUrl && (
-                    <a
-                      href={movie.imdbUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary-color underline"
-                    >
-                      IMDb ↗
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        <button type="submit" className="btn btn-primary mt-md">
-          {userVote ? "Update Final Vote" : "Cast Final Vote"}
-        </button>
-      </form>
+      <FinalVotingFormClient
+        weekId={week.id}
+        movies={movies}
+        initialVoteId={userVote?.targetId || null}
+      />
     </div>
   );
 }
