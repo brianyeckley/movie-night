@@ -26,10 +26,12 @@ async function getShortlistMovies(weekId: string, selectedCategoryId: string, se
   // 1. Get all votes in ROUND_2_MOVIE
   const r2Votes = await db.weekVote.findMany({
     where: { weekId, round: "ROUND_2_MOVIE" },
+    include: { user: true },
   });
 
+  const approvedR2Votes = r2Votes.filter((v) => v.user.isApproved);
   const r2Counts: Record<string, number> = {};
-  r2Votes.forEach((v) => {
+  approvedR2Votes.forEach((v) => {
     r2Counts[v.targetId] = (r2Counts[v.targetId] || 0) + 1;
   });
 
@@ -48,9 +50,11 @@ async function getShortlistMovies(weekId: string, selectedCategoryId: string, se
   if (selectedSubcategoryId) {
     const subVotes = await db.weekVote.findMany({
       where: { weekId, round: "ROUND_2_SUB_MOVIE" },
+      include: { user: true },
     });
+    const approvedSubVotes = subVotes.filter((v) => v.user.isApproved);
     const subCounts: Record<string, number> = {};
-    subVotes.forEach((v) => {
+    approvedSubVotes.forEach((v) => {
       subCounts[v.targetId] = (subCounts[v.targetId] || 0) + 1;
     });
     const subMax = Math.max(...Object.values(subCounts), 0);
@@ -69,10 +73,12 @@ async function getShortlistMovies(weekId: string, selectedCategoryId: string, se
 async function getFinalTiebreakerMovies(weekId: string) {
   const r3Votes = await db.weekVote.findMany({
     where: { weekId, round: "ROUND_3_SHORTLIST" },
+    include: { user: true },
   });
 
+  const approvedR3Votes = r3Votes.filter((v) => v.user.isApproved);
   const r3Counts: Record<string, number> = {};
-  r3Votes.forEach((v) => {
+  approvedR3Votes.forEach((v) => {
     r3Counts[v.targetId] = (r3Counts[v.targetId] || 0) + 1;
   });
 
@@ -105,8 +111,9 @@ export default async function DashboardPage() {
       })
     : null;
 
-  // Fetch all users
+  // Fetch all approved users
   const users = await db.user.findMany({
+    where: { isApproved: true },
     orderBy: { name: "asc" },
   });
 
@@ -152,12 +159,14 @@ export default async function DashboardPage() {
     else if (activeWeek.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
 
     roundTitle = activeWeek.status.replace("_", " ");
-    roundVotedUserIds = activeWeek.votes
+    const approvedActiveVotes = activeWeek.votes.filter((v) => v.user.isApproved);
+
+    roundVotedUserIds = approvedActiveVotes
       .filter((v) => v.round === activeRoundCode)
       .map((v) => v.userId);
 
     // Resolve display names for votes
-    const targetIds = Array.from(new Set(activeWeek.votes.map((v) => v.targetId)));
+    const targetIds = Array.from(new Set(approvedActiveVotes.map((v) => v.targetId)));
 
     const votedCategories = await db.category.findMany({
       where: { id: { in: targetIds } },
@@ -176,7 +185,7 @@ export default async function DashboardPage() {
     });
 
     const votesByRound: Record<string, any[]> = {};
-    activeWeek.votes.forEach((v) => {
+    approvedActiveVotes.forEach((v) => {
       if (v.round !== activeRoundCode) {
         if (!votesByRound[v.round]) {
           votesByRound[v.round] = [];

@@ -115,9 +115,11 @@ export async function advanceWeekRoundAction(weekId: string) {
 
   const week = await db.movieNightWeek.findUnique({
     where: { id: weekId },
-    include: { votes: true },
+    include: { votes: { include: { user: true } } },
   });
   if (!week) return { success: false, error: "Week not found." };
+
+  const approvedVotes = week.votes.filter((v) => v.user.isApproved);
 
   // Determine if everyone has voted in the current active round
   let activeRoundCode = "";
@@ -127,11 +129,13 @@ export async function advanceWeekRoundAction(weekId: string) {
   else if (week.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
   else if (week.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
 
-  const roundVotedUserIds = week.votes
+  const roundVotedUserIds = approvedVotes
     .filter((v) => v.round === activeRoundCode)
     .map((v) => v.userId);
 
-  const allUsers = await db.user.findMany();
+  const allUsers = await db.user.findMany({
+    where: { isApproved: true },
+  });
   const allVotesIn = allUsers.every((u) => roundVotedUserIds.includes(u.id));
 
   const isAdmin = currentUser.role === "ADMIN";
@@ -144,7 +148,7 @@ export async function advanceWeekRoundAction(weekId: string) {
     // ----------------------------------------
     // ROUND 1: Category Voting
     // ----------------------------------------
-    const votes = week.votes.filter((v) => v.round === "ROUND_1_CATEGORY");
+    const votes = approvedVotes.filter((v) => v.round === "ROUND_1_CATEGORY");
     if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
 
     // Count votes
@@ -187,7 +191,7 @@ export async function advanceWeekRoundAction(weekId: string) {
     // ----------------------------------------
     // ROUND 2: Movie/Subcategory Voting
     // ----------------------------------------
-    const votes = week.votes.filter((v) => v.round === "ROUND_2_MOVIE");
+    const votes = approvedVotes.filter((v) => v.round === "ROUND_2_MOVIE");
     if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
 
     // Count votes
@@ -295,7 +299,7 @@ export async function advanceWeekRoundAction(weekId: string) {
     // ----------------------------------------
     // ROUND 3: Shortlist Voting (3 votes per user)
     // ----------------------------------------
-    const votes = week.votes.filter((v) => v.round === "ROUND_3_SHORTLIST");
+    const votes = approvedVotes.filter((v) => v.round === "ROUND_3_SHORTLIST");
     if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
 
     const counts: Record<string, number> = {};
@@ -344,7 +348,7 @@ export async function advanceWeekRoundAction(weekId: string) {
     // ----------------------------------------
     // ROUND 4: Tiebreaker (1 vote per user)
     // ----------------------------------------
-    const votes = week.votes.filter((v) => v.round === "ROUND_4_TIEBREAKER");
+    const votes = approvedVotes.filter((v) => v.round === "ROUND_4_TIEBREAKER");
     if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
 
     const counts: Record<string, number> = {};
