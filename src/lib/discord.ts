@@ -97,6 +97,7 @@ export async function notifyRoundAdvanced(
   const formatStatus = (s: string) => {
     switch (s) {
       case "CATEGORY_VOTING": return "Category Voting";
+      case "CATEGORY_TIEBREAKER_VOTING": return "Category Tiebreaker Voting";
       case "MOVIE_VOTING": return "Movie Voting";
       case "SUBCATEGORY_VOTING": return "Subcategory Voting";
       case "SHORTLIST_VOTING": return "Shortlist Voting";
@@ -108,8 +109,20 @@ export async function notifyRoundAdvanced(
 
   // Determine what happened in the previous round
   if (prevStatus === "CATEGORY_VOTING") {
-    if (details.winnerName) {
+    if (newStatus === "CATEGORY_TIEBREAKER_VOTING") {
+      description = `**Round 1 (Category Voting)** ended in a tie! The tied categories have advanced to the Category Tiebreaker.`;
+      if (details.tiedItems && details.tiedItems.length > 0) {
+        fields.push({
+          name: "Tied Categories",
+          value: details.tiedItems.map(c => `• ${c}`).join("\n"),
+        });
+      }
+    } else if (details.winnerName) {
       description = `**Round 1 (Category Voting)** has concluded!\n\nThe winning theme category is: **${details.winnerName}**${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
+    }
+  } else if (prevStatus === "CATEGORY_TIEBREAKER_VOTING") {
+    if (details.winnerName) {
+      description = `**Round 1b (Category Tiebreaker)** has concluded!\n\nThe winning theme category is: **${details.winnerName}**${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
     }
   } else if (prevStatus === "MOVIE_VOTING") {
     if (newStatus === "SUBCATEGORY_VOTING") {

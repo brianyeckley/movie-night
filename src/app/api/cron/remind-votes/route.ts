@@ -28,6 +28,7 @@ export async function GET(request: Request) {
     // 2. Identify the active round code
     let activeRoundCode = "";
     if (activeWeek.status === "CATEGORY_VOTING") activeRoundCode = "ROUND_1_CATEGORY";
+    else if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_1_CATEGORY_TIEBREAKER";
     else if (activeWeek.status === "MOVIE_VOTING") activeRoundCode = "ROUND_2_MOVIE";
     else if (activeWeek.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
     else if (activeWeek.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";

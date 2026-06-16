@@ -156,3 +156,36 @@ export async function submitFinalVoteAction(weekId: string, movieId: string) {
 
   revalidatePath("/");
 }
+
+// 9b. Submit Category Tiebreaker Votes (Round 1b)
+export async function submitCategoryTiebreakerVotesAction(weekId: string, categoryIds: string[]) {
+  const currentUser = await getActiveUser();
+  if (!currentUser) throw new Error("You must pick a user first.");
+
+  if (categoryIds.length > 2) {
+    throw new Error("You can select a maximum of 2 categories.");
+  }
+
+  // Delete previous votes for this user in this round
+  await db.weekVote.deleteMany({
+    where: {
+      weekId,
+      userId: currentUser.id,
+      round: "ROUND_1_CATEGORY_TIEBREAKER",
+    },
+  });
+
+  // Create new votes
+  for (const targetId of categoryIds) {
+    await db.weekVote.create({
+      data: {
+        weekId,
+        userId: currentUser.id,
+        round: "ROUND_1_CATEGORY_TIEBREAKER",
+        targetId,
+      },
+    });
+  }
+
+  revalidatePath("/");
+}

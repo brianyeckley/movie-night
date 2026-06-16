@@ -6,7 +6,8 @@ import {
   submitMovieVotesAction, 
   submitSubMovieVotesAction, 
   submitShortlistVotesAction,
-  submitFinalVoteAction
+  submitFinalVoteAction,
+  submitCategoryTiebreakerVotesAction
 } from "@/app/actions";
 import TrailerButton from "@/components/TrailerButton";
 import Toast from "@/components/Toast";
@@ -794,6 +795,96 @@ export function FinalVotingFormClient({
 
       <button type="submit" disabled={isPending} className="btn btn-primary mt-md">
         {isPending ? "Submitting Vote..." : initialVoteId ? "Update Final Vote" : "Cast Final Vote"}
+      </button>
+      <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
+    </form>
+  );
+}
+
+// ======================================================================
+// 6. Category Tiebreaker Selection Form (Round 1b)
+// ======================================================================
+interface CategoryTiebreakerVotingFormClientProps {
+  weekId: string;
+  categories: any[];
+  initialVotes: string[];
+}
+
+export function CategoryTiebreakerVotingFormClient({
+  weekId,
+  categories,
+  initialVotes,
+}: CategoryTiebreakerVotingFormClientProps) {
+  const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const maxVotes = 2;
+  const isLimitReached = selectedIds.length >= maxVotes;
+
+  const handleCheckboxChange = (id: string, checked: boolean) => {
+    setError(null);
+    if (checked) {
+      if (selectedIds.length < maxVotes) {
+        setSelectedIds((prev) => [...prev, id]);
+      }
+    } else {
+      setSelectedIds((prev) => prev.filter((item) => item !== id));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedIds.length === 0) {
+      setError("⚠️ Please select at least one option before casting your votes.");
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      try {
+        await submitCategoryTiebreakerVotesAction(weekId, selectedIds);
+        setToastMsg("Tiebreaker votes cast successfully!");
+      } catch (err) {
+        console.error("Failed to submit category tiebreaker votes:", err);
+        setError("Failed to submit votes. Please try again.");
+      }
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex-col gap-md">
+      {categories.map((cat) => {
+        const isChecked = selectedIds.includes(cat.id);
+        const isDisabled = isLimitReached && !isChecked;
+        return (
+          <label
+            key={cat.id}
+            className={`voting-card items-center gap-md ${isChecked ? "checked" : ""} ${isDisabled ? "disabled" : "enabled"}`}
+          >
+            <input
+              type="checkbox"
+              checked={isChecked}
+              disabled={isDisabled || isPending}
+              onChange={(e) => handleCheckboxChange(cat.id, e.target.checked)}
+              className="vote-checkbox"
+            />
+            <div className="flex-col">
+              <span className="font-semibold text-lg text-primary-var">{cat.name}</span>
+              {cat.isThemed && <span className="text-sm text-accent-color">Current Theme Category</span>}
+            </div>
+          </label>
+        );
+      })}
+
+      {error && (
+        <div className="vote-error mt-xs">
+          {error}
+        </div>
+      )}
+
+      <button type="submit" disabled={isPending} className="btn btn-primary mt-sm">
+        {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Tiebreaker Votes" : "Cast Tiebreaker Votes"}
       </button>
       <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
     </form>

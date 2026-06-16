@@ -14,7 +14,7 @@ import {
   completeWeekLegacyOverrideAction,
 } from "@/app/actions";
 import Link from "next/link";
-import { CategoryVotingFormClient, MovieVotingFormClient, SubcategoryVotingFormClient, ShortlistVotingFormClient, FinalVotingFormClient } from "@/components/VotingFormClient";
+import { CategoryVotingFormClient, CategoryTiebreakerVotingFormClient, MovieVotingFormClient, SubcategoryVotingFormClient, ShortlistVotingFormClient, FinalVotingFormClient } from "@/components/VotingFormClient";
 import TrailerButton from "@/components/TrailerButton";
 import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
 import AdvanceRoundButton from "@/components/AdvanceRoundButton";
@@ -92,6 +92,28 @@ async function getFinalTiebreakerMovies(weekId: string) {
   });
 }
 
+// Helper: Get category tiebreaker categories
+async function getCategoryTiebreakerCategories(weekId: string) {
+  const votes = await db.weekVote.findMany({
+    where: { weekId, round: "ROUND_1_CATEGORY" },
+    include: { user: true },
+  });
+
+  const approvedVotes = votes.filter((v) => v.user.isApproved);
+  const counts: Record<string, number> = {};
+  approvedVotes.forEach((v) => {
+    counts[v.targetId] = (counts[v.targetId] || 0) + 1;
+  });
+
+  const maxVal = Math.max(...Object.values(counts), 0);
+  const tiedIds = Object.keys(counts).filter((id) => counts[id] === maxVal);
+
+  return db.category.findMany({
+    where: { id: { in: tiedIds } },
+    orderBy: { name: "asc" },
+  });
+}
+
 export default async function DashboardPage() {
   const currentUser = await getActiveUser();
 
@@ -154,12 +176,17 @@ export default async function DashboardPage() {
 
   if (activeWeek) {
     if (activeWeek.status === "CATEGORY_VOTING") activeRoundCode = "ROUND_1_CATEGORY";
+    else if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_1_CATEGORY_TIEBREAKER";
     else if (activeWeek.status === "MOVIE_VOTING") activeRoundCode = "ROUND_2_MOVIE";
     else if (activeWeek.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
     else if (activeWeek.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
     else if (activeWeek.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
 
-    roundTitle = activeWeek.status.replace("_", " ");
+    if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") {
+      roundTitle = "Category Tiebreaker Voting";
+    } else {
+      roundTitle = activeWeek.status.replace("_", " ");
+    }
     const approvedActiveVotes = activeWeek.votes.filter((v) => v.user.isApproved);
 
     roundVotedUserIds = approvedActiveVotes
@@ -197,6 +224,7 @@ export default async function DashboardPage() {
 
     const roundTitles: Record<string, string> = {
       ROUND_1_CATEGORY: "Round 1: Category Selection",
+      ROUND_1_CATEGORY_TIEBREAKER: "Round 1b: Category Tiebreaker",
       ROUND_2_MOVIE: "Round 2: Movie Selection",
       ROUND_2_SUB_MOVIE: "Round 2b: Subcategory Movie Selection",
       ROUND_3_SHORTLIST: "Round 3: Shortlist Selection",
@@ -227,7 +255,7 @@ export default async function DashboardPage() {
       // Identify which target was chosen by a random tiebreaker draw
       let chosenTargetId: string | null = null;
       if (isTie) {
-        if (roundCode === "ROUND_1_CATEGORY") {
+        if (roundCode === "ROUND_1_CATEGORY_TIEBREAKER") {
           chosenTargetId = activeWeek.selectedCategoryId;
         } else if (roundCode === "ROUND_4_TIEBREAKER") {
           chosenTargetId = activeWeek.winningMovieId;
@@ -245,6 +273,7 @@ export default async function DashboardPage() {
 
     const roundOrder = [
       "ROUND_1_CATEGORY",
+      "ROUND_1_CATEGORY_TIEBREAKER",
       "ROUND_2_MOVIE",
       "ROUND_2_SUB_MOVIE",
       "ROUND_3_SHORTLIST",
@@ -256,9 +285,9 @@ export default async function DashboardPage() {
   }
 
   const allVotesIn = activeWeek ? users.every((u) => roundVotedUserIds.includes(u.id)) : false;
-  const round1TieInfo = completedRoundsData.find((r) => r.roundCode === "ROUND_1_CATEGORY" && r.isTie);
-  const round1ChosenName = round1TieInfo && activeWeek?.selectedCategoryId
-    ? round1TieInfo.targets.find((t: any) => t.targetId === activeWeek.selectedCategoryId)?.name
+  const round1TiebreakerTieInfo = completedRoundsData.find((r) => r.roundCode === "ROUND_1_CATEGORY_TIEBREAKER" && r.isTie);
+  const round1TiebreakerChosenName = round1TiebreakerTieInfo && activeWeek?.selectedCategoryId
+    ? round1TiebreakerTieInfo.targets.find((t: any) => t.targetId === activeWeek.selectedCategoryId)?.name
     : null;
 
   return (
@@ -386,11 +415,11 @@ export default async function DashboardPage() {
                   </div>
 
                   {/* Tiebreaker Alert Banner */}
-                  {round1ChosenName && (
+                  {round1TiebreakerChosenName && (
                     <div className="tiebreaker-banner">
                       <span className="text-xl">🎲</span>
                       <div>
-                        <strong>Random Tiebreaker Draw occurred!</strong> Round 1: Category Selection resulted in a tie. The category <strong className="text-accent-color font-bold">{round1ChosenName}</strong> was randomly selected to resolve the tie.
+                        <strong>Random Tiebreaker Draw occurred!</strong> Round 1b: Category Tiebreaker resulted in a tie. The category <strong className="text-accent-color font-bold">{round1TiebreakerChosenName}</strong> was randomly selected to resolve the tie.
                       </div>
                     </div>
                   )}
@@ -450,6 +479,11 @@ export default async function DashboardPage() {
                       {/* ROUND 1: Category Voting */}
                       {activeWeek.status === "CATEGORY_VOTING" && (
                         <CategoryVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                      )}
+
+                      {/* ROUND 1b: Category Tiebreaker Voting */}
+                      {activeWeek.status === "CATEGORY_TIEBREAKER_VOTING" && (
+                        <CategoryTiebreakerVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
                       )}
 
                       {/* ROUND 2: Movie/Subcategory Voting */}
@@ -707,6 +741,36 @@ async function CategoryVotingForm({ week, currentUserId, roundVotedUserIds }: an
         categories={categories}
         initialVoteId={userVote?.targetId || null}
       />
+    </div>
+  );
+}
+
+// 1b. Round 1b: Category Tiebreaker Voting
+async function CategoryTiebreakerVotingForm({ week, currentUserId, roundVotedUserIds }: any) {
+  const categories = await getCategoryTiebreakerCategories(week.id);
+
+  // User's current votes in this round
+  const userVotes = await db.weekVote.findMany({
+    where: { weekId: week.id, userId: currentUserId, round: "ROUND_1_CATEGORY_TIEBREAKER" },
+  });
+  const userVoteIds = userVotes.map((v) => v.targetId);
+
+  return (
+    <div>
+      <h3 className="text-3xl font-bold mb-sm">Round 1b: Category Tiebreaker</h3>
+      <p className="text-secondary mb-xl text-md">
+        Round 1 ended in a tie! Select up to 2 categories. If a tie persists, a random winner will be selected from the top choices. (Max 2 Votes)
+      </p>
+
+      {categories.length === 0 ? (
+        <p className="text-muted italic">No categories tied in the first round.</p>
+      ) : (
+        <CategoryTiebreakerVotingFormClient
+          weekId={week.id}
+          categories={categories}
+          initialVotes={userVoteIds}
+        />
+      )}
     </div>
   );
 }

@@ -91,6 +91,7 @@ export async function resetRoundAction(weekId: string) {
 
   let roundStr = "";
   if (week.status === "CATEGORY_VOTING") roundStr = "ROUND_1_CATEGORY";
+  else if (week.status === "CATEGORY_TIEBREAKER_VOTING") roundStr = "ROUND_1_CATEGORY_TIEBREAKER";
   else if (week.status === "MOVIE_VOTING") roundStr = "ROUND_2_MOVIE";
   else if (week.status === "SUBCATEGORY_VOTING") roundStr = "ROUND_2_SUB_MOVIE";
   else if (week.status === "SHORTLIST_VOTING") roundStr = "ROUND_3_SHORTLIST";
@@ -124,6 +125,7 @@ export async function advanceWeekRoundAction(weekId: string) {
   // Determine if everyone has voted in the current active round
   let activeRoundCode = "";
   if (week.status === "CATEGORY_VOTING") activeRoundCode = "ROUND_1_CATEGORY";
+  else if (week.status === "CATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_1_CATEGORY_TIEBREAKER";
   else if (week.status === "MOVIE_VOTING") activeRoundCode = "ROUND_2_MOVIE";
   else if (week.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
   else if (week.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
@@ -161,12 +163,68 @@ export async function advanceWeekRoundAction(weekId: string) {
     const maxVal = Math.max(...Object.values(counts));
     const winners = Object.keys(counts).filter((id) => counts[id] === maxVal);
 
-    let winnerId = winners[0];
-    const isRandom = winners.length > 1;
     if (winners.length > 1) {
-      // Tie breaker: pick random
+      // Tie breaker round: transition to CATEGORY_TIEBREAKER_VOTING
+      await db.movieNightWeek.update({
+        where: { id: weekId },
+        data: {
+          status: "CATEGORY_TIEBREAKER_VOTING",
+        },
+      });
+
+      const tiedCategories = await db.category.findMany({
+        where: { id: { in: winners } },
+      });
+
+      notifyRoundAdvanced(weekId, "CATEGORY_VOTING", "CATEGORY_TIEBREAKER_VOTING", {
+        tiedItems: tiedCategories.map((c) => c.name),
+      }).catch((e) => console.error("Discord notification error:", e));
+    } else {
+      // Outright winner! Transition to MOVIE_VOTING
+      const winnerId = winners[0];
+      const winnerCategory = await db.category.findUnique({
+        where: { id: winnerId },
+      });
+      const winnerName = winnerCategory?.name || "Unknown";
+
+      await db.movieNightWeek.update({
+        where: { id: weekId },
+        data: {
+          selectedCategoryId: winnerId,
+          status: "MOVIE_VOTING",
+        },
+      });
+
+      notifyRoundAdvanced(weekId, "CATEGORY_VOTING", "MOVIE_VOTING", {
+        winnerName,
+        isRandom: false,
+      }).catch((e) => console.error("Discord notification error:", e));
+    }
+  } 
+  else if (week.status === "CATEGORY_TIEBREAKER_VOTING") {
+    // ----------------------------------------
+    // ROUND 1b: Category Tiebreaker Voting
+    // ----------------------------------------
+    const votes = approvedVotes.filter((v) => v.round === "ROUND_1_CATEGORY_TIEBREAKER");
+    if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
+
+    // Count votes
+    const counts: Record<string, number> = {};
+    votes.forEach((v) => {
+      counts[v.targetId] = (counts[v.targetId] || 0) + 1;
+    });
+
+    const maxVal = Math.max(...Object.values(counts));
+    const winners = Object.keys(counts).filter((id) => counts[id] === maxVal);
+
+    let winnerId = winners[0];
+    let isRandom = false;
+
+    if (winners.length > 1) {
+      // Tie persisted in tiebreaker. Draw a random winner from top tied categories!
       const randIdx = Math.floor(Math.random() * winners.length);
       winnerId = winners[randIdx];
+      isRandom = true;
     }
 
     const winnerCategory = await db.category.findUnique({
@@ -182,7 +240,7 @@ export async function advanceWeekRoundAction(weekId: string) {
       },
     });
 
-    notifyRoundAdvanced(weekId, "CATEGORY_VOTING", "MOVIE_VOTING", {
+    notifyRoundAdvanced(weekId, "CATEGORY_TIEBREAKER_VOTING", "MOVIE_VOTING", {
       winnerName,
       isRandom,
     }).catch((e) => console.error("Discord notification error:", e));
