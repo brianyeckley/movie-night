@@ -1,0 +1,187 @@
+import { db } from "@/lib/db";
+
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:4000";
+
+interface DiscordEmbed {
+  title?: string;
+  description?: string;
+  url?: string;
+  color?: number;
+  thumbnail?: { url: string };
+  image?: { url: string };
+  fields?: { name: string; value: string; inline?: boolean }[];
+  footer?: { text: string };
+  timestamp?: string;
+}
+
+export async function sendDiscordPayload(payload: {
+  content?: string;
+  embeds?: DiscordEmbed[];
+}) {
+  if (!DISCORD_WEBHOOK_URL) {
+    console.warn("DISCORD_WEBHOOK_URL is not configured. Skipping Discord notification.");
+    return;
+  }
+
+  try {
+    const res = await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`Failed to send Discord webhook: ${res.status} ${text}`);
+    }
+  } catch (error) {
+    console.error("Error sending Discord webhook:", error);
+  }
+}
+
+// 1. Notify that a new week has started
+export async function notifyNewWeek(weekId: string) {
+  const week = await db.movieNightWeek.findUnique({
+    where: { id: weekId },
+    include: { themeCategory: true },
+  });
+  if (!week) return;
+
+  const weekNum = week.weekNumber;
+  const themeName = week.themeCategory?.name || "None";
+
+  await sendDiscordPayload({
+    embeds: [
+      {
+        title: `🎬 New Movie Night Week Opened! (Week ${weekNum})`,
+        description: `Voting is now open for **Round 1: Category Voting**.\n\nGo to the website to cast your vote!`,
+        url: APP_URL,
+        color: 0x2ecc71, // Green
+        fields: [
+          { name: "Theme Category", value: themeName, inline: true },
+          { name: "Current Status", value: "Category Voting", inline: true },
+        ],
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  });
+}
+
+// 2. Notify when a round is advanced or concluded
+export async function notifyRoundAdvanced(
+  weekId: string,
+  prevStatus: string,
+  newStatus: string,
+  details: {
+    winnerName?: string;
+    winnerYear?: number | null;
+    winnerPoster?: string | null;
+    isRandom?: boolean;
+    tiedItems?: string[];
+  }
+) {
+  const week = await db.movieNightWeek.findUnique({
+    where: { id: weekId },
+  });
+  if (!week) return;
+
+  const weekNum = week.weekNumber;
+  let title = `🔄 Week ${weekNum}: Round Advanced`;
+  let color = 0x3498db; // Blue
+  let description = "";
+  const fields: { name: string; value: string; inline?: boolean }[] = [];
+  let thumbnail: { url: string } | undefined = undefined;
+
+  // Format status names nicely
+  const formatStatus = (s: string) => {
+    switch (s) {
+      case "CATEGORY_VOTING": return "Category Voting";
+      case "MOVIE_VOTING": return "Movie Voting";
+      case "SUBCATEGORY_VOTING": return "Subcategory Voting";
+      case "SHORTLIST_VOTING": return "Shortlist Voting";
+      case "FINAL_VOTING": return "Final Tiebreaker Voting";
+      case "COMPLETED": return "Completed";
+      default: return s;
+    }
+  };
+
+  // Determine what happened in the previous round
+  if (prevStatus === "CATEGORY_VOTING") {
+    if (details.winnerName) {
+      description = `**Round 1 (Category Voting)** has concluded!\n\nThe winning theme category is: **${details.winnerName}**${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
+    }
+  } else if (prevStatus === "MOVIE_VOTING") {
+    if (newStatus === "SUBCATEGORY_VOTING") {
+      description = `**Round 2 (Movie Voting)** concluded with a subcategory winning!\n\nThe winning subcategory is: **${details.winnerName}**.`;
+    } else if (newStatus === "SHORTLIST_VOTING") {
+      description = `**Round 2 (Movie Voting)** ended in a tie! The tied movies have advanced to the Shortlist.`;
+      if (details.tiedItems && details.tiedItems.length > 0) {
+        fields.push({
+          name: "Tied Movies",
+          value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+        });
+      }
+    } else if (newStatus === "COMPLETED") {
+      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      color = 0xf1c40f; // Gold
+      description = `**Round 2 (Movie Voting)** concluded with an outright winner!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
+      if (details.winnerPoster) {
+        thumbnail = { url: details.winnerPoster };
+      }
+    }
+  } else if (prevStatus === "SUBCATEGORY_VOTING") {
+    description = `**Round 2b (Subcategory Voting)** has concluded! We are advancing to Shortlist Voting.`;
+  } else if (prevStatus === "SHORTLIST_VOTING") {
+    if (newStatus === "COMPLETED") {
+      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      color = 0xf1c40f; // Gold
+      description = `**Round 3 (Shortlist Voting)** concluded with an outright winner!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
+      if (details.winnerPoster) {
+        thumbnail = { url: details.winnerPoster };
+      }
+    } else if (newStatus === "FINAL_VOTING") {
+      description = `**Round 3 (Shortlist Voting)** ended in a tie! We are advancing to the Final Tiebreaker.`;
+      if (details.tiedItems && details.tiedItems.length > 0) {
+        fields.push({
+          name: "Tied Movies",
+          value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+        });
+      }
+    }
+  } else if (prevStatus === "FINAL_VOTING") {
+    title = `🏆 Week ${weekNum}: Winner Selected!`;
+    color = 0xf1c40f; // Gold
+    description = `**Round 4 (Final Tiebreaker)** concluded!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
+    if (details.winnerPoster) {
+      thumbnail = { url: details.winnerPoster };
+    }
+  }
+
+  // Add information about next round
+  if (newStatus !== "COMPLETED") {
+    fields.push({
+      name: "Next Round",
+      value: `**${formatStatus(newStatus)}** is now open!\nGo to the website to cast your vote: ${APP_URL}`,
+    });
+  } else {
+    fields.push({
+      name: "Status",
+      value: `Week ${weekNum} is now completed! Get ready for movie night! 🍿`,
+    });
+  }
+
+  await sendDiscordPayload({
+    embeds: [
+      {
+        title,
+        description,
+        url: APP_URL,
+        color,
+        fields,
+        thumbnail,
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  });
+}

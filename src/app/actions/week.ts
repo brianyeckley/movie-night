@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getActiveUser } from "./user";
+import { notifyNewWeek, notifyRoundAdvanced } from "@/lib/discord";
 
 // 2. Create new Movie Night Week
 export async function createWeekAction(themeCategoryName: string) {
@@ -52,12 +53,16 @@ export async function createWeekAction(themeCategoryName: string) {
   }
 
   // Create the week
-  await db.movieNightWeek.create({
+  const week = await db.movieNightWeek.create({
     data: {
       weekNumber: nextWeekNumber,
       status: "CATEGORY_VOTING",
       themeCategoryId: themeCategory.id,
     },
+  });
+
+  notifyNewWeek(week.id).catch((err) => {
+    console.error("Failed to send Discord notification for new week:", err);
   });
 
   revalidatePath("/");
@@ -153,11 +158,17 @@ export async function advanceWeekRoundAction(weekId: string) {
     const winners = Object.keys(counts).filter((id) => counts[id] === maxVal);
 
     let winnerId = winners[0];
+    const isRandom = winners.length > 1;
     if (winners.length > 1) {
       // Tie breaker: pick random
       const randIdx = Math.floor(Math.random() * winners.length);
       winnerId = winners[randIdx];
     }
+
+    const winnerCategory = await db.category.findUnique({
+      where: { id: winnerId },
+    });
+    const winnerName = winnerCategory?.name || "Unknown";
 
     await db.movieNightWeek.update({
       where: { id: weekId },
@@ -166,6 +177,11 @@ export async function advanceWeekRoundAction(weekId: string) {
         status: "MOVIE_VOTING",
       },
     });
+
+    notifyRoundAdvanced(weekId, "CATEGORY_VOTING", "MOVIE_VOTING", {
+      winnerName,
+      isRandom,
+    }).catch((e) => console.error("Discord notification error:", e));
   } 
   else if (week.status === "MOVIE_VOTING") {
     // ----------------------------------------
@@ -201,6 +217,10 @@ export async function advanceWeekRoundAction(weekId: string) {
             status: "SUBCATEGORY_VOTING",
           },
         });
+
+        notifyRoundAdvanced(weekId, "MOVIE_VOTING", "SUBCATEGORY_VOTING", {
+          winnerName: category.name,
+        }).catch((e) => console.error("Discord notification error:", e));
       } else {
         // It's a movie! It wins the week immediately
         await db.movieNightWeek.update({
@@ -210,6 +230,13 @@ export async function advanceWeekRoundAction(weekId: string) {
             status: "COMPLETED",
           },
         });
+
+        const movie = await db.movie.findUnique({ where: { id: winningId } });
+        notifyRoundAdvanced(weekId, "MOVIE_VOTING", "COMPLETED", {
+          winnerName: movie?.title,
+          winnerYear: movie?.year,
+          winnerPoster: movie?.posterUrl,
+        }).catch((e) => console.error("Discord notification error:", e));
       }
     } else {
       // Tie! Advance the tied items to Round 3 (Shortlist)
@@ -226,6 +253,10 @@ export async function advanceWeekRoundAction(weekId: string) {
             status: "SUBCATEGORY_VOTING",
           },
         });
+
+        notifyRoundAdvanced(weekId, "MOVIE_VOTING", "SUBCATEGORY_VOTING", {
+          winnerName: categories[0].name,
+        }).catch((e) => console.error("Discord notification error:", e));
       } else {
         // All top tied items are movies. Transition straight to SHORTLIST_VOTING.
         await db.movieNightWeek.update({
@@ -234,6 +265,14 @@ export async function advanceWeekRoundAction(weekId: string) {
             status: "SHORTLIST_VOTING",
           },
         });
+
+        const tiedMovies = await db.movie.findMany({
+          where: { id: { in: topItems } },
+          select: { title: true },
+        });
+        notifyRoundAdvanced(weekId, "MOVIE_VOTING", "SHORTLIST_VOTING", {
+          tiedItems: tiedMovies.map(m => m.title),
+        }).catch((e) => console.error("Discord notification error:", e));
       }
     }
   } 
@@ -247,6 +286,10 @@ export async function advanceWeekRoundAction(weekId: string) {
         status: "SHORTLIST_VOTING",
       },
     });
+
+    notifyRoundAdvanced(weekId, "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", {}).catch((e) =>
+      console.error("Discord notification error:", e)
+    );
   } 
   else if (week.status === "SHORTLIST_VOTING") {
     // ----------------------------------------
@@ -272,6 +315,13 @@ export async function advanceWeekRoundAction(weekId: string) {
           status: "COMPLETED",
         },
       });
+
+      const movie = await db.movie.findUnique({ where: { id: topMovies[0] } });
+      notifyRoundAdvanced(weekId, "SHORTLIST_VOTING", "COMPLETED", {
+        winnerName: movie?.title,
+        winnerYear: movie?.year,
+        winnerPoster: movie?.posterUrl,
+      }).catch((e) => console.error("Discord notification error:", e));
     } else {
       // Tie! Transition to final tiebreaker
       await db.movieNightWeek.update({
@@ -280,6 +330,14 @@ export async function advanceWeekRoundAction(weekId: string) {
           status: "FINAL_VOTING",
         },
       });
+
+      const tiedMovies = await db.movie.findMany({
+        where: { id: { in: topMovies } },
+        select: { title: true },
+      });
+      notifyRoundAdvanced(weekId, "SHORTLIST_VOTING", "FINAL_VOTING", {
+        tiedItems: tiedMovies.map(m => m.title),
+      }).catch((e) => console.error("Discord notification error:", e));
     }
   } 
   else if (week.status === "FINAL_VOTING") {
@@ -315,6 +373,14 @@ export async function advanceWeekRoundAction(weekId: string) {
         status: "COMPLETED",
       },
     });
+
+    const movie = await db.movie.findUnique({ where: { id: winnerId } });
+    notifyRoundAdvanced(weekId, "FINAL_VOTING", "COMPLETED", {
+      winnerName: movie?.title,
+      winnerYear: movie?.year,
+      winnerPoster: movie?.posterUrl,
+      isRandom,
+    }).catch((e) => console.error("Discord notification error:", e));
   }
 
   revalidatePath("/");
