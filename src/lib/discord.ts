@@ -50,17 +50,22 @@ export async function notifyNewWeek(weekId: string) {
 
   const weekNum = week.weekNumber;
   const themeName = week.themeCategory?.name || "None";
+  const isInPerson = week.isInPerson;
+  const initialStatus = isInPerson ? "In Person Voting" : "Category Voting";
+  const description = isInPerson
+    ? `Voting is now open for **Round 1: In Person Voting**.\n\nGo to the website to cast your vote!`
+    : `Voting is now open for **Round 1: Category Voting**.\n\nGo to the website to cast your vote!`;
 
   await sendDiscordPayload({
     embeds: [
       {
         title: `🎬 New Movie Night Week Opened! (Week ${weekNum})`,
-        description: `Voting is now open for **Round 1: Category Voting**.\n\nGo to the website to cast your vote!`,
+        description,
         url: APP_URL,
         color: 0x2ecc71, // Green
         fields: [
           { name: "Theme Category", value: themeName, inline: true },
-          { name: "Current Status", value: "Category Voting", inline: true },
+          { name: "Current Status", value: initialStatus, inline: true },
         ],
         timestamp: new Date().toISOString(),
       },
@@ -102,6 +107,8 @@ export async function notifyRoundAdvanced(
       case "SUBCATEGORY_VOTING": return "Subcategory Voting";
       case "SHORTLIST_VOTING": return "Shortlist Voting";
       case "FINAL_VOTING": return "Final Tiebreaker Voting";
+      case "IN_PERSON_VOTING": return "In Person Voting";
+      case "IN_PERSON_TIEBREAKER": return "In Person Tiebreaker Voting";
       case "COMPLETED": return "Completed";
       default: return s;
     }
@@ -169,6 +176,32 @@ export async function notifyRoundAdvanced(
     if (details.winnerPoster) {
       thumbnail = { url: details.winnerPoster };
     }
+  } else if (prevStatus === "IN_PERSON_VOTING") {
+    if (newStatus === "IN_PERSON_TIEBREAKER") {
+      description = `**Round 1 (In Person Voting)** ended in a tie! The tied movies have advanced to the In Person Tiebreaker.`;
+      if (details.tiedItems && details.tiedItems.length > 0) {
+        fields.push({
+          name: "Tied Movies",
+          value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+        });
+      }
+    } else if (newStatus === "COMPLETED" && details.winnerName) {
+      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      color = 0xf1c40f; // Gold
+      description = `**Round 1 (In Person Voting)** concluded with an outright winner!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
+      if (details.winnerPoster) {
+        thumbnail = { url: details.winnerPoster };
+      }
+    }
+  } else if (prevStatus === "IN_PERSON_TIEBREAKER") {
+    if (newStatus === "COMPLETED" && details.winnerName) {
+      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      color = 0xf1c40f; // Gold
+      description = `**Round 1b (In Person Tiebreaker)** concluded!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
+      if (details.winnerPoster) {
+        thumbnail = { url: details.winnerPoster };
+      }
+    }
   }
 
   // Add information about next round
@@ -214,6 +247,8 @@ export async function notifyReminder(weekId: string, pendingVoterNames: string[]
       case "SUBCATEGORY_VOTING": return "Subcategory Voting";
       case "SHORTLIST_VOTING": return "Shortlist Voting";
       case "FINAL_VOTING": return "Final Tiebreaker Voting";
+      case "IN_PERSON_VOTING": return "In Person Voting";
+      case "IN_PERSON_TIEBREAKER": return "In Person Tiebreaker Voting";
       default: return s;
     }
   };

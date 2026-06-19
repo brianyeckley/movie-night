@@ -91,3 +91,26 @@ export async function getCategoryTiebreakerCategories(weekId: string) {
     orderBy: { name: "asc" },
   });
 }
+
+// Helper: Get in-person tiebreaker movies (any movie with >= 1 vote in Round 1)
+export async function getInPersonTiebreakerMovies(weekId: string) {
+  const votes = await db.weekVote.findMany({
+    where: { weekId, round: "IN_PERSON_ROUND_1" },
+    include: { user: true },
+  });
+
+  const approvedVotes = votes.filter((v) => v.user.isApproved);
+  const counts: Record<string, number> = {};
+  approvedVotes.forEach((v) => {
+    counts[v.targetId] = (counts[v.targetId] || 0) + 1;
+  });
+
+  const candidateIds = Object.keys(counts).filter((id) => counts[id] >= 1);
+
+  return db.movie.findMany({
+    where: { id: { in: candidateIds } },
+    include: { genres: true, category: true },
+    orderBy: { title: "asc" },
+  });
+}
+

@@ -16,7 +16,9 @@ import {
   getCategoryTiebreakerCategories,
   getShortlistMovies,
   getFinalTiebreakerMovies,
+  getInPersonTiebreakerMovies,
 } from "@/lib/voting-helpers";
+import InPersonVotingForm from "@/components/InPersonVotingForm";
 
 // 1. Round 1: Category Voting
 export async function CategoryVotingForm({ week, currentUserId }: any) {
@@ -386,6 +388,81 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
             </div>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+// 7. In Person: Round 1 In Person Voting
+export async function InPersonVotingRound({ week, currentUserId }: any) {
+  const movies = await db.movie.findMany({
+    where: {
+      watched: false,
+      OR: [
+        { physical4K: true },
+        { physicalBluRay: true },
+        { physicalDvd: true },
+      ],
+    },
+    include: { genres: true },
+    orderBy: { title: "asc" },
+  });
+
+  const userVotes = await db.weekVote.findMany({
+    where: { weekId: week.id, userId: currentUserId, round: "IN_PERSON_ROUND_1" },
+  });
+  const userVoteIds = userVotes.map((v) => v.targetId);
+
+  return (
+    <div>
+      <h3 className="text-3xl font-bold mb-sm">In Person Movie Night: Round 1</h3>
+      <p className="text-secondary mb-xl text-md">
+        Vote for the movie to watch for In Person Movie Night. Only movies with physical media formats (4K, Blu-ray, or DVD) are available. (Max 3 Votes)
+      </p>
+
+      {movies.length === 0 ? (
+        <p className="text-muted italic py-sm">
+          No physical media movies found. Go to the Catalog tab to add or mark movies with physical media formats!
+        </p>
+      ) : (
+        <InPersonVotingForm
+          weekId={week.id}
+          movies={movies}
+          initialVotes={userVoteIds}
+          isTiebreaker={false}
+        />
+      )}
+    </div>
+  );
+}
+
+// 8. In Person: Round 1b In Person Tiebreaker Voting
+export async function InPersonTiebreakerRound({ week, currentUserId }: any) {
+  const movies = await getInPersonTiebreakerMovies(week.id);
+
+  const userVotes = await db.weekVote.findMany({
+    where: { weekId: week.id, userId: currentUserId, round: "IN_PERSON_ROUND_1B" },
+  });
+  const userVoteIds = userVotes.map((v) => v.targetId);
+
+  return (
+    <div>
+      <h3 className="text-3xl font-bold mb-sm">In Person Movie Night: Round 1b Tiebreaker</h3>
+      <p className="text-secondary mb-xl text-md">
+        Round 1 ended in a tie! Select exactly 1 movie. If a tie persists here, a random winner will be selected. (1 Vote)
+      </p>
+
+      {movies.length === 0 ? (
+        <p className="text-muted italic py-sm">
+          No movies advanced to the tiebreaker.
+        </p>
+      ) : (
+        <InPersonVotingForm
+          weekId={week.id}
+          movies={movies}
+          initialVotes={userVoteIds}
+          isTiebreaker={true}
+        />
       )}
     </div>
   );

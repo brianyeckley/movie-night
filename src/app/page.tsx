@@ -19,7 +19,10 @@ import {
   ShortlistVotingForm,
   FinalVotingForm,
   CompletedWeekView,
+  InPersonVotingRound,
+  InPersonTiebreakerRound,
 } from "@/components/DashboardForms";
+import AdminStartWeekFormClient from "@/components/AdminStartWeekFormClient";
 
 export const dynamic = "force-dynamic";
 
@@ -91,9 +94,15 @@ export default async function DashboardPage() {
     else if (activeWeek.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
     else if (activeWeek.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
     else if (activeWeek.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
+    else if (activeWeek.status === "IN_PERSON_VOTING") activeRoundCode = "IN_PERSON_ROUND_1";
+    else if (activeWeek.status === "IN_PERSON_TIEBREAKER") activeRoundCode = "IN_PERSON_ROUND_1B";
 
     if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") {
       roundTitle = "Category Tiebreaker Voting";
+    } else if (activeWeek.status === "IN_PERSON_VOTING") {
+      roundTitle = "In Person Voting";
+    } else if (activeWeek.status === "IN_PERSON_TIEBREAKER") {
+      roundTitle = "In Person Tiebreaker Voting";
     } else {
       roundTitle = activeWeek.status.replace("_", " ");
     }
@@ -139,6 +148,8 @@ export default async function DashboardPage() {
       ROUND_2_SUB_MOVIE: "Round 2b: Subcategory Movie Selection",
       ROUND_3_SHORTLIST: "Round 3: Shortlist Selection",
       ROUND_4_TIEBREAKER: "Round 4: Final Tiebreaker",
+      IN_PERSON_ROUND_1: "Round 1: In Person Movie Selection",
+      IN_PERSON_ROUND_1B: "Round 1b: In Person Tiebreaker",
     };
 
     const parsedRounds = Object.entries(votesByRound).map(([roundCode, roundVotes]) => {
@@ -167,7 +178,7 @@ export default async function DashboardPage() {
       if (isTie) {
         if (roundCode === "ROUND_1_CATEGORY_TIEBREAKER") {
           chosenTargetId = activeWeek.selectedCategoryId;
-        } else if (roundCode === "ROUND_4_TIEBREAKER") {
+        } else if (roundCode === "ROUND_4_TIEBREAKER" || roundCode === "IN_PERSON_ROUND_1B") {
           chosenTargetId = activeWeek.winningMovieId;
         }
       }
@@ -188,6 +199,8 @@ export default async function DashboardPage() {
       "ROUND_2_SUB_MOVIE",
       "ROUND_3_SHORTLIST",
       "ROUND_4_TIEBREAKER",
+      "IN_PERSON_ROUND_1",
+      "IN_PERSON_ROUND_1B",
     ];
 
     parsedRounds.sort((a, b) => roundOrder.indexOf(a.roundCode) - roundOrder.indexOf(b.roundCode));
@@ -198,6 +211,11 @@ export default async function DashboardPage() {
   const round1TiebreakerTieInfo = completedRoundsData.find((r) => r.roundCode === "ROUND_1_CATEGORY_TIEBREAKER" && r.isTie);
   const round1TiebreakerChosenName = round1TiebreakerTieInfo && activeWeek?.selectedCategoryId
     ? round1TiebreakerTieInfo.targets.find((t: any) => t.targetId === activeWeek.selectedCategoryId)?.name
+    : null;
+
+  const inPersonTiebreakerTieInfo = completedRoundsData.find((r) => r.roundCode === "IN_PERSON_ROUND_1B" && r.isTie);
+  const inPersonTiebreakerChosenName = inPersonTiebreakerTieInfo && activeWeek?.winningMovieId
+    ? inPersonTiebreakerTieInfo.targets.find((t: any) => t.targetId === activeWeek.winningMovieId)?.name
     : null;
 
   return (
@@ -254,46 +272,7 @@ export default async function DashboardPage() {
                       <h3 className="text-lg font-bold mb-md text-primary-var">
                         Admin: Start New Movie Night Week
                       </h3>
-                      <form
-                        action={async (formData) => {
-                          "use server";
-                          const theme = formData.get("theme") as string;
-                          if (theme) await createWeekAction(theme);
-                        }}
-                        className="flex-col gap-md"
-                      >
-                        <div className="form-group">
-                          <label htmlFor="week-theme" className="form-label">
-                            Theme Category
-                          </label>
-                          {themeCategories.length > 0 ? (
-                            <select
-                              id="week-theme"
-                              name="theme"
-                              required
-                              className="form-select w-full"
-                            >
-                              {themeCategories.map((theme) => (
-                                <option key={theme.id} value={theme.name}>
-                                  {theme.name}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <input
-                              id="week-theme"
-                              name="theme"
-                              type="text"
-                              placeholder="No themes found. Type to create..."
-                              required
-                              className="form-input w-full"
-                            />
-                          )}
-                        </div>
-                        <button type="submit" className="btn btn-primary w-full">
-                          Start Week
-                        </button>
-                      </form>
+                      <AdminStartWeekFormClient themeCategories={themeCategories} />
                     </div>
                   ) : (
                     <div className="waiting-banner">
@@ -330,6 +309,15 @@ export default async function DashboardPage() {
                       <span className="text-xl">🎲</span>
                       <div>
                         <strong>Random Tiebreaker Draw occurred!</strong> Round 1b: Category Tiebreaker resulted in a tie. The category <strong className="text-accent-color font-bold">{round1TiebreakerChosenName}</strong> was randomly selected to resolve the tie.
+                      </div>
+                    </div>
+                  )}
+
+                  {inPersonTiebreakerChosenName && (
+                    <div className="tiebreaker-banner">
+                      <span className="text-xl">🎲</span>
+                      <div>
+                        <strong>Random Tiebreaker Draw occurred!</strong> Round 1b: In Person Tiebreaker resulted in a tie. The movie <strong className="text-accent-color font-bold">{inPersonTiebreakerChosenName}</strong> was randomly selected to resolve the tie.
                       </div>
                     </div>
                   )}
@@ -414,6 +402,16 @@ export default async function DashboardPage() {
                       {/* ROUND 4: Tiebreaker Voting */}
                       {activeWeek.status === "FINAL_VOTING" && (
                         <FinalVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                      )}
+
+                      {/* IN PERSON: Round 1 Voting */}
+                      {activeWeek.status === "IN_PERSON_VOTING" && (
+                        <InPersonVotingRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                      )}
+
+                      {/* IN PERSON: Round 1b Tiebreaker Voting */}
+                      {activeWeek.status === "IN_PERSON_TIEBREAKER" && (
+                        <InPersonTiebreakerRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
                       )}
 
                       {/* COMPLETED / WINNER STATE */}

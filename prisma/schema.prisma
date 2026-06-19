@@ -73,6 +73,7 @@ model MovieNightWeek {
   selectedSubcategoryId String?    // Winning subcategory from Round 2 (if applicable)
   winningMovieId        String?    // Final winner
   isRandomlyChosen      Boolean    @default(false)
+  isInPerson            Boolean    @default(false)
   createdAt             DateTime   @default(now())
   closedAt              DateTime?
   votes                 WeekVote[]

@@ -4,9 +4,10 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getActiveUser } from "./user";
 import { notifyNewWeek, notifyRoundAdvanced } from "@/lib/discord";
+import { advanceInPersonWeekRound } from "./inPersonVoting";
 
 // 2. Create new Movie Night Week
-export async function createWeekAction(themeCategoryName: string) {
+export async function createWeekAction(themeCategoryName?: string, isInPerson: boolean = false) {
   const currentUser = await getActiveUser();
   if (!currentUser || currentUser.role !== "ADMIN") {
     throw new Error("Unauthorized: Only Admin can create weeks.");
@@ -26,38 +27,70 @@ export async function createWeekAction(themeCategoryName: string) {
   });
   const nextWeekNumber = lastWeek ? lastWeek.weekNumber + 1 : 1;
 
-  // Deactivate all previous theme categories
-  await db.category.updateMany({
-    where: { isThemed: true },
-    data: { isActive: false },
-  });
+  let themeCategoryId: string | null = null;
 
-  // Check if theme category already exists, if so make it active. If not, create it.
-  let themeCategory = await db.category.findUnique({
-    where: { name: themeCategoryName },
-  });
-
-  if (themeCategory) {
-    themeCategory = await db.category.update({
-      where: { id: themeCategory.id },
-      data: { isActive: true, isThemed: true },
+  if (isInPerson) {
+    // For In-Person, we default the category theme to "In Person Physical Media" if not provided
+    const catName = themeCategoryName || "In Person Physical Media";
+    let themeCategory = await db.category.findUnique({
+      where: { name: catName },
     });
+
+    if (themeCategory) {
+      themeCategory = await db.category.update({
+        where: { id: themeCategory.id },
+        data: { isActive: true, isThemed: true },
+      });
+    } else {
+      themeCategory = await db.category.create({
+        data: {
+          name: catName,
+          isThemed: true,
+          isActive: true,
+        },
+      });
+    }
+    themeCategoryId = themeCategory.id;
   } else {
-    themeCategory = await db.category.create({
-      data: {
-        name: themeCategoryName,
-        isThemed: true,
-        isActive: true,
-      },
+    if (!themeCategoryName) {
+      throw new Error("Theme category name is required.");
+    }
+
+    // Deactivate all previous theme categories
+    await db.category.updateMany({
+      where: { isThemed: true },
+      data: { isActive: false },
     });
+
+    // Check if theme category already exists, if so make it active. If not, create it.
+    let themeCategory = await db.category.findUnique({
+      where: { name: themeCategoryName },
+    });
+
+    if (themeCategory) {
+      themeCategory = await db.category.update({
+        where: { id: themeCategory.id },
+        data: { isActive: true, isThemed: true },
+      });
+    } else {
+      themeCategory = await db.category.create({
+        data: {
+          name: themeCategoryName,
+          isThemed: true,
+          isActive: true,
+        },
+      });
+    }
+    themeCategoryId = themeCategory.id;
   }
 
   // Create the week
   const week = await db.movieNightWeek.create({
     data: {
       weekNumber: nextWeekNumber,
-      status: "CATEGORY_VOTING",
-      themeCategoryId: themeCategory.id,
+      status: isInPerson ? "IN_PERSON_VOTING" : "CATEGORY_VOTING",
+      themeCategoryId,
+      isInPerson,
     },
   });
 
@@ -96,6 +129,8 @@ export async function resetRoundAction(weekId: string) {
   else if (week.status === "SUBCATEGORY_VOTING") roundStr = "ROUND_2_SUB_MOVIE";
   else if (week.status === "SHORTLIST_VOTING") roundStr = "ROUND_3_SHORTLIST";
   else if (week.status === "FINAL_VOTING") roundStr = "ROUND_4_TIEBREAKER";
+  else if (week.status === "IN_PERSON_VOTING") roundStr = "IN_PERSON_ROUND_1";
+  else if (week.status === "IN_PERSON_TIEBREAKER") roundStr = "IN_PERSON_ROUND_1B";
 
   await db.weekVote.deleteMany({
     where: {
@@ -130,6 +165,8 @@ export async function advanceWeekRoundAction(weekId: string) {
   else if (week.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
   else if (week.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
   else if (week.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
+  else if (week.status === "IN_PERSON_VOTING") activeRoundCode = "IN_PERSON_ROUND_1";
+  else if (week.status === "IN_PERSON_TIEBREAKER") activeRoundCode = "IN_PERSON_ROUND_1B";
 
   const roundVotedUserIds = approvedVotes
     .filter((v) => v.round === activeRoundCode)
@@ -155,6 +192,10 @@ export async function advanceWeekRoundInternal(weekId: string, preloadedWeek?: a
     include: { votes: { include: { user: true } } },
   });
   if (!week) return { success: false, error: "Week not found." };
+
+  if (week.isInPerson) {
+    return advanceInPersonWeekRound(weekId, week);
+  }
 
   const approvedVotes = (week.votes as Array<{
     round: string;
