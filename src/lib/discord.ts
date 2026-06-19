@@ -53,16 +53,16 @@ export async function notifyNewWeek(weekId: string) {
   const isInPerson = week.isInPerson;
   const initialStatus = isInPerson ? "In Person Voting" : "Category Voting";
   const description = isInPerson
-    ? `Voting is now open for **Round 1: In Person Voting**.\n\nGo to the website to cast your vote!`
+    ? `🍿 **Gather the crew, clean those lenses, and grab the popcorn!** Voting is now open for **Round 1: In Person Voting** (Physical Media Only).\n\nGo to the website to cast your vote!`
     : `Voting is now open for **Round 1: Category Voting**.\n\nGo to the website to cast your vote!`;
 
   await sendDiscordPayload({
     embeds: [
       {
-        title: `🎬 New Movie Night Week Opened! (Week ${weekNum})`,
+        title: isInPerson ? `💿 Weekly Movie Night: In-Person Edition! (Week ${weekNum})` : `🎬 New Movie Night Week Opened! (Week ${weekNum})`,
         description,
         url: APP_URL,
-        color: 0x2ecc71, // Green
+        color: isInPerson ? 0xe11d48 : 0x2ecc71, // Rose/Accent for In-Person, Green for standard
         fields: [
           { name: "Theme Category", value: themeName, inline: true },
           { name: "Current Status", value: initialStatus, inline: true },
@@ -178,7 +178,9 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "IN_PERSON_VOTING") {
     if (newStatus === "IN_PERSON_TIEBREAKER") {
-      description = `**Round 1 (In Person Voting)** ended in a tie! The tied movies have advanced to the In Person Tiebreaker.`;
+      title = `⚡ Week ${weekNum}: In-Person Voting Deadlock!`;
+      color = 0xe11d48; // Rose
+      description = `**The crowd is divided!** Round 1 has ended in a tie. We are advancing to the In-Person Tiebreaker!`;
       if (details.tiedItems && details.tiedItems.length > 0) {
         fields.push({
           name: "Tied Movies",
@@ -186,18 +188,18 @@ export async function notifyRoundAdvanced(
         });
       }
     } else if (newStatus === "COMPLETED" && details.winnerName) {
-      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      title = `🏆 In-Person Champion Crowned! (Week ${weekNum})`;
       color = 0xf1c40f; // Gold
-      description = `**Round 1 (In Person Voting)** concluded with an outright winner!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
+      description = `🍿 **The physical media gods have spoken!** An outright winner has been selected!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ". Warm up the TV and player! 💿";
       if (details.winnerPoster) {
         thumbnail = { url: details.winnerPoster };
       }
     }
   } else if (prevStatus === "IN_PERSON_TIEBREAKER") {
     if (newStatus === "COMPLETED" && details.winnerName) {
-      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      title = `🏆 In-Person Champion Crowned! (Week ${weekNum})`;
       color = 0xf1c40f; // Gold
-      description = `**Round 1b (In Person Tiebreaker)** concluded!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
+      description = `🍿 **The tiebreaker crucible has concluded!**\n\nThe winning movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker draw)*" : ""}. Clean the lenses and get the player ready! 💿`;
       if (details.winnerPoster) {
         thumbnail = { url: details.winnerPoster };
       }

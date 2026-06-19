@@ -289,11 +289,17 @@ export default async function DashboardPage() {
                   <div className="dashboard-header-bar">
                     <div>
                       <h2 className="text-5xl font-extrabold">
-                        Week #{activeWeek.weekNumber} Voting
+                        Week #{activeWeek.weekNumber} Voting {activeWeek.isInPerson && "🍿"}
                       </h2>
-                      <p className="text-secondary text-md mt-xs">
-                        Active Theme: <strong className="text-primary-color">{activeWeek.themeCategory?.name}</strong>
-                      </p>
+                      {activeWeek.isInPerson ? (
+                        <p className="text-secondary text-md mt-xs animate-slide-in">
+                          📀 Gather round, clean those lenses, and grab the popcorn — it's an <strong className="text-accent-color">In-Person Physical Media Night!</strong>
+                        </p>
+                      ) : (
+                        <p className="text-secondary text-md mt-xs">
+                          Active Theme: <strong className="text-primary-color">{activeWeek.themeCategory?.name}</strong>
+                        </p>
+                      )}
                     </div>
                     <div className="flex-row items-center gap-sm">
                       <span className="text-sm-alt text-uppercase tracking-widest text-secondary">Status:</span>
@@ -598,7 +604,11 @@ export default async function DashboardPage() {
                         ))}
                       </div>
                       <div className="border-t pt-sm mt-sm flex-between text-sm-alt text-muted">
-                        <span>Theme: {wk.themeCategory?.name || "None"}</span>
+                        {wk.isInPerson ? (
+                          <span className="text-accent-color font-semibold">📼 In-Person Screening</span>
+                        ) : (
+                          <span>Theme: {wk.themeCategory?.name || "None"}</span>
+                        )}
                         {wk.isRandomlyChosen && (
                           <span className="text-accent-color font-semibold">🎲 Random Draw</span>
                         )}
