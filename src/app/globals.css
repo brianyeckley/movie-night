@@ -1700,6 +1700,22 @@ details.movie-row-details {
   color: var(--text-primary);
 }
 
+.animate-slide-in {
+  animation: slideIn var(--transition-normal) ease-out forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 
 
 
