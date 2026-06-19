@@ -2,7 +2,8 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { 
   getCategoryTiebreakerCategories, 
   getShortlistMovies, 
-  getFinalTiebreakerMovies 
+  getFinalTiebreakerMovies,
+  getInPersonTiebreakerMovies
 } from "@/lib/voting-helpers";
 import { db } from "@/lib/db";
 
@@ -110,6 +111,30 @@ describe("Voting Data Compilation Helpers", () => {
       expect(db.movie.findMany).toHaveBeenCalledWith({
         where: { id: { in: ["movie-1", "movie-2"] } },
         include: { genres: true, category: true },
+      });
+      expect(result).toHaveLength(2);
+    });
+  });
+
+  describe("getInPersonTiebreakerMovies", () => {
+    it("returns movies with at least 1 vote in Round 1 and filters out unapproved votes", async () => {
+      vi.mocked(db.weekVote.findMany).mockResolvedValueOnce([
+        { targetId: "movie-1", user: { id: "user-1", isApproved: true } },
+        { targetId: "movie-2", user: { id: "user-2", isApproved: true } },
+        { targetId: "movie-3", user: { id: "user-3", isApproved: false } }, // unapproved, ignore
+      ] as any);
+
+      vi.mocked(db.movie.findMany).mockResolvedValueOnce([
+        { id: "movie-1", title: "The Thing" },
+        { id: "movie-2", title: "Alien" },
+      ] as any);
+
+      const result = await getInPersonTiebreakerMovies("week-1");
+
+      expect(db.movie.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ["movie-1", "movie-2"] } },
+        include: { genres: true, category: true },
+        orderBy: { title: "asc" },
       });
       expect(result).toHaveLength(2);
     });
