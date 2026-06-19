@@ -293,7 +293,7 @@ export default async function DashboardPage() {
                       </h2>
                       {activeWeek.isInPerson ? (
                         <p className="text-secondary text-md mt-xs animate-slide-in">
-                          📀 Gather round, clean those lenses, and grab the popcorn — it's an <strong className="text-accent-color">In-Person Physical Media Night!</strong>
+                          In-Person Movie Night (Physical Media Only)
                         </p>
                       ) : (
                         <p className="text-secondary text-md mt-xs">

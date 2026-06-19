@@ -254,7 +254,7 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
       <span className="text-10xl block mb-sm">🏆</span>
       {week.isInPerson ? (
         <span className="text-base text-uppercase tracking-widest-2 text-accent-color font-bold">
-          🍿 THE PHYSICAL MEDIA CHAMPION IS CROWNED! 🍿
+          Winning In-Person Movie Chosen!
         </span>
       ) : (
         <span className="text-base text-uppercase tracking-widest-2 text-primary-color font-bold">
@@ -264,7 +264,7 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
       
       {week.isInPerson && (
         <p className="text-md text-secondary mt-xs font-semibold animate-slide-in" style={{ opacity: 0.9 }}>
-          📀 Gather round, clean those lenses, and fire up the player — showtime is ready! 🏠
+          Ready for screening on physical media.
         </p>
       )}
 
@@ -428,9 +428,9 @@ export async function InPersonVotingRound({ week, currentUserId }: any) {
 
   return (
     <div>
-      <h3 className="text-3xl font-bold mb-sm text-accent-color">🍿 In Person Movie Night: Round 1</h3>
+      <h3 className="text-3xl font-bold mb-sm text-accent-color">In Person Movie Night: Round 1</h3>
       <p className="text-secondary mb-xl text-md">
-        Optionally ignored theme: Bypassing standard categories. 📼 <strong>Physical Media Showdown!</strong> Select up to 3 physical media gems. No streams allowed here — only pristine bitrates, crisp audio, and shelf-fresh discs. Choose wisely! (Max 3 Votes)
+        Vote for up to 3 physical media movies to watch in person. (Max 3 Votes)
       </p>
 
       {movies.length === 0 ? (
@@ -460,9 +460,9 @@ export async function InPersonTiebreakerRound({ week, currentUserId }: any) {
 
   return (
     <div>
-      <h3 className="text-3xl font-bold mb-sm text-accent-color">⚡ In Person Movie Night: Round 1b Tiebreaker</h3>
+      <h3 className="text-3xl font-bold mb-sm text-accent-color">In Person Movie Night: Round 1b Tiebreaker</h3>
       <p className="text-secondary mb-xl text-md">
-        🔥 <strong>THE TIEBREAKER CRUCIBLE!</strong> The crowd is divided! Choose your absolute favorite disc. If this round ends in a deadlock, the movie gods (random draw) will decide our fate! (1 Vote)
+        Select exactly 1 movie for the in-person tiebreaker. If a tie persists here, a random winner will be selected. (1 Vote)
       </p>
 
       {movies.length === 0 ? (
