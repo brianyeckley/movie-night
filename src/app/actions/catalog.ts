@@ -43,7 +43,10 @@ export async function addMovieAction(
   imdbUrl: string,
   categoryId: string,
   genreIds: string[],
-  trailerUrl?: string
+  trailerUrl?: string,
+  physical4K?: boolean,
+  physicalBluRay?: boolean,
+  physicalDvd?: boolean
 ) {
   const currentUser = await getActiveUser();
   if (!currentUser) throw new Error("You must pick a user first.");
@@ -86,6 +89,9 @@ export async function addMovieAction(
       plot,
       posterUrl,
       imdbRating,
+      physical4K: physical4K ?? false,
+      physicalBluRay: physicalBluRay ?? false,
+      physicalDvd: physicalDvd ?? false,
       categoryId,
       genres: {
         connect: genreIds.map((id) => ({ id })),
@@ -126,7 +132,10 @@ export async function updateMovieAction(
   imdbUrl: string,
   trailerUrl?: string,
   categoryId?: string,
-  genreIds?: string[]
+  genreIds?: string[],
+  physical4K?: boolean,
+  physicalBluRay?: boolean,
+  physicalDvd?: boolean
 ) {
   const currentUser = await getActiveUser();
   if (!currentUser) throw new Error("You must pick a user first.");
@@ -181,6 +190,9 @@ export async function updateMovieAction(
     plot,
     posterUrl,
     imdbRating,
+    physical4K: physical4K ?? false,
+    physicalBluRay: physicalBluRay ?? false,
+    physicalDvd: physicalDvd ?? false,
   };
 
   if (categoryId) {

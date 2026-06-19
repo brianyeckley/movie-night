@@ -250,15 +250,16 @@ export function MovieVotingFormClient({
               </label>
 
               <div className="flex-col items-end gap-sm flex-shrink-0">
-                {movie.genres && movie.genres.length > 0 && (
-                  <div className="flex-row gap-xs">
-                    {movie.genres.map((g: any) => (
-                      <span key={g.id} className="badge-genre">
-                        #{g.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="flex-row gap-xs flex-wrap">
+                  {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                  {movie.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+                  {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
+                  {movie.genres && movie.genres.length > 0 && movie.genres.map((g: any) => (
+                    <span key={g.id} className="badge-genre">
+                      #{g.name}
+                    </span>
+                  ))}
+                </div>
                 <div className="flex-row gap-sm items-center mt-xs">
                   {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                   {movie.imdbUrl && (
@@ -424,15 +425,16 @@ export function SubcategoryVotingFormClient({
               </label>
 
               <div className="flex-col items-end gap-sm flex-shrink-0">
-                {movie.genres && movie.genres.length > 0 && (
-                  <div className="flex-row gap-xs">
-                    {movie.genres.map((g: any) => (
-                      <span key={g.id} className="badge-genre">
-                        #{g.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="flex-row gap-xs flex-wrap">
+                  {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                  {movie.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+                  {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
+                  {movie.genres && movie.genres.length > 0 && movie.genres.map((g: any) => (
+                    <span key={g.id} className="badge-genre">
+                      #{g.name}
+                    </span>
+                  ))}
+                </div>
                 <div className="flex-row gap-sm items-center mt-xs">
                   {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                   {movie.imdbUrl && (
@@ -598,15 +600,16 @@ export function ShortlistVotingFormClient({
               </label>
 
               <div className="flex-col items-end gap-sm flex-shrink-0">
-                {movie.genres && movie.genres.length > 0 && (
-                  <div className="flex-row gap-xs">
-                    {movie.genres.map((g: any) => (
-                      <span key={g.id} className="badge-genre">
-                        #{g.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="flex-row gap-xs flex-wrap">
+                  {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                  {movie.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+                  {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
+                  {movie.genres && movie.genres.length > 0 && movie.genres.map((g: any) => (
+                    <span key={g.id} className="badge-genre">
+                      #{g.name}
+                    </span>
+                  ))}
+                </div>
                 <div className="flex-row gap-sm items-center mt-xs">
                   {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                   {movie.imdbUrl && (
@@ -760,15 +763,16 @@ export function FinalVotingFormClient({
             </label>
 
             <div className="flex-col items-end gap-sm flex-shrink-0">
-              {movie.genres && movie.genres.length > 0 && (
-                <div className="flex-row gap-xs">
-                  {movie.genres.map((g: any) => (
-                    <span key={g.id} className="badge-genre">
-                      #{g.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <div className="flex-row gap-xs flex-wrap">
+                {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                {movie.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+                {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
+                {movie.genres && movie.genres.length > 0 && movie.genres.map((g: any) => (
+                  <span key={g.id} className="badge-genre">
+                    #{g.name}
+                  </span>
+                ))}
+              </div>
               <div className="flex-row gap-sm items-center mt-xs">
                 {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                 {movie.imdbUrl && (

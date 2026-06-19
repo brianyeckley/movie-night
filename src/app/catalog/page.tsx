@@ -193,7 +193,10 @@ export default async function CatalogPage() {
                                 </div>
 
                                 <div className="flex-col items-end gap-sm flex-shrink-0">
-                                  <div className="flex-row gap-xs">
+                                  <div className="flex-row gap-xs flex-wrap">
+                                    {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                                    {movie.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+                                    {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
                                     {movie.genres.map((g) => (
                                       <span key={g.id} className="badge-genre">
                                         {g.name}
@@ -273,7 +276,10 @@ export default async function CatalogPage() {
                                             </span>
                                           )}
                                         </div>
-                                        <div className="flex-row gap-xs">
+                                        <div className="flex-row gap-xs flex-wrap">
+                                          {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                                          {movie.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+                                          {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
                                           {movie.genres.map((g) => (
                                             <span key={g.id} className="badge-genre">
                                               {g.name}

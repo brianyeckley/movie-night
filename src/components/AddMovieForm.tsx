@@ -25,6 +25,9 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
   const [trailerUrl, setTrailerUrl] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
+  const [physical4K, setPhysical4K] = useState(false);
+  const [physicalBluRay, setPhysicalBluRay] = useState(false);
+  const [physicalDvd, setPhysicalDvd] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -61,11 +64,22 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
 
     startTransition(async () => {
       try {
-        const movie = await addMovieAction(imdbUrl, categoryId, selectedGenreIds, trailerUrl);
+        const movie = await addMovieAction(
+          imdbUrl,
+          categoryId,
+          selectedGenreIds,
+          trailerUrl,
+          physical4K,
+          physicalBluRay,
+          physicalDvd
+        );
         setImdbUrl("");
         setTrailerUrl("");
         setCategoryId("");
         setSelectedGenreIds([]);
+        setPhysical4K(false);
+        setPhysicalBluRay(false);
+        setPhysicalDvd(false);
         setSuccessMsg(`"${movie.title}" added successfully!`);
         setTimeout(() => setSuccessMsg(null), 5000);
       } catch (err: any) {
@@ -168,6 +182,42 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
               {genre.name}
             </label>
           ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <span className="form-label">Physical Media (Optional)</span>
+        <div className="checkbox-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={physical4K}
+              onChange={(e) => setPhysical4K(e.target.checked)}
+              disabled={isPending}
+              className="checkbox-input"
+            />
+            4K UHD
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={physicalBluRay}
+              onChange={(e) => setPhysicalBluRay(e.target.checked)}
+              disabled={isPending}
+              className="checkbox-input"
+            />
+            Blu-ray
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={physicalDvd}
+              onChange={(e) => setPhysicalDvd(e.target.checked)}
+              disabled={isPending}
+              className="checkbox-input"
+            />
+            DVD
+          </label>
         </div>
       </div>
 

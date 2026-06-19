@@ -316,6 +316,9 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
       )}
 
       <div className="flex-center gap-sm flex-wrap mb-2xl">
+        {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+        {movie.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+        {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
         {movie.genres.map((g: any) => (
           <span key={g.id} className="badge badge-user">
             {g.name}

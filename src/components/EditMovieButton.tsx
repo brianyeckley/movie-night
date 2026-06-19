@@ -11,6 +11,9 @@ interface EditMovieButtonProps {
     trailerUrl: string | null;
     categoryId: string;
     genres: { id: string; name: string }[];
+    physical4K: boolean;
+    physicalBluRay: boolean;
+    physicalDvd: boolean;
   };
   categories: { id: string; name: string; parentId: string | null }[];
   genres: { id: string; name: string }[];
@@ -29,6 +32,9 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>(
     movie.genres.map((g) => g.id)
   );
+  const [physical4K, setPhysical4K] = useState(movie.physical4K);
+  const [physicalBluRay, setPhysicalBluRay] = useState(movie.physicalBluRay);
+  const [physicalDvd, setPhysicalDvd] = useState(movie.physicalDvd);
 
   // Sync state if movie prop changes
   useEffect(() => {
@@ -37,6 +43,9 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
     setTrailerUrl(movie.trailerUrl || "");
     setCategoryId(movie.categoryId);
     setSelectedGenreIds(movie.genres.map((g) => g.id));
+    setPhysical4K(movie.physical4K);
+    setPhysicalBluRay(movie.physicalBluRay);
+    setPhysicalDvd(movie.physicalDvd);
   }, [movie]);
 
   useEffect(() => {
@@ -66,7 +75,10 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
           imdbUrl,
           trailerUrl,
           categoryId,
-          selectedGenreIds
+          selectedGenreIds,
+          physical4K,
+          physicalBluRay,
+          physicalDvd
         );
         setIsOpen(false);
       } catch (err) {
@@ -199,6 +211,42 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
                       </label>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* Physical Media (Optional) */}
+              <div className="form-group">
+                <label className="form-label-bold">
+                  Physical Media (Optional)
+                </label>
+                <div className="checkbox-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={physical4K}
+                      onChange={(e) => setPhysical4K(e.target.checked)}
+                      className="checkbox-input"
+                    />
+                    4K UHD
+                  </label>
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={physicalBluRay}
+                      onChange={(e) => setPhysicalBluRay(e.target.checked)}
+                      className="checkbox-input"
+                    />
+                    Blu-ray
+                  </label>
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={physicalDvd}
+                      onChange={(e) => setPhysicalDvd(e.target.checked)}
+                      className="checkbox-input"
+                    />
+                    DVD
+                  </label>
                 </div>
               </div>
 

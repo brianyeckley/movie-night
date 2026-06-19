@@ -41,22 +41,25 @@ model Genre {
 }
 
 model Movie {
-  id         String   @id @default(uuid())
-  title      String
-  imdbUrl    String?
-  trailerUrl String?
-  year       Int?
-  director   String?
-  stars      String?
-  runtime    String?
-  plot       String?
-  posterUrl  String?
-  imdbRating String?
-  watched    Boolean  @default(false)
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  genres     Genre[]
-  createdAt  DateTime @default(now())
+  id             String   @id @default(uuid())
+  title          String
+  imdbUrl        String?
+  trailerUrl     String?
+  year           Int?
+  director       String?
+  stars          String?
+  runtime        String?
+  plot           String?
+  posterUrl      String?
+  imdbRating     String?
+  watched        Boolean  @default(false)
+  physical4K     Boolean  @default(false)
+  physicalBluRay Boolean  @default(false)
+  physicalDvd    Boolean  @default(false)
+  categoryId     String
+  category       Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  genres         Genre[]
+  createdAt      DateTime @default(now())
 }
 
 model MovieNightWeek {

@@ -126,12 +126,23 @@ async function main() {
   console.log("Seeded Subcategory: Jean-Claude Van Damme");
 
   // Helper to create movies with genres
-  const createMovie = async (title: string, imdbUrl: string, categoryId: string, genreNames: string[]) => {
+  const createMovie = async (
+    title: string,
+    imdbUrl: string,
+    categoryId: string,
+    genreNames: string[],
+    physical4K: boolean = false,
+    physicalBluRay: boolean = false,
+    physicalDvd: boolean = false
+  ) => {
     return prisma.movie.create({
       data: {
         title,
         imdbUrl,
         categoryId,
+        physical4K,
+        physicalBluRay,
+        physicalDvd,
         genres: {
           connect: genreNames.map((name) => ({ id: genres[name].id })),
         },
@@ -147,7 +158,7 @@ async function main() {
 
   // Legacy Movies
   await createMovie("Alien", "https://www.imdb.com/title/t0078748/", legacy.id, ["Sci-Fi", "Horror"]);
-  await createMovie("The Thing", "https://www.imdb.com/title/t0084787/", legacy.id, ["Horror", "Sci-Fi"]);
+  await createMovie("The Thing", "https://www.imdb.com/title/t0084787/", legacy.id, ["Horror", "Sci-Fi"], false, true);
   await createMovie("Die Hard", "https://www.imdb.com/title/t0095016/", legacy.id, ["Action"]);
 
   // Godzilla (Theme) Movies

@@ -590,6 +590,9 @@ export default async function DashboardPage() {
                         </div>
                       )}
                       <div className="flex-row gap-xs flex-wrap mt-xs">
+                        {wk.winner?.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                        {wk.winner?.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+                        {wk.winner?.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
                         {wk.winner?.genres.map((g) => (
                           <span key={g.id} className="badge-genre">
                             {g.name}
