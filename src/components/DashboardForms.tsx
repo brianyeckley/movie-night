@@ -443,7 +443,7 @@ export async function InPersonVotingRound({ week, currentUserId }: any) {
           weekId={week.id}
           movies={movies}
           initialVotes={userVoteIds}
-          isTiebreaker={false}
+          maxVotes={3}
         />
       )}
     </div>
