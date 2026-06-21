@@ -179,76 +179,90 @@ export default function CatalogListClient({
     <div className="flex-col gap-xl">
       {/* Search & Filter Panel */}
       <div className="catalog-search-container">
-        <div className="search-input-wrapper">
-          <span className="search-input-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search by title, plot, director, or cast..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-
-        {/* Media Formats Filter */}
-        <div className="filter-section">
-          <div className="filter-label">Media Type</div>
-          <div className="filter-pills-row">
-            {(["4K", "Blu-ray", "DVD"] as const).map((format) => {
-              const isActive = selectedFormats.has(format);
-              let activeClass = "";
-              if (isActive) {
-                if (format === "4K") activeClass = "active-4k";
-                else if (format === "Blu-ray") activeClass = "active-bluray";
-                else if (format === "DVD") activeClass = "active-dvd";
-              }
-              return (
-                <button
-                  key={format}
-                  type="button"
-                  onClick={() => handleFormatToggle(format)}
-                  className={`filter-pill filter-pill-format ${isActive ? `active ${activeClass}` : ""}`}
-                >
-                  {format}
-                </button>
-              );
-            })}
+        <input type="checkbox" id="catalog-search-toggle" className="search-toggle-checkbox" />
+        <label htmlFor="catalog-search-toggle" className="search-toggle-label">
+          <span>
+            🔍 Search & Filter Catalog{" "}
+            {hasActiveFilters && (
+              <span className="text-xs text-warning-color font-normal ml-xs">
+                (Active)
+              </span>
+            )}
+          </span>
+          <span className="search-chevron">▼</span>
+        </label>
+        <div className="search-toggle-content">
+          <div className="search-input-wrapper">
+            <span className="search-input-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search by title, plot, director, or cast..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
           </div>
-        </div>
 
-        {/* Genres Filter */}
-        {genres.length > 0 && (
+          {/* Media Formats Filter */}
           <div className="filter-section">
-            <div className="filter-label">Genres</div>
+            <div className="filter-label">Media Type</div>
             <div className="filter-pills-row">
-              {genres.map((g) => {
-                const isActive = selectedGenreIds.has(g.id);
+              {(["4K", "Blu-ray", "DVD"] as const).map((format) => {
+                const isActive = selectedFormats.has(format);
+                let activeClass = "";
+                if (isActive) {
+                  if (format === "4K") activeClass = "active-4k";
+                  else if (format === "Blu-ray") activeClass = "active-bluray";
+                  else if (format === "DVD") activeClass = "active-dvd";
+                }
                 return (
                   <button
-                    key={g.id}
+                    key={format}
                     type="button"
-                    onClick={() => handleGenreToggle(g.id)}
-                    className={`filter-pill ${isActive ? "active" : ""}`}
+                    onClick={() => handleFormatToggle(format)}
+                    className={`filter-pill filter-pill-format ${isActive ? `active ${activeClass}` : ""}`}
                   >
-                    {g.name}
+                    {format}
                   </button>
                 );
               })}
             </div>
           </div>
-        )}
 
-        {hasActiveFilters && (
-          <div className="flex-row justify-end">
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="text-btn text-sm"
-            >
-              Clear Filters
-            </button>
-          </div>
-        )}
+          {/* Genres Filter */}
+          {genres.length > 0 && (
+            <div className="filter-section">
+              <div className="filter-label">Genres</div>
+              <div className="filter-pills-row">
+                {genres.map((g) => {
+                  const isActive = selectedGenreIds.has(g.id);
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => handleGenreToggle(g.id)}
+                      className={`filter-pill ${isActive ? "active" : ""}`}
+                    >
+                      {g.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {hasActiveFilters && (
+            <div className="flex-row justify-end">
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="text-btn text-sm"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Catalog Render List */}

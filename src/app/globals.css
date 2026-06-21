@@ -1831,6 +1831,55 @@ details.movie-row-details {
   margin-top: 8px;
 }
 
+/* Checkbox toggle elements for catalog search on mobile */
+.search-toggle-checkbox {
+  display: none;
+}
+
+.search-toggle-label {
+  display: none;
+}
+
+.search-chevron {
+  display: inline-block;
+  transition: transform var(--transition-fast);
+}
+
+.search-toggle-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 992px) {
+  .search-toggle-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--primary);
+    user-select: none;
+    padding: 4px 0;
+  }
+
+  .search-toggle-content {
+    display: none;
+    margin-top: 16px;
+  }
+
+  /* Expand search content when checkbox is checked */
+  .search-toggle-checkbox:checked ~ .search-toggle-content {
+    display: flex;
+  }
+
+  /* Rotate the chevron indicator when expanded */
+  .search-toggle-checkbox:checked ~ .search-toggle-label .search-chevron {
+    transform: rotate(180deg);
+  }
+}
+
 
 
 
