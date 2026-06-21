@@ -131,6 +131,8 @@ export async function resetRoundAction(weekId: string) {
   else if (week.status === "FINAL_VOTING") roundStr = "ROUND_4_TIEBREAKER";
   else if (week.status === "IN_PERSON_VOTING") roundStr = "IN_PERSON_ROUND_1";
   else if (week.status === "IN_PERSON_TIEBREAKER") roundStr = "IN_PERSON_ROUND_1B";
+  else if (week.status === "IN_PERSON_ROUND_2") roundStr = "IN_PERSON_ROUND_2";
+  else if (week.status === "IN_PERSON_ROUND_3") roundStr = "IN_PERSON_ROUND_3";
 
   await db.weekVote.deleteMany({
     where: {
@@ -167,6 +169,8 @@ export async function advanceWeekRoundAction(weekId: string) {
   else if (week.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
   else if (week.status === "IN_PERSON_VOTING") activeRoundCode = "IN_PERSON_ROUND_1";
   else if (week.status === "IN_PERSON_TIEBREAKER") activeRoundCode = "IN_PERSON_ROUND_1B";
+  else if (week.status === "IN_PERSON_ROUND_2") activeRoundCode = "IN_PERSON_ROUND_2";
+  else if (week.status === "IN_PERSON_ROUND_3") activeRoundCode = "IN_PERSON_ROUND_3";
 
   const roundVotedUserIds = approvedVotes
     .filter((v) => v.round === activeRoundCode)

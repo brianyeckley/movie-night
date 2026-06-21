@@ -109,6 +109,8 @@ export async function notifyRoundAdvanced(
       case "FINAL_VOTING": return "Final Tiebreaker Voting";
       case "IN_PERSON_VOTING": return "In Person Voting";
       case "IN_PERSON_TIEBREAKER": return "In Person Tiebreaker Voting";
+      case "IN_PERSON_ROUND_2": return "In Person Round 2 Tiebreaker";
+      case "IN_PERSON_ROUND_3": return "In Person Round 3 Final Tiebreaker";
       case "COMPLETED": return "Completed";
       default: return s;
     }
@@ -196,6 +198,44 @@ export async function notifyRoundAdvanced(
       }
     }
   } else if (prevStatus === "IN_PERSON_TIEBREAKER") {
+    if (newStatus === "IN_PERSON_ROUND_2") {
+      title = `⚡ Week ${weekNum}: In-Person Tiebreaker Tie`;
+      color = 0xe11d48; // Rose
+      description = `Round 1b ended in a tie. We are advancing to a third round with 1 vote among the tied movies.`;
+      if (details.tiedItems && details.tiedItems.length > 0) {
+        fields.push({
+          name: "Tied Movies",
+          value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+        });
+      }
+    } else if (newStatus === "COMPLETED" && details.winnerName) {
+      title = `🏆 In-Person Winner Selected! (Week ${weekNum})`;
+      color = 0xf1c40f; // Gold
+      description = `The winning in-person movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
+      if (details.winnerPoster) {
+        thumbnail = { url: details.winnerPoster };
+      }
+    }
+  } else if (prevStatus === "IN_PERSON_ROUND_2") {
+    if (newStatus === "IN_PERSON_ROUND_3") {
+      title = `⚡ Week ${weekNum}: In-Person Third Round Tie`;
+      color = 0xe11d48; // Rose
+      description = `Round 2 ended in a tie. Since the remaining movies equals the number of voters, we are advancing to a final voting round of 2 votes each.`;
+      if (details.tiedItems && details.tiedItems.length > 0) {
+        fields.push({
+          name: "Tied Movies",
+          value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+        });
+      }
+    } else if (newStatus === "COMPLETED" && details.winnerName) {
+      title = `🏆 In-Person Winner Selected! (Week ${weekNum})`;
+      color = 0xf1c40f; // Gold
+      description = `The winning in-person movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
+      if (details.winnerPoster) {
+        thumbnail = { url: details.winnerPoster };
+      }
+    }
+  } else if (prevStatus === "IN_PERSON_ROUND_3") {
     if (newStatus === "COMPLETED" && details.winnerName) {
       title = `🏆 In-Person Winner Selected! (Week ${weekNum})`;
       color = 0xf1c40f; // Gold
@@ -251,6 +291,8 @@ export async function notifyReminder(weekId: string, pendingVoterNames: string[]
       case "FINAL_VOTING": return "Final Tiebreaker Voting";
       case "IN_PERSON_VOTING": return "In Person Voting";
       case "IN_PERSON_TIEBREAKER": return "In Person Tiebreaker Voting";
+      case "IN_PERSON_ROUND_2": return "In Person Round 2 Tiebreaker";
+      case "IN_PERSON_ROUND_3": return "In Person Round 3 Final Tiebreaker";
       default: return s;
     }
   };

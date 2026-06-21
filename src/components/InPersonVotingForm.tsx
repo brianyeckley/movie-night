@@ -9,25 +9,27 @@ interface InPersonVotingFormProps {
   weekId: string;
   movies: any[];
   initialVotes: string[];
-  isTiebreaker: boolean;
+  maxVotes: number;
 }
 
 export default function InPersonVotingForm({
   weekId,
   movies,
   initialVotes,
-  isTiebreaker,
+  maxVotes,
 }: InPersonVotingFormProps) {
-  // If tiebreaker, initialVotes will contain at most 1 item.
-  const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
+  const isSingleVote = maxVotes === 1;
+
+  // If checkbox mode, hold the selected movie IDs.
+  const [selectedIds, setSelectedIds] = useState<string[]>(isSingleVote ? [] : initialVotes);
+  // If radio mode, hold the single selected movie ID.
   const [radioSelectedId, setRadioSelectedId] = useState<string | null>(
-    isTiebreaker && initialVotes.length > 0 ? initialVotes[0] : null
+    isSingleVote && initialVotes.length > 0 ? initialVotes[0] : null
   );
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const maxVotes = 3;
   const isLimitReached = selectedIds.length >= maxVotes;
 
   const handleCheckboxChange = (movieId: string, checked: boolean) => {
@@ -49,7 +51,7 @@ export default function InPersonVotingForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isTiebreaker) {
+    if (isSingleVote) {
       if (!radioSelectedId) {
         setError("⚠️ Please select a movie before casting your tiebreaker vote.");
         return;
@@ -57,7 +59,7 @@ export default function InPersonVotingForm({
       setError(null);
       startTransition(async () => {
         try {
-          await submitInPersonTiebreakerVoteAction(weekId, radioSelectedId);
+          await submitInPersonVotesAction(weekId, [radioSelectedId]);
           setToastMsg("Tiebreaker vote cast successfully!");
         } catch (err: any) {
           console.error("Failed to submit in-person tiebreaker vote:", err);
@@ -85,10 +87,10 @@ export default function InPersonVotingForm({
   return (
     <form onSubmit={handleSubmit} className="flex-col gap-md">
       {movies.map((movie) => {
-        const isChecked = isTiebreaker
+        const isChecked = isSingleVote
           ? radioSelectedId === movie.id
           : selectedIds.includes(movie.id);
-        const isDisabled = !isTiebreaker && isLimitReached && !isChecked;
+        const isDisabled = !isSingleVote && isLimitReached && !isChecked;
 
         return (
           <div
@@ -100,12 +102,12 @@ export default function InPersonVotingForm({
                 className={`flex-row items-center gap-md flex-1 min-w-250 ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}
               >
                 <input
-                  type={isTiebreaker ? "radio" : "checkbox"}
-                  name={isTiebreaker ? "inPersonMovieTie" : undefined}
+                  type={isSingleVote ? "radio" : "checkbox"}
+                  name={isSingleVote ? "inPersonMovieTie" : undefined}
                   checked={isChecked}
                   disabled={isDisabled || isPending}
                   onChange={(e) =>
-                    isTiebreaker
+                    isSingleVote
                       ? handleRadioChange(movie.id)
                       : handleCheckboxChange(movie.id, e.target.checked)
                   }
@@ -225,7 +227,7 @@ export default function InPersonVotingForm({
       <button type="submit" disabled={isPending} className="btn btn-primary mt-sm">
         {isPending
           ? "Submitting Vote..."
-          : isTiebreaker
+          : isSingleVote
           ? "Cast Tiebreaker Vote"
           : "Cast In Person Votes"}
       </button>

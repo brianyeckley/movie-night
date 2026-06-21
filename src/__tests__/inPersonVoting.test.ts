@@ -17,6 +17,7 @@ vi.mock("@/lib/db", () => ({
     },
     user: {
       findMany: vi.fn(),
+      count: vi.fn(),
     },
     movie: {
       findUnique: vi.fn(),
@@ -172,13 +173,15 @@ describe("In-Person Voting Server Actions", () => {
         },
       });
 
-      expect(db.weekVote.create).toHaveBeenCalledWith({
-        data: {
-          weekId: "week-1",
-          userId: "user-1",
-          round: "IN_PERSON_ROUND_1B",
-          targetId: "movie-1",
-        },
+      expect(db.weekVote.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            weekId: "week-1",
+            userId: "user-1",
+            round: "IN_PERSON_ROUND_1B",
+            targetId: "movie-1",
+          },
+        ],
       });
     });
   });
@@ -300,7 +303,7 @@ describe("In-Person Voting Server Actions", () => {
       });
     });
 
-    it("transitions IN_PERSON_TIEBREAKER to COMPLETED with random winner on persistent tie", async () => {
+    it("transitions IN_PERSON_TIEBREAKER to IN_PERSON_ROUND_2 on tie", async () => {
       const weekMock = {
         id: "week-1",
         status: "IN_PERSON_TIEBREAKER",
@@ -309,6 +312,103 @@ describe("In-Person Voting Server Actions", () => {
           { round: "IN_PERSON_ROUND_1B", targetId: "movie-2", user: { isApproved: true, name: "Brian" } },
         ],
       };
+
+      vi.mocked(db.movie.findMany).mockResolvedValueOnce([
+        { title: "The Thing" },
+        { title: "Alien" },
+      ] as any);
+
+      const result = await advanceInPersonWeekRound("week-1", weekMock);
+      expect(result).toEqual({ success: true });
+
+      expect(db.movieNightWeek.update).toHaveBeenCalledWith({
+        where: { id: "week-1" },
+        data: { status: "IN_PERSON_ROUND_2" },
+      });
+
+      expect(notifyRoundAdvanced).toHaveBeenCalledWith("week-1", "IN_PERSON_TIEBREAKER", "IN_PERSON_ROUND_2", {
+        tiedItems: ["The Thing", "Alien"],
+      });
+    });
+
+    it("transitions IN_PERSON_ROUND_2 to COMPLETED on outright winner", async () => {
+      const weekMock = {
+        id: "week-1",
+        status: "IN_PERSON_ROUND_2",
+        votes: [
+          { round: "IN_PERSON_ROUND_2", targetId: "movie-1", user: { isApproved: true, name: "Stew" } },
+          { round: "IN_PERSON_ROUND_2", targetId: "movie-1", user: { isApproved: true, name: "Brian" } },
+        ],
+      };
+
+      vi.mocked(db.movie.findUnique).mockResolvedValueOnce({
+        id: "movie-1",
+        title: "The Thing",
+        year: 1982,
+        posterUrl: "https://example.com/poster.jpg",
+      } as any);
+
+      const result = await advanceInPersonWeekRound("week-1", weekMock);
+      expect(result).toEqual({ success: true });
+
+      expect(db.movieNightWeek.update).toHaveBeenCalledWith({
+        where: { id: "week-1" },
+        data: {
+          winningMovieId: "movie-1",
+          isRandomlyChosen: false,
+          status: "COMPLETED",
+        },
+      });
+
+      expect(notifyRoundAdvanced).toHaveBeenCalledWith("week-1", "IN_PERSON_ROUND_2", "COMPLETED", {
+        winnerName: "The Thing",
+        winnerYear: 1982,
+        winnerPoster: "https://example.com/poster.jpg",
+        isRandom: false,
+      });
+    });
+
+    it("transitions IN_PERSON_ROUND_2 to IN_PERSON_ROUND_3 if tie persists and movie count equals voters count", async () => {
+      const weekMock = {
+        id: "week-1",
+        status: "IN_PERSON_ROUND_2",
+        votes: [
+          { round: "IN_PERSON_ROUND_2", targetId: "movie-1", user: { isApproved: true, name: "Stew" } },
+          { round: "IN_PERSON_ROUND_2", targetId: "movie-2", user: { isApproved: true, name: "Brian" } },
+        ],
+      };
+
+      vi.mocked(db.user.count).mockResolvedValueOnce(2); // 2 voters, 2 tied movies
+
+      vi.mocked(db.movie.findMany).mockResolvedValueOnce([
+        { title: "The Thing" },
+        { title: "Alien" },
+      ] as any);
+
+      const result = await advanceInPersonWeekRound("week-1", weekMock);
+      expect(result).toEqual({ success: true });
+
+      expect(db.movieNightWeek.update).toHaveBeenCalledWith({
+        where: { id: "week-1" },
+        data: { status: "IN_PERSON_ROUND_3" },
+      });
+
+      expect(notifyRoundAdvanced).toHaveBeenCalledWith("week-1", "IN_PERSON_ROUND_2", "IN_PERSON_ROUND_3", {
+        tiedItems: ["The Thing", "Alien"],
+      });
+    });
+
+    it("transitions IN_PERSON_ROUND_2 to COMPLETED with random winner if tie persists and movie count does not equal voters count", async () => {
+      const weekMock = {
+        id: "week-1",
+        status: "IN_PERSON_ROUND_2",
+        votes: [
+          { round: "IN_PERSON_ROUND_2", targetId: "movie-1", user: { isApproved: true, name: "Stew" } },
+          { round: "IN_PERSON_ROUND_2", targetId: "movie-2", user: { isApproved: true, name: "Brian" } },
+        ],
+      };
+
+      vi.mocked(db.user.count).mockResolvedValueOnce(3); // 3 voters, 2 tied movies -> random draw!
 
       vi.mocked(db.movie.findUnique).mockImplementation((async ({ where: { id } }: any) => {
         return {
@@ -332,14 +432,38 @@ describe("In-Person Voting Server Actions", () => {
           }),
         })
       );
+    });
 
-      expect(notifyRoundAdvanced).toHaveBeenCalledWith(
-        "week-1",
-        "IN_PERSON_TIEBREAKER",
-        "COMPLETED",
+    it("transitions IN_PERSON_ROUND_3 to COMPLETED with random winner on persistent tie", async () => {
+      const weekMock = {
+        id: "week-1",
+        status: "IN_PERSON_ROUND_3",
+        votes: [
+          { round: "IN_PERSON_ROUND_3", targetId: "movie-1", user: { isApproved: true, name: "Stew" } },
+          { round: "IN_PERSON_ROUND_3", targetId: "movie-2", user: { isApproved: true, name: "Brian" } },
+        ],
+      };
+
+      vi.mocked(db.movie.findUnique).mockImplementation((async ({ where: { id } }: any) => {
+        return {
+          id,
+          title: id === "movie-1" ? "The Thing" : "Alien",
+          year: 1982,
+          posterUrl: "https://example.com/poster.jpg",
+        } as any;
+      }) as any);
+
+      const result = await advanceInPersonWeekRound("week-1", weekMock);
+      expect(result).toEqual({ success: true });
+
+      expect(db.movieNightWeek.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          winnerName: expect.stringMatching(/^(The Thing|Alien)$/),
-          isRandom: true,
+          where: { id: "week-1" },
+          data: expect.objectContaining({
+            status: "COMPLETED",
+            winningMovieId: expect.stringMatching(/^(movie-1|movie-2)$/),
+            isRandomlyChosen: true,
+          }),
         })
       );
     });

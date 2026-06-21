@@ -17,6 +17,7 @@ import {
   getShortlistMovies,
   getFinalTiebreakerMovies,
   getInPersonTiebreakerMovies,
+  getInPersonTiedMovies,
 } from "@/lib/voting-helpers";
 import InPersonVotingForm from "@/components/InPersonVotingForm";
 
@@ -462,7 +463,7 @@ export async function InPersonTiebreakerRound({ week, currentUserId }: any) {
     <div>
       <h3 className="text-3xl font-bold mb-sm text-accent-color">In Person Movie Night: Round 1b Tiebreaker</h3>
       <p className="text-secondary mb-xl text-md">
-        Select exactly 1 movie for the in-person tiebreaker. If a tie persists here, a random winner will be selected. (1 Vote)
+        Round 1 ended in a tie! Select up to 4 movies for the in-person tiebreaker. (Max 4 Votes)
       </p>
 
       {movies.length === 0 ? (
@@ -474,9 +475,74 @@ export async function InPersonTiebreakerRound({ week, currentUserId }: any) {
           weekId={week.id}
           movies={movies}
           initialVotes={userVoteIds}
-          isTiebreaker={true}
+          maxVotes={4}
         />
       )}
     </div>
   );
 }
+
+// 9. In Person: Round 2 In Person Tiebreaker Voting (Third Round)
+export async function InPersonRound2({ week, currentUserId }: any) {
+  const movies = await getInPersonTiedMovies(week.id, "IN_PERSON_ROUND_1B");
+
+  const userVotes = await db.weekVote.findMany({
+    where: { weekId: week.id, userId: currentUserId, round: "IN_PERSON_ROUND_2" },
+  });
+  const userVoteIds = userVotes.map((v) => v.targetId);
+
+  return (
+    <div>
+      <h3 className="text-3xl font-bold mb-sm text-accent-color">In Person Movie Night: Round 2 Tiebreaker</h3>
+      <p className="text-secondary mb-xl text-md">
+        Round 1b ended in a tie! Select exactly 1 movie from the tied choices. (1 Vote)
+      </p>
+
+      {movies.length === 0 ? (
+        <p className="text-muted italic py-sm">
+          No movies advanced to this round.
+        </p>
+      ) : (
+        <InPersonVotingForm
+          weekId={week.id}
+          movies={movies}
+          initialVotes={userVoteIds}
+          maxVotes={1}
+        />
+      )}
+    </div>
+  );
+}
+
+// 10. In Person: Round 3 In Person Tiebreaker Voting (Final Round)
+export async function InPersonRound3({ week, currentUserId }: any) {
+  const movies = await getInPersonTiedMovies(week.id, "IN_PERSON_ROUND_2");
+
+  const userVotes = await db.weekVote.findMany({
+    where: { weekId: week.id, userId: currentUserId, round: "IN_PERSON_ROUND_3" },
+  });
+  const userVoteIds = userVotes.map((v) => v.targetId);
+
+  return (
+    <div>
+      <h3 className="text-3xl font-bold mb-sm text-accent-color">In Person Movie Night: Round 3 Tiebreaker</h3>
+      <p className="text-secondary mb-xl text-md">
+        Round 2 ended in a tie! Since the remaining movies equals the number of voters, this is the final tiebreaker. Select up to 2 movies. (Max 2 Votes)
+      </p>
+
+      {movies.length === 0 ? (
+        <p className="text-muted italic py-sm">
+          No movies advanced to this round.
+        </p>
+      ) : (
+        <InPersonVotingForm
+          weekId={week.id}
+          movies={movies}
+          initialVotes={userVoteIds}
+          maxVotes={2}
+        />
+      )}
+    </div>
+  );
+}
+

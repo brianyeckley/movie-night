@@ -114,3 +114,29 @@ export async function getInPersonTiebreakerMovies(weekId: string) {
   });
 }
 
+// Helper: Get in-person tied movies with max votes in a given round
+export async function getInPersonTiedMovies(weekId: string, roundCode: string) {
+  const votes = await db.weekVote.findMany({
+    where: { weekId, round: roundCode },
+    include: { user: true },
+  });
+
+  const approvedVotes = votes.filter((v) => v.user.isApproved);
+  if (approvedVotes.length === 0) return [];
+
+  const counts: Record<string, number> = {};
+  approvedVotes.forEach((v) => {
+    counts[v.targetId] = (counts[v.targetId] || 0) + 1;
+  });
+
+  const maxVal = Math.max(...Object.values(counts));
+  const tiedIds = Object.keys(counts).filter((id) => counts[id] === maxVal);
+
+  return db.movie.findMany({
+    where: { id: { in: tiedIds } },
+    include: { genres: true, category: true },
+    orderBy: { title: "asc" },
+  });
+}
+
+

@@ -21,6 +21,8 @@ import {
   CompletedWeekView,
   InPersonVotingRound,
   InPersonTiebreakerRound,
+  InPersonRound2,
+  InPersonRound3,
 } from "@/components/DashboardForms";
 import AdminStartWeekFormClient from "@/components/AdminStartWeekFormClient";
 
@@ -96,6 +98,8 @@ export default async function DashboardPage() {
     else if (activeWeek.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
     else if (activeWeek.status === "IN_PERSON_VOTING") activeRoundCode = "IN_PERSON_ROUND_1";
     else if (activeWeek.status === "IN_PERSON_TIEBREAKER") activeRoundCode = "IN_PERSON_ROUND_1B";
+    else if (activeWeek.status === "IN_PERSON_ROUND_2") activeRoundCode = "IN_PERSON_ROUND_2";
+    else if (activeWeek.status === "IN_PERSON_ROUND_3") activeRoundCode = "IN_PERSON_ROUND_3";
 
     if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") {
       roundTitle = "Category Tiebreaker Voting";
@@ -150,6 +154,8 @@ export default async function DashboardPage() {
       ROUND_4_TIEBREAKER: "Round 4: Final Tiebreaker",
       IN_PERSON_ROUND_1: "Round 1: In Person Movie Selection",
       IN_PERSON_ROUND_1B: "Round 1b: In Person Tiebreaker",
+      IN_PERSON_ROUND_2: "Round 2: In Person Tiebreaker (1 vote)",
+      IN_PERSON_ROUND_3: "Round 3: In Person Final Tiebreaker (2 votes)",
     };
 
     const parsedRounds = Object.entries(votesByRound).map(([roundCode, roundVotes]) => {
@@ -178,7 +184,13 @@ export default async function DashboardPage() {
       if (isTie) {
         if (roundCode === "ROUND_1_CATEGORY_TIEBREAKER") {
           chosenTargetId = activeWeek.selectedCategoryId;
-        } else if (roundCode === "ROUND_4_TIEBREAKER" || roundCode === "IN_PERSON_ROUND_1B") {
+        } else if (
+          (roundCode === "ROUND_4_TIEBREAKER" || 
+           roundCode === "IN_PERSON_ROUND_1B" || 
+           roundCode === "IN_PERSON_ROUND_2" || 
+           roundCode === "IN_PERSON_ROUND_3") &&
+          activeWeek.isRandomlyChosen
+        ) {
           chosenTargetId = activeWeek.winningMovieId;
         }
       }
@@ -201,6 +213,8 @@ export default async function DashboardPage() {
       "ROUND_4_TIEBREAKER",
       "IN_PERSON_ROUND_1",
       "IN_PERSON_ROUND_1B",
+      "IN_PERSON_ROUND_2",
+      "IN_PERSON_ROUND_3",
     ];
 
     parsedRounds.sort((a, b) => roundOrder.indexOf(a.roundCode) - roundOrder.indexOf(b.roundCode));
@@ -213,7 +227,11 @@ export default async function DashboardPage() {
     ? round1TiebreakerTieInfo.targets.find((t: any) => t.targetId === activeWeek.selectedCategoryId)?.name
     : null;
 
-  const inPersonTiebreakerTieInfo = completedRoundsData.find((r) => r.roundCode === "IN_PERSON_ROUND_1B" && r.isTie);
+  const inPersonTiebreakerTieInfo = completedRoundsData.find((r) => 
+    (r.roundCode === "IN_PERSON_ROUND_2" || r.roundCode === "IN_PERSON_ROUND_3") && 
+    r.isTie && 
+    r.chosenTargetId
+  );
   const inPersonTiebreakerChosenName = inPersonTiebreakerTieInfo && activeWeek?.winningMovieId
     ? inPersonTiebreakerTieInfo.targets.find((t: any) => t.targetId === activeWeek.winningMovieId)?.name
     : null;
@@ -323,7 +341,7 @@ export default async function DashboardPage() {
                     <div className="tiebreaker-banner">
                       <span className="text-xl">🎲</span>
                       <div>
-                        <strong>Random Tiebreaker Draw occurred!</strong> Round 1b: In Person Tiebreaker resulted in a tie. The movie <strong className="text-accent-color font-bold">{inPersonTiebreakerChosenName}</strong> was randomly selected to resolve the tie.
+                        <strong>Random Tiebreaker Draw occurred!</strong> {inPersonTiebreakerTieInfo?.title} resulted in a tie. The movie <strong className="text-accent-color font-bold">{inPersonTiebreakerChosenName}</strong> was randomly selected to resolve the tie.
                       </div>
                     </div>
                   )}
@@ -418,6 +436,16 @@ export default async function DashboardPage() {
                       {/* IN PERSON: Round 1b Tiebreaker Voting */}
                       {activeWeek.status === "IN_PERSON_TIEBREAKER" && (
                         <InPersonTiebreakerRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                      )}
+
+                      {/* IN PERSON: Round 2 Tiebreaker Voting */}
+                      {activeWeek.status === "IN_PERSON_ROUND_2" && (
+                        <InPersonRound2 week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                      )}
+
+                      {/* IN PERSON: Round 3 Tiebreaker Voting */}
+                      {activeWeek.status === "IN_PERSON_ROUND_3" && (
+                        <InPersonRound3 week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
                       )}
 
                       {/* COMPLETED / WINNER STATE */}
