@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { addMovieAction } from "@/app/actions";
+import Toast from "@/components/Toast";
 
 interface Category {
   id: string;
@@ -102,11 +103,7 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
         </div>
       )}
 
-      {successMsg && (
-        <div className="alert-box alert-success text-success-color text-base font-semibold">
-          {successMsg}
-        </div>
-      )}
+      <Toast message={successMsg} onClose={() => setSuccessMsg(null)} />
 
       <div className="form-group">
         <label htmlFor="movie-imdb" className="form-label">
