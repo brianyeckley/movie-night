@@ -201,6 +201,16 @@ export default function CatalogListClient({
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="search-clear-btn"
+                aria-label="Clear search text"
+              >
+                &times;
+              </button>
+            )}
           </div>
 
           {/* Media Formats Filter */}
