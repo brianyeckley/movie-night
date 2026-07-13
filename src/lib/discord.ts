@@ -151,6 +151,7 @@ export async function notifyRoundAdvanced(
       if (details.winnerPoster) {
         thumbnail = { url: details.winnerPoster };
       }
+    }
   } else if (prevStatus === "SUBCATEGORY_VOTING") {
     if (newStatus === "COMPLETED") {
       title = `🏆 Week ${weekNum}: Winner Selected!`;
