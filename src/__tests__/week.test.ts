@@ -23,6 +23,10 @@ vi.mock("@/lib/db", () => ({
       update: vi.fn(),
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
+    movie: {
+      findUnique: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
     weekVote: {
       deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
@@ -343,6 +347,99 @@ describe("Week Management Server Actions", () => {
           isRandom: true,
         })
       );
+    });
+
+    it("transitions SUBCATEGORY_VOTING to COMPLETED if a movie wins outright", async () => {
+      vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
+      vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({
+        id: "week-1",
+        status: "SUBCATEGORY_VOTING",
+        votes: [
+          { round: "ROUND_2_SUB_MOVIE", targetId: "movie-1", userId: "user-1", user: { id: "user-1", isApproved: true } },
+          { round: "ROUND_2_SUB_MOVIE", targetId: "movie-1", userId: "user-2", user: { id: "user-2", isApproved: true } },
+        ],
+      } as any);
+      vi.mocked(db.user.findMany).mockResolvedValueOnce([
+        { id: "user-1", isApproved: true },
+        { id: "user-2", isApproved: true },
+      ] as any);
+      vi.mocked(db.category.findUnique).mockResolvedValueOnce(null); // not a category
+      vi.mocked(db.movie.findUnique).mockResolvedValueOnce({ id: "movie-1", title: "Inception", year: 2010, posterUrl: "poster.jpg" } as any);
+
+      const result = await advanceWeekRoundAction("week-1");
+      expect(result).toEqual({ success: true });
+
+      expect(db.movieNightWeek.update).toHaveBeenCalledWith({
+        where: { id: "week-1" },
+        data: {
+          winningMovieId: "movie-1",
+          status: "COMPLETED",
+        },
+      });
+      expect(notifyRoundAdvanced).toHaveBeenCalledWith("week-1", "SUBCATEGORY_VOTING", "COMPLETED", {
+        winnerName: "Inception",
+        winnerYear: 2010,
+        winnerPoster: "poster.jpg",
+      });
+    });
+
+    it("transitions SUBCATEGORY_VOTING to SHORTLIST_VOTING if a subcategory wins outright (tiebreaker)", async () => {
+      vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
+      vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({
+        id: "week-1",
+        status: "SUBCATEGORY_VOTING",
+        votes: [
+          { round: "ROUND_2_SUB_MOVIE", targetId: "cat-1", userId: "user-1", user: { id: "user-1", isApproved: true } },
+        ],
+      } as any);
+      vi.mocked(db.user.findMany).mockResolvedValueOnce([
+        { id: "user-1", isApproved: true },
+      ] as any);
+      vi.mocked(db.category.findUnique).mockResolvedValueOnce({ id: "cat-1", name: "Classic Sci-Fi" } as any); // is category
+
+      const result = await advanceWeekRoundAction("week-1");
+      expect(result).toEqual({ success: true });
+
+      expect(db.movieNightWeek.update).toHaveBeenCalledWith({
+        where: { id: "week-1" },
+        data: {
+          status: "SHORTLIST_VOTING",
+        },
+      });
+      expect(notifyRoundAdvanced).toHaveBeenCalledWith("week-1", "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", {
+        winnerName: "Classic Sci-Fi",
+      });
+    });
+
+    it("transitions SUBCATEGORY_VOTING to SHORTLIST_VOTING if there is a tie", async () => {
+      vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
+      vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({
+        id: "week-1",
+        status: "SUBCATEGORY_VOTING",
+        votes: [
+          { round: "ROUND_2_SUB_MOVIE", targetId: "movie-1", userId: "user-1", user: { id: "user-1", isApproved: true } },
+          { round: "ROUND_2_SUB_MOVIE", targetId: "cat-1", userId: "user-2", user: { id: "user-2", isApproved: true } },
+        ],
+      } as any);
+      vi.mocked(db.user.findMany).mockResolvedValueOnce([
+        { id: "user-1", isApproved: true },
+        { id: "user-2", isApproved: true },
+      ] as any);
+      vi.mocked(db.category.findMany).mockResolvedValueOnce([{ name: "Classic Sci-Fi" }] as any);
+      vi.mocked(db.movie.findMany).mockResolvedValueOnce([{ title: "Inception" }] as any);
+
+      const result = await advanceWeekRoundAction("week-1");
+      expect(result).toEqual({ success: true });
+
+      expect(db.movieNightWeek.update).toHaveBeenCalledWith({
+        where: { id: "week-1" },
+        data: {
+          status: "SHORTLIST_VOTING",
+        },
+      });
+      expect(notifyRoundAdvanced).toHaveBeenCalledWith("week-1", "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", {
+        tiedItems: ["Classic Sci-Fi", "Inception"],
+      });
     });
 
     it("delegates to advanceInPersonWeekRound if week is in-person", async () => {

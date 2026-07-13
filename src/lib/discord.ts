@@ -151,9 +151,23 @@ export async function notifyRoundAdvanced(
       if (details.winnerPoster) {
         thumbnail = { url: details.winnerPoster };
       }
-    }
   } else if (prevStatus === "SUBCATEGORY_VOTING") {
-    description = `**Round 2b (Subcategory Voting)** has concluded! We are advancing to Shortlist Voting.`;
+    if (newStatus === "COMPLETED") {
+      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      color = 0xf1c40f; // Gold
+      description = `**Round 2b (Subcategory Voting)** concluded with an outright winner!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
+      if (details.winnerPoster) {
+        thumbnail = { url: details.winnerPoster };
+      }
+    } else {
+      description = `**Round 2b (Subcategory Voting)** has concluded! We are advancing to Shortlist Voting.`;
+      if (details.tiedItems && details.tiedItems.length > 0) {
+        fields.push({
+          name: "Tied Options",
+          value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+        });
+      }
+    }
   } else if (prevStatus === "SHORTLIST_VOTING") {
     if (newStatus === "COMPLETED") {
       title = `🏆 Week ${weekNum}: Winner Selected!`;

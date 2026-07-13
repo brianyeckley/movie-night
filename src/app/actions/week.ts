@@ -405,16 +405,81 @@ export async function advanceWeekRoundInternal(weekId: string, preloadedWeek?: a
     // ----------------------------------------
     // ROUND 2b: Subcategory Movie Voting
     // ----------------------------------------
-    await db.movieNightWeek.update({
-      where: { id: weekId },
-      data: {
-        status: "SHORTLIST_VOTING",
-      },
+    const votes = approvedVotes.filter((v) => v.round === "ROUND_2_SUB_MOVIE");
+    if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
+
+    const counts: Record<string, number> = {};
+    votes.forEach((v) => {
+      counts[v.targetId] = (counts[v.targetId] || 0) + 1;
     });
 
-    notifyRoundAdvanced(weekId, "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", {}).catch((e) =>
-      console.error("Discord notification error:", e)
-    );
+    const maxVal = Math.max(...Object.values(counts));
+    const topItems = Object.keys(counts).filter((id) => counts[id] === maxVal);
+
+    if (topItems.length === 1) {
+      // Outright winner!
+      const winningId = topItems[0];
+
+      // Check if the winner is a Subcategory or a Movie
+      const category = await db.category.findUnique({
+        where: { id: winningId },
+      });
+
+      if (category) {
+        // Subcategory won outright (in tiebreaker mode). Transition to SHORTLIST_VOTING.
+        await db.movieNightWeek.update({
+          where: { id: weekId },
+          data: {
+            status: "SHORTLIST_VOTING",
+          },
+        });
+
+        notifyRoundAdvanced(weekId, "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", {
+          winnerName: category.name,
+        }).catch((e) => console.error("Discord notification error:", e));
+      } else {
+        // A movie won outright! It wins the week immediately.
+        await db.movieNightWeek.update({
+          where: { id: weekId },
+          data: {
+            winningMovieId: winningId,
+            status: "COMPLETED",
+          },
+        });
+
+        const movie = await db.movie.findUnique({ where: { id: winningId } });
+        notifyRoundAdvanced(weekId, "SUBCATEGORY_VOTING", "COMPLETED", {
+          winnerName: movie?.title,
+          winnerYear: movie?.year,
+          winnerPoster: movie?.posterUrl,
+        }).catch((e) => console.error("Discord notification error:", e));
+      }
+    } else {
+      // Tie! Transition to SHORTLIST_VOTING.
+      await db.movieNightWeek.update({
+        where: { id: weekId },
+        data: {
+          status: "SHORTLIST_VOTING",
+        },
+      });
+
+      const tiedCategories = await db.category.findMany({
+        where: { id: { in: topItems } },
+        select: { name: true },
+      });
+      const tiedMovies = await db.movie.findMany({
+        where: { id: { in: topItems } },
+        select: { title: true },
+      });
+      const tiedNames = [
+        ...tiedCategories.map((c) => c.name),
+        ...tiedMovies.map((m) => m.title),
+      ];
+
+      notifyRoundAdvanced(weekId, "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", {
+        tiedItems: tiedNames,
+      }).catch((e) => console.error("Discord notification error:", e));
+    }
   } 
   else if (week.status === "SHORTLIST_VOTING") {
     // ----------------------------------------
