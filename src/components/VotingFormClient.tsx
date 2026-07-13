@@ -301,6 +301,7 @@ interface SubcategoryVotingFormClientProps {
   movies: any[];
   subcategories?: any[];
   initialVotes: string[];
+  isTie?: boolean;
 }
 
 export function SubcategoryVotingFormClient({
@@ -308,6 +309,7 @@ export function SubcategoryVotingFormClient({
   movies,
   subcategories = [],
   initialVotes,
+  isTie = false,
 }: SubcategoryVotingFormClientProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
   const [error, setError] = useState<string | null>(null);
@@ -338,7 +340,7 @@ export function SubcategoryVotingFormClient({
     startTransition(async () => {
       try {
         await submitSubMovieVotesAction(weekId, selectedIds);
-        setToastMsg("Subcategory votes cast successfully!");
+        setToastMsg(isTie ? "Tiebreaker votes cast successfully!" : "Subcategory votes cast successfully!");
       } catch (err) {
         console.error("Failed to submit sub-movie votes:", err);
         setError("Failed to submit votes. Please try again.");
@@ -490,7 +492,15 @@ export function SubcategoryVotingFormClient({
       )}
 
       <button type="submit" disabled={isPending} className="btn btn-primary mt-sm">
-        {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Subcategory Votes" : "Cast Subcategory Votes"}
+        {isPending
+          ? "Submitting Votes..."
+          : initialVotes.length > 0
+          ? isTie
+            ? "Update Tiebreaker Votes"
+            : "Update Subcategory Votes"
+          : isTie
+          ? "Cast Tiebreaker Votes"
+          : "Cast Subcategory Votes"}
       </button>
       <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
     </form>

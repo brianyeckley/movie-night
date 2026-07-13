@@ -227,6 +227,7 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
           movies={movies}
           subcategories={subcategories}
           initialVotes={userVoteIds}
+          isTie={isTie}
         />
       )}
     </div>
