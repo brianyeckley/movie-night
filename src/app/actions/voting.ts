@@ -99,8 +99,8 @@ export async function submitSubMovieVotesAction(weekId: string, movieIds: string
   const currentUser = await getActiveUser();
   if (!currentUser) throw new Error("You must pick a user first.");
 
-  if (movieIds.length > 2) {
-    throw new Error("You can select a maximum of 2 movies.");
+  if (movieIds.length > 3) {
+    throw new Error("You can select a maximum of 3 movies.");
   }
 
   // Delete previous votes for this user in this round

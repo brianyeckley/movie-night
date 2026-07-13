@@ -203,7 +203,7 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
             Round 2b: Tiebreaker Voting
           </h3>
           <p className="text-secondary mb-xl text-md">
-            Round 2 ended in a tie! Select from the tied options, including the subcategory and movies. (Max 2 Votes)
+            Round 2 ended in a tie! Select from the tied options, including the subcategory and movies. (Max 3 Votes)
           </p>
         </>
       ) : (
@@ -212,7 +212,7 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
             Round 2b: Select Movies in Subcategory <span className="text-primary-color">{subcategory?.name}</span>
           </h3>
           <p className="text-secondary mb-xl text-md">
-            Select movies inside the winning subcategory. The top voted movies will enter the shortlist. (Max 2 Votes)
+            Select movies inside the winning subcategory. The top voted movies will enter the shortlist. (Max 3 Votes)
           </p>
         </>
       )}

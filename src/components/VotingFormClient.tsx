@@ -314,7 +314,7 @@ export function SubcategoryVotingFormClient({
   const [isPending, startTransition] = useTransition();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const maxVotes = 2;
+  const maxVotes = 3;
   const isLimitReached = selectedIds.length >= maxVotes;
 
   const handleCheckboxChange = (id: string, checked: boolean) => {

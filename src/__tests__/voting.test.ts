@@ -152,10 +152,10 @@ describe("Voting Server Actions", () => {
   });
 
   describe("submitSubMovieVotesAction", () => {
-    it("throws an error if selecting more than 2 movies", async () => {
+    it("throws an error if selecting more than 3 movies", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockUser);
-      await expect(submitSubMovieVotesAction("week-1", ["movie-1", "movie-2", "movie-3"])).rejects.toThrow(
-        "You can select a maximum of 2 movies."
+      await expect(submitSubMovieVotesAction("week-1", ["movie-1", "movie-2", "movie-3", "movie-4"])).rejects.toThrow(
+        "You can select a maximum of 3 movies."
       );
     });
   });
