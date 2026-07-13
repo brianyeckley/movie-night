@@ -148,16 +148,46 @@ export async function MovieVotingForm({ week, currentUserId }: any) {
 export async function SubcategoryVotingForm({ week, currentUserId }: any) {
   if (!week.selectedSubcategoryId) return <p>Subcategory not selected.</p>;
 
+  // Check if this round is a tiebreaker from Round 2
+  const r2Votes = await db.weekVote.findMany({
+    where: { weekId: week.id, round: "ROUND_2_MOVIE" },
+    include: { user: true },
+  });
+  const approvedR2Votes = r2Votes.filter((v) => v.user.isApproved);
+  const r2Counts: Record<string, number> = {};
+  approvedR2Votes.forEach((v) => {
+    r2Counts[v.targetId] = (r2Counts[v.targetId] || 0) + 1;
+  });
+  const r2Max = Math.max(...Object.values(r2Counts), 0);
+  const r2TiedIds = Object.keys(r2Counts).filter((id) => r2Counts[id] === r2Max);
+  const isTie = r2TiedIds.length > 1;
+
   const subcategory = await db.category.findUnique({
     where: { id: week.selectedSubcategoryId },
   });
 
-  // Movies in this subcategory (exclude watched)
-  const movies = await db.movie.findMany({
-    where: { categoryId: week.selectedSubcategoryId, watched: false },
-    include: { genres: true },
-    orderBy: { title: "asc" },
-  });
+  let movies: any[] = [];
+  let subcategories: any[] = [];
+
+  if (isTie) {
+    // Tiebreaker mode: show the subcategory itself plus the other tied movies
+    if (subcategory) {
+      subcategories = [subcategory];
+    }
+    const tiedMovieIds = r2TiedIds.filter((id) => id !== week.selectedSubcategoryId);
+    movies = await db.movie.findMany({
+      where: { id: { in: tiedMovieIds } },
+      include: { genres: true },
+      orderBy: { title: "asc" },
+    });
+  } else {
+    // Normal mode: movies in this subcategory (exclude watched)
+    movies = await db.movie.findMany({
+      where: { categoryId: week.selectedSubcategoryId, watched: false },
+      include: { genres: true },
+      orderBy: { title: "asc" },
+    });
+  }
 
   // User's current votes in this sub-round
   const userVotes = await db.weekVote.findMany({
@@ -167,21 +197,35 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
 
   return (
     <div>
-      <h3 className="text-3xl font-bold mb-sm">
-        Round 2b: Select Movies in Subcategory <span className="text-primary-color">{subcategory?.name}</span>
-      </h3>
-      <p className="text-secondary mb-xl text-md">
-        Select movies inside the winning subcategory. The top voted movies will enter the shortlist. (Max 2 Votes)
-      </p>
+      {isTie ? (
+        <>
+          <h3 className="text-3xl font-bold mb-sm">
+            Round 2b: Tiebreaker Voting
+          </h3>
+          <p className="text-secondary mb-xl text-md">
+            Round 2 ended in a tie! Select from the tied options, including the subcategory and movies. (Max 2 Votes)
+          </p>
+        </>
+      ) : (
+        <>
+          <h3 className="text-3xl font-bold mb-sm">
+            Round 2b: Select Movies in Subcategory <span className="text-primary-color">{subcategory?.name}</span>
+          </h3>
+          <p className="text-secondary mb-xl text-md">
+            Select movies inside the winning subcategory. The top voted movies will enter the shortlist. (Max 2 Votes)
+          </p>
+        </>
+      )}
 
-      {movies.length === 0 ? (
+      {movies.length === 0 && subcategories.length === 0 ? (
         <p className="text-muted italic py-sm">
-          No movies added in this subcategory yet. Go to the Catalog tab to add movies under "{subcategory?.name}"!
+          {isTie ? "No tied options available." : `No movies added in this subcategory yet. Go to the Catalog tab to add movies under "${subcategory?.name}"!`}
         </p>
       ) : (
         <SubcategoryVotingFormClient
           weekId={week.id}
           movies={movies}
+          subcategories={subcategories}
           initialVotes={userVoteIds}
         />
       )}

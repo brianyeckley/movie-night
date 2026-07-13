@@ -299,12 +299,14 @@ export function MovieVotingFormClient({
 interface SubcategoryVotingFormClientProps {
   weekId: string;
   movies: any[];
+  subcategories?: any[];
   initialVotes: string[];
 }
 
 export function SubcategoryVotingFormClient({
   weekId,
   movies,
+  subcategories = [],
   initialVotes,
 }: SubcategoryVotingFormClientProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
@@ -329,7 +331,7 @@ export function SubcategoryVotingFormClient({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedIds.length === 0) {
-      setError("⚠️ Please select at least one movie before casting your votes.");
+      setError("⚠️ Please select at least one option before casting your votes.");
       return;
     }
     setError(null);
@@ -346,6 +348,33 @@ export function SubcategoryVotingFormClient({
 
   return (
     <form onSubmit={handleSubmit} className="flex-col gap-md">
+      {/* Subcategories */}
+      {subcategories.map((sub) => {
+        const isChecked = selectedIds.includes(sub.id);
+        const isDisabled = isLimitReached && !isChecked;
+        return (
+          <label
+            key={sub.id}
+            className={`voting-card items-center gap-md ${isChecked ? "checked" : ""} ${isDisabled ? "disabled" : "enabled"}`}
+          >
+            <input
+              type="checkbox"
+              checked={isChecked}
+              disabled={isDisabled || isPending}
+              onChange={(e) => handleCheckboxChange(sub.id, e.target.checked)}
+              className="vote-checkbox"
+            />
+            <div className="flex-col">
+              <span className="font-bold text-lg">📂 {sub.name} (Subcategory)</span>
+              <span className="text-sm-alt text-secondary">
+                Triggers an additional voting round for movies in this subcategory if selected
+              </span>
+            </div>
+          </label>
+        );
+      })}
+
+      {/* Movies */}
       {movies.map((movie) => {
         const isChecked = selectedIds.includes(movie.id);
         const isDisabled = isLimitReached && !isChecked;

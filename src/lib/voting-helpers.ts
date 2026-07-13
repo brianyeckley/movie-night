@@ -37,7 +37,21 @@ export async function getShortlistMovies(weekId: string, selectedCategoryId: str
       subCounts[v.targetId] = (subCounts[v.targetId] || 0) + 1;
     });
     const subMax = Math.max(...Object.values(subCounts), 0);
-    subMovieIds = Object.keys(subCounts).filter((id) => subCounts[id] === subMax);
+    const topTiedSubIds = Object.keys(subCounts).filter((id) => subCounts[id] === subMax);
+
+    // If the subcategory itself is among the top voted items in ROUND_2_SUB_MOVIE,
+    // we should include all unwatched movies from that subcategory in the shortlist!
+    if (topTiedSubIds.includes(selectedSubcategoryId)) {
+      const subcategoryMovies = await db.movie.findMany({
+        where: { categoryId: selectedSubcategoryId, watched: false },
+        select: { id: true },
+      });
+      subMovieIds.push(...subcategoryMovies.map((m) => m.id));
+    }
+
+    // Also include any specific movies that were voted on and won/tied in ROUND_2_SUB_MOVIE
+    const specificMovieIds = topTiedSubIds.filter((id) => id !== selectedSubcategoryId);
+    subMovieIds.push(...specificMovieIds);
   }
 
   const finalShortlistIds = Array.from(new Set([...r2TiedMovieIds, ...subMovieIds]));

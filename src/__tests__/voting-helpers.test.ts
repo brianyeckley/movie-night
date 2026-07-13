@@ -92,6 +92,61 @@ describe("Voting Data Compilation Helpers", () => {
 
       expect(result).toHaveLength(2);
     });
+
+    it("compiles shortlist movies when subcategory itself wins/ties in Round 2b tiebreaker", async () => {
+      // Mock Round 2 votes (cat-3 subcategory and movie-1 are tied)
+      vi.mocked(db.weekVote.findMany).mockImplementation((async ({ where }: any) => {
+        if (where.round === "ROUND_2_MOVIE") {
+          return [
+            { targetId: "cat-3", user: { id: "user-1", isApproved: true } },
+            { targetId: "movie-1", user: { id: "user-2", isApproved: true } },
+          ] as any;
+        }
+        if (where.round === "ROUND_2_SUB_MOVIE") {
+          // Vote for the subcategory itself in Round 2b tiebreaker
+          return [
+            { targetId: "cat-3", user: { id: "user-1", isApproved: true } },
+          ] as any;
+        }
+        return [];
+      }) as any);
+
+      vi.mocked(db.category.findMany).mockResolvedValueOnce([
+        { id: "cat-3", name: "Silly Horror" },
+      ] as any);
+
+      // Mock getting subcategory movies
+      vi.mocked(db.movie.findMany).mockImplementation((async (args: any) => {
+        if (args.where?.categoryId === "cat-3") {
+          return [
+            { id: "movie-2", title: "Evil Dead 2" },
+            { id: "movie-3", title: "Tucker & Dale vs. Evil" },
+          ] as any;
+        }
+        // Final select query
+        return [
+          { id: "movie-1", title: "Shaun of the Dead" },
+          { id: "movie-2", title: "Evil Dead 2" },
+          { id: "movie-3", title: "Tucker & Dale vs. Evil" },
+        ] as any;
+      }) as any);
+
+      const result = await getShortlistMovies("week-1", "cat-horror", "cat-3");
+
+      // Verify that movie.findMany was called to get subcategory movies
+      expect(db.movie.findMany).toHaveBeenCalledWith({
+        where: { categoryId: "cat-3", watched: false },
+        select: { id: true },
+      });
+
+      // Verify final movie query loads all 3 movies (movie-1 from R2 tie, movie-2 and movie-3 from cat-3)
+      expect(db.movie.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ["movie-1", "movie-2", "movie-3"] } },
+        include: { genres: true, category: true },
+      });
+
+      expect(result).toHaveLength(3);
+    });
   });
 
   describe("getFinalTiebreakerMovies", () => {
