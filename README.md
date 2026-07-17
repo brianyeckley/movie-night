@@ -80,7 +80,59 @@ If hosted on Vercel, you can declare the cron check in a `vercel.json` file in t
 ```
 *(Note: Vercel Cron schedules run in UTC time. For example, `0 17 * * *` runs daily at 17:00 UTC, which corresponds to 12:00 PM EST / 11:00 AM CST).*
 
-## Local Hosting with Cloudflare Tunnels (Recommended)
+## Docker Deployment (with Cloudflare Tunnel)
+
+You can run both the Next.js application and the Cloudflare Tunnel inside Docker containers using the provided `docker-compose.yml` file. This is the recommended approach for production or home server deployment, as it handles SQLite database persistence and automatically runs database migrations and seeding on startup.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+### Deployment Steps
+
+1. **Configure Environment Variables**:
+   Create a `.env` file in the root of the project (if you haven't already). Make sure it includes your Cloudflare Tunnel Token and other necessary keys:
+   ```env
+   # Cloudflare Tunnel Configuration
+   TUNNEL_TOKEN="your-cloudflare-tunnel-token"
+
+   # Project Settings
+   OMDB_API_KEY="your-omdb-api-key"
+   DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
+   NEXT_PUBLIC_APP_URL="https://your-app-domain.com"
+   CRON_SECRET="your-secure-cron-secret-token"
+   GOOGLE_SPREADSHEET_ID="your-google-spreadsheet-id"
+   ```
+
+2. **Start the Containers**:
+   Start the services in detached (background) mode:
+   ```bash
+   docker compose up -d
+   ```
+   This will:
+   - Build the Next.js standalone web image.
+   - Mount the local `./data` directory to persist the SQLite database (`dev.db`).
+   - Run database migrations (`prisma migrate deploy`) and database seeding if starting from scratch.
+   - Run the `cloudflare/cloudflared` daemon service using your `TUNNEL_TOKEN`.
+
+3. **Check Logs**:
+   To monitor the startup, database migrations, and application status:
+   ```bash
+   docker compose logs -f web
+   ```
+   To monitor the Cloudflare Tunnel connection:
+   ```bash
+   docker compose logs -f tunnel
+   ```
+
+4. **Stop the Containers**:
+   To tear down the containers:
+   ```bash
+   docker compose down
+   ```
+
+## Local Hosting with Cloudflare Tunnels (Manual Setup)
 
 To host your application at `movie-night.yeckley.com` (or your own custom domain) securely from your home network without opening any ports on your router, you can set up a Cloudflare Tunnel. This automatically handles dynamic home IP changes and HTTPS/SSL certificates.
 

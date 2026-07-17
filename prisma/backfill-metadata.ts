@@ -23,8 +23,11 @@ if (fs.existsSync(envPath)) {
 }
 
 // Instantiate the Prisma adapter pointing to dev.db in root
+const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
+const dbPath = dbUrl.startsWith("file:") ? dbUrl.substring(5) : dbUrl;
+
 const adapter = new PrismaBetterSqlite3({
-  url: "file:./dev.db",
+  url: dbPath,
 });
 const prisma = new PrismaClient({ adapter });
 

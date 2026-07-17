@@ -1,0 +1,32 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: movie-night-web
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=file:/app/data/dev.db
+      - OMDB_API_KEY=${OMDB_API_KEY}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - CRON_SECRET=${CRON_SECRET}
+      - GOOGLE_SPREADSHEET_ID=${GOOGLE_SPREADSHEET_ID}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-Brian}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - STEW_PASSWORD=${STEW_PASSWORD:-stew}
+      - NICK_PASSWORD=${NICK_PASSWORD:-nick}
+    restart: unless-stopped
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: movie-night-tunnel
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - web
+    restart: unless-stopped
