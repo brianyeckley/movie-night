@@ -61,7 +61,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-USER nextjs
+# Run as root by default to avoid permission issues with host-mounted volumes on NAS systems
+# USER nextjs
 
 EXPOSE 4000
 

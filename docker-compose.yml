@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: movie-night-web
+    user: "${PUID:-0}:${PGID:-0}"
     ports:
       - "4000:4000"
     volumes:
