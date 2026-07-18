@@ -94,6 +94,9 @@ You can run both the Next.js application and the Cloudflare Tunnel inside Docker
 1. **Configure Environment Variables**:
    Create a `.env` file in the root of the project (if you haven't already). Make sure it includes your Cloudflare Tunnel Token and other necessary keys:
    ```env
+   # Host directory for persistent SQLite database storage (defaults to ./data if omitted)
+   DATA_DIR="./data"
+
    # Cloudflare Tunnel Configuration
    TUNNEL_TOKEN="your-cloudflare-tunnel-token"
 
@@ -112,7 +115,7 @@ You can run both the Next.js application and the Cloudflare Tunnel inside Docker
    ```
    This will:
    - Build the Next.js standalone web image.
-   - Mount the local `./data` directory to persist the SQLite database (`dev.db`).
+   - Mount the host data directory (defined by `DATA_DIR` in `.env`, falling back to `./data`) to `/app/data` to persist the SQLite database (`dev.db`).
    - Run database migrations (`prisma migrate deploy`) and database seeding if starting from scratch.
    - Run the `cloudflare/cloudflared` daemon service using your `TUNNEL_TOKEN`.
 
