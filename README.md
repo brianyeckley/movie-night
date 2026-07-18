@@ -119,13 +119,14 @@ You can run both the Next.js application and the Cloudflare Tunnel inside Docker
    - Run database migrations (`prisma migrate deploy`) and database seeding if starting from scratch.
    - Run the `cloudflare/cloudflared` daemon service using your `TUNNEL_TOKEN`.
 
-3. **Configure Cloudflare Zero Trust Dashboard (Crucial)**:
-   Since `cloudflared` runs as a dashboard-managed tunnel, you must configure your public hostname rules in the Cloudflare Dashboard:
-   - Go to your [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/).
-   - Navigate to **Access** -> **Tunnels** and click on your tunnel.
-   - Click **Edit** and select the **Public Hostname** tab.
-   - Click **Add a public hostname** (or edit your existing subdomain route).
-   - Set the **Service** Type to `HTTP` and the URL to `http://web:4000` (this allows the tunnel to route to the `web` container on port 4000 within the shared Docker network).
+3. **Configure Tunnel Routing**:
+   Depending on how you created your tunnel in Cloudflare:
+   - **CLI-Managed Tunnel (Type: `cloudflared`)**: The `docker-compose.yml` file is pre-configured to pass the `--url http://web:4000` CLI argument to `cloudflared`. Traffic is routed automatically inside the Docker network.
+   - **Dashboard-Managed Tunnel (Type: `dashboard`)**: You must configure the public hostname rules via the dashboard:
+     - Go to the [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/).
+     - Navigate to **Access** -> **Tunnels** and click on your tunnel.
+     - Click **Edit** and select the **Public Hostname** tab.
+     - Add a public hostname (e.g. `movie-night.yeckley.com`) and configure the Service to point to **HTTP** and URL `http://web:4000`.
 
 4. **Check Logs**:
    To monitor the startup, database migrations, and application status:
