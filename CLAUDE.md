@@ -20,6 +20,12 @@ This file provides system context, build/test commands, and architectural workfl
 *   **Open Prisma Studio**: `npx prisma studio`
 *   **Backfill IMDb Metadata**: `npx tsx prisma/backfill-metadata.ts`
 
+### Docker & Deployment Commands
+*   **Start Docker Stack**: `docker compose up -d` (starts web app on port 4000 and the cloudflared tunnel)
+*   **Stop Docker Stack**: `docker compose down`
+*   **View Web App Logs**: `docker compose logs -f web` (includes migrations & seeding checks)
+*   **View Tunnel Logs**: `docker compose logs -f tunnel`
+
 ---
 
 ## Technical Stack
@@ -27,6 +33,7 @@ This file provides system context, build/test commands, and architectural workfl
 *   **Database**: SQLite (via Prisma ORM)
 *   **Styling**: Vanilla CSS (global rules in `src/app/globals.css`, no Tailwind unless requested)
 *   **Testing**: Vitest
+*   **Deployment**: Docker / Docker Compose (includes integrated `cloudflare/cloudflared` tunnel daemon)
 
 ---
 
