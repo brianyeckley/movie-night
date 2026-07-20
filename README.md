@@ -80,6 +80,9 @@ If hosted on Vercel, you can declare the cron check in a `vercel.json` file in t
 ```
 *(Note: Vercel Cron schedules run in UTC time. For example, `0 17 * * *` runs daily at 17:00 UTC, which corresponds to 12:00 PM EST / 11:00 AM CST).*
 
+### 4. Triggering via Docker Compose (Recommended for Docker/NAS)
+If you deploy using `docker-compose.yml`, a dedicated `cron` container is automatically included. This service runs `crond`, maps to your host machine's timezone, and pings the `/api/cron/remind-votes` route internally. No external crontab configuration is necessary. You can customize the run time in your `.env` by setting `CRON_SCHEDULE`.
+
 ## Docker Deployment (with Cloudflare Tunnel)
 
 You can run both the Next.js application and the Cloudflare Tunnel inside Docker containers using the provided `docker-compose.yml` file. This is the recommended approach for production or home server deployment, as it handles SQLite database persistence and automatically runs database migrations and seeding on startup.
@@ -106,6 +109,9 @@ You can run both the Next.js application and the Cloudflare Tunnel inside Docker
    NEXT_PUBLIC_APP_URL="https://your-app-domain.com"
    CRON_SECRET="your-secure-cron-secret-token"
    GOOGLE_SPREADSHEET_ID="your-google-spreadsheet-id"
+
+   # Optional: Cron Reminder Schedule (defaults to '0 12 * * *' if omitted)
+   CRON_SCHEDULE="0 12 * * *"
    ```
 
 2. **Start the Containers**:

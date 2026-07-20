@@ -31,3 +31,24 @@ services:
     depends_on:
       - web
     restart: unless-stopped
+
+  cron:
+    image: alpine:latest
+    container_name: movie-night-cron
+    restart: unless-stopped
+    depends_on:
+      - web
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - CRON_SECRET=${CRON_SECRET}
+      - CRON_SCHEDULE=${CRON_SCHEDULE:-0 12 * * *}
+    entrypoint: |
+      sh -c '
+      echo "Installing curl..."
+      apk add --no-cache curl
+      echo "Configuring crontab to run at: $$CRON_SCHEDULE..."
+      echo "$$CRON_SCHEDULE curl -s \"http://web:4000/api/cron/remind-votes?secret=$$CRON_SECRET\"" > /etc/crontabs/root
+      echo "Starting cron daemon..."
+      exec crond -f -l 2
+      '

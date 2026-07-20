@@ -25,6 +25,7 @@ This file provides system context, build/test commands, and architectural workfl
 *   **Stop Docker Stack**: `docker compose down`
 *   **View Web App Logs**: `docker compose logs -f web` (includes migrations & seeding checks)
 *   **View Tunnel Logs**: `docker compose logs -f tunnel`
+*   **View Cron Scheduler Logs**: `docker compose logs -f cron`
 
 ---
 
