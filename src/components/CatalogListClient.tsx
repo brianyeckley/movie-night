@@ -302,7 +302,7 @@ export default function CatalogListClient({
             return (
               <details
                 key={cat.id}
-                open={cat.isThemed || hasActiveFilters}
+                open={hasActiveFilters}
                 className="category-details"
               >
                 {/* Top level Category Header Bar */}
