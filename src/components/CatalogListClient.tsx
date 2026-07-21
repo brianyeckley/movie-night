@@ -348,7 +348,7 @@ export default function CatalogListClient({
                               </span>
                               {movie.watched && <span className="badge-watched">Watched</span>}
                               {(movie.plot || movie.posterUrl) && (
-                                <span className="movie-tooltip-trigger btn-plot">
+                                <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
                                   🍿 Plot
                                   <span className="movie-tooltip-card">
                                     {movie.posterUrl && (

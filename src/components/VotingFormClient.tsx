@@ -194,7 +194,7 @@ export function MovieVotingFormClient({
                   <div className="flex-row items-center gap-sm-plus flex-wrap">
                      <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot">
+                      <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
                         🍿 Plot
                         <span className="movie-tooltip-card">
                           {movie.posterUrl && (
@@ -400,7 +400,7 @@ export function SubcategoryVotingFormClient({
                   <div className="flex-row items-center gap-sm-plus flex-wrap">
                     <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot">
+                      <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
                         🍿 Plot
                         <span className="movie-tooltip-card">
                           {movie.posterUrl && (
@@ -583,7 +583,7 @@ export function ShortlistVotingFormClient({
                   <div className="flex-row items-center gap-sm-plus flex-wrap">
                     <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot">
+                      <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
                         🍿 Plot
                         <span className="movie-tooltip-card">
                           {movie.posterUrl && (
@@ -746,7 +746,7 @@ export function FinalVotingFormClient({
                 <div className="flex-row items-center gap-sm-plus flex-wrap">
                   <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                   {(movie.plot || movie.posterUrl) && (
-                    <span className="movie-tooltip-trigger btn-plot">
+                    <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
                       🍿 Plot
                       <span className="movie-tooltip-card">
                         {movie.posterUrl && (

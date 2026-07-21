@@ -217,7 +217,7 @@ export default async function DashboardPage() {
       "IN_PERSON_ROUND_3",
     ];
 
-    parsedRounds.sort((a, b) => roundOrder.indexOf(a.roundCode) - roundOrder.indexOf(b.roundCode));
+    parsedRounds.sort((a, b) => roundOrder.indexOf(b.roundCode) - roundOrder.indexOf(a.roundCode));
     completedRoundsData = parsedRounds;
   }
 
@@ -395,75 +395,78 @@ export default async function DashboardPage() {
                   {/* Voting Area */}
                   <div className={`dashboard-layout ${activeWeek.status === "COMPLETED" ? "completed" : ""}`}>
                     
-                    {/* Active Form based on Week State */}
-                    <div className="dashboard-form-container">
-                      
-                      {/* ROUND 1: Category Voting */}
-                      {activeWeek.status === "CATEGORY_VOTING" && (
-                        <CategoryVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                    <div className="flex-col gap-xl">
+                      {/* Active Form based on Week State */}
+                      <div className="dashboard-form-container">
+                        
+                        {/* ROUND 1: Category Voting */}
+                        {activeWeek.status === "CATEGORY_VOTING" && (
+                          <CategoryVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* ROUND 1b: Category Tiebreaker Voting */}
-                      {activeWeek.status === "CATEGORY_TIEBREAKER_VOTING" && (
-                        <CategoryTiebreakerVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* ROUND 1b: Category Tiebreaker Voting */}
+                        {activeWeek.status === "CATEGORY_TIEBREAKER_VOTING" && (
+                          <CategoryTiebreakerVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* ROUND 2: Movie/Subcategory Voting */}
-                      {activeWeek.status === "MOVIE_VOTING" && (
-                        <MovieVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* ROUND 2: Movie/Subcategory Voting */}
+                        {activeWeek.status === "MOVIE_VOTING" && (
+                          <MovieVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* ROUND 2b: Subcategory Movie Voting */}
-                      {activeWeek.status === "SUBCATEGORY_VOTING" && (
-                        <SubcategoryVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* ROUND 2b: Subcategory Movie Voting */}
+                        {activeWeek.status === "SUBCATEGORY_VOTING" && (
+                          <SubcategoryVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* ROUND 3: Shortlist Voting */}
-                      {activeWeek.status === "SHORTLIST_VOTING" && (
-                        <ShortlistVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* ROUND 3: Shortlist Voting */}
+                        {activeWeek.status === "SHORTLIST_VOTING" && (
+                          <ShortlistVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* ROUND 4: Tiebreaker Voting */}
-                      {activeWeek.status === "FINAL_VOTING" && (
-                        <FinalVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* ROUND 4: Tiebreaker Voting */}
+                        {activeWeek.status === "FINAL_VOTING" && (
+                          <FinalVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* IN PERSON: Round 1 Voting */}
-                      {activeWeek.status === "IN_PERSON_VOTING" && (
-                        <InPersonVotingRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* IN PERSON: Round 1 Voting */}
+                        {activeWeek.status === "IN_PERSON_VOTING" && (
+                          <InPersonVotingRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* IN PERSON: Round 1b Tiebreaker Voting */}
-                      {activeWeek.status === "IN_PERSON_TIEBREAKER" && (
-                        <InPersonTiebreakerRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* IN PERSON: Round 1b Tiebreaker Voting */}
+                        {activeWeek.status === "IN_PERSON_TIEBREAKER" && (
+                          <InPersonTiebreakerRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* IN PERSON: Round 2 Tiebreaker Voting */}
-                      {activeWeek.status === "IN_PERSON_ROUND_2" && (
-                        <InPersonRound2 week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* IN PERSON: Round 2 Tiebreaker Voting */}
+                        {activeWeek.status === "IN_PERSON_ROUND_2" && (
+                          <InPersonRound2 week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* IN PERSON: Round 3 Tiebreaker Voting */}
-                      {activeWeek.status === "IN_PERSON_ROUND_3" && (
-                        <InPersonRound3 week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
-                      )}
+                        {/* IN PERSON: Round 3 Tiebreaker Voting */}
+                        {activeWeek.status === "IN_PERSON_ROUND_3" && (
+                          <InPersonRound3 week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                        )}
 
-                      {/* COMPLETED / WINNER STATE */}
-                      {activeWeek.status === "COMPLETED" && activeWinnerMovie && (
-                        <CompletedWeekView week={activeWeek} movie={activeWinnerMovie} currentUser={currentUser} />
-                      )}
+                        {/* COMPLETED / WINNER STATE */}
+                        {activeWeek.status === "COMPLETED" && activeWinnerMovie && (
+                          <CompletedWeekView week={activeWeek} movie={activeWinnerMovie} currentUser={currentUser} />
+                        )}
 
-                      {/* PRIOR ROUND RESULTS */}
+                      </div>
+
+                      {/* PRIOR ROUND RESULTS (Flattened container) */}
                       {completedRoundsData.length > 0 && (
-                        <div className="border-t pt-lg mt-2xl flex-col gap-xl">
-                          <h3 className="text-2xl font-bold text-primary-var flex-row items-center gap-sm">
+                        <div className="prior-rounds-section flex-col gap-md">
+                          <h3 className="text-xl font-bold text-primary-var flex-row items-center gap-sm px-xs">
                             📊 Prior Round Results
                           </h3>
-                          <div className="flex-col gap-lg">
+                          <div className="flex-col gap-md">
                             {completedRoundsData.map((round: any) => (
                               <div 
                                 key={round.roundCode} 
-                                className="dashboard-form-container"
+                                className="prior-round-card"
                               >
                                 <h4 className="text-md font-bold text-primary-color mb-md flex-row justify-between items-center">
                                   <span>{round.title}</span>
@@ -492,7 +495,7 @@ export default async function DashboardPage() {
                                     const isWinner = idx === 0 || target.count === round.targets[0].count;
                                     const isChosenRandomly = round.chosenTargetId === target.targetId;
 
-                                    let itemBgColor = "rgba(255, 255, 255, 0.01)";
+                                    let itemBgColor = "rgba(255, 255, 255, 0.015)";
                                     let itemBorderColor = "var(--glass-border)";
                                     if (isChosenRandomly) {
                                       itemBgColor = "var(--accent-light)";
@@ -505,11 +508,12 @@ export default async function DashboardPage() {
                                     return (
                                       <div 
                                         key={target.targetId} 
+                                        className="prior-round-item"
                                         style={{ 
                                           display: "flex", 
                                           justifyContent: "space-between", 
                                           alignItems: "center", 
-                                          padding: "8px 12px", 
+                                          padding: "10px 14px", 
                                           backgroundColor: itemBgColor, 
                                           border: `1px solid ${itemBorderColor}`, 
                                           borderRadius: "var(--radius-sm)",
@@ -537,7 +541,6 @@ export default async function DashboardPage() {
                           </div>
                         </div>
                       )}
-
                     </div>
 
                     {/* Live Voting Tracker — hidden once a winner is chosen */}

@@ -120,7 +120,7 @@ export default function InPersonVotingForm({
                       {movie.year ? ` (${movie.year})` : ""}
                     </span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot">
+                      <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
                         🍿 Plot
                         <span className="movie-tooltip-card">
                           {movie.posterUrl && (

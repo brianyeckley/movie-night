@@ -238,6 +238,7 @@ details.movie-row-details {
   display: inline-flex;
   align-items: center;
   cursor: help;
+  outline: none;
 }
 
 .movie-tooltip-card {
@@ -247,7 +248,8 @@ details.movie-row-details {
   bottom: calc(100% + 12px);
   left: 50%;
   transform: translateX(-50%) translateY(8px);
-  width: 380px;
+  width: min(380px, calc(100vw - 32px));
+  max-width: 380px;
   background: rgba(10, 15, 26, 0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -255,7 +257,7 @@ details.movie-row-details {
   border-radius: var(--radius-md);
   padding: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), var(--shadow-glow);
-  z-index: 999;
+  z-index: 9999;
   transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
   pointer-events: none; /* Avoid flickering when pointer crosses boundary */
   display: flex;
@@ -277,7 +279,10 @@ details.movie-row-details {
   border-color: rgba(10, 15, 26, 0.96) transparent transparent transparent;
 }
 
-.movie-tooltip-trigger:hover .movie-tooltip-card {
+.movie-tooltip-trigger:hover .movie-tooltip-card,
+.movie-tooltip-trigger:focus .movie-tooltip-card,
+.movie-tooltip-trigger:focus-within .movie-tooltip-card,
+.movie-tooltip-trigger:active .movie-tooltip-card {
   visibility: visible;
   opacity: 1;
   transform: translateX(-50%) translateY(0);
@@ -1533,6 +1538,14 @@ details.movie-row-details {
   padding: 24px;
   border-radius: var(--radius-md);
 }
+
+.prior-round-card {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  padding: 18px 20px;
+  border-radius: var(--radius-md);
+}
+
 .text-10xl {
   font-size: 4rem;
 }
@@ -1543,6 +1556,61 @@ details.movie-row-details {
 @media (max-width: 992px) {
   .dashboard-layout {
     grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-panel {
+    padding: 16px !important;
+  }
+  .dashboard-form-container {
+    padding: 16px !important;
+  }
+  .prior-round-card {
+    padding: 12px 14px !important;
+  }
+  .prior-round-item {
+    padding: 8px 10px !important;
+  }
+
+  /* Fixed bottom-card mobile plot tooltip */
+  .movie-tooltip-card {
+    position: fixed !important;
+    bottom: 24px !important;
+    left: 16px !important;
+    right: 16px !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: calc(100vw - 32px) !important;
+    margin: 0 auto !important;
+    transform: translateY(16px) !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 24px rgba(99, 102, 241, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    padding: 14px !important;
+    gap: 12px !important;
+    pointer-events: auto !important;
+    background: rgba(10, 15, 26, 0.98) !important;
+  }
+
+  .movie-tooltip-card::after {
+    display: none !important;
+  }
+
+  .movie-tooltip-trigger:hover .movie-tooltip-card,
+  .movie-tooltip-trigger:focus .movie-tooltip-card,
+  .movie-tooltip-trigger:focus-within .movie-tooltip-card,
+  .movie-tooltip-trigger:active .movie-tooltip-card {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+
+  .tooltip-poster {
+    width: 60px !important;
+    height: 90px !important;
+    object-fit: cover !important;
   }
 }
 
