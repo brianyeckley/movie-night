@@ -245,19 +245,20 @@ details.movie-row-details {
   visibility: hidden;
   opacity: 0;
   position: absolute;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + 10px);
   left: 50%;
-  transform: translateX(-50%) translateY(8px);
+  transform: translateX(-50%) translateY(6px);
   width: min(380px, calc(100vw - 32px));
   max-width: 380px;
-  background: rgba(10, 15, 26, 0.96);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), var(--shadow-glow);
-  z-index: 9999;
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.3);
+  z-index: 99999;
   transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
   pointer-events: none; /* Avoid flickering when pointer crosses boundary */
   display: flex;
@@ -276,7 +277,7 @@ details.movie-row-details {
   transform: translateX(-50%);
   border-width: 6px;
   border-style: solid;
-  border-color: rgba(10, 15, 26, 0.96) transparent transparent transparent;
+  border-color: var(--bg-secondary) transparent transparent transparent;
 }
 
 .movie-tooltip-trigger:hover .movie-tooltip-card,
@@ -618,6 +619,7 @@ details.movie-row-details {
 .font-bold { font-weight: 700; }
 .font-extrabold { font-weight: 800; }
 
+.text-primary-var { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
 .text-primary-color { color: var(--primary); }
@@ -1573,29 +1575,30 @@ details.movie-row-details {
     padding: 8px 10px !important;
   }
 
-  /* Fixed bottom-card mobile plot tooltip */
+  /* Mobile plot tooltip anchored above/at the trigger button */
   .movie-tooltip-card {
-    position: fixed !important;
-    bottom: 24px !important;
-    left: 16px !important;
-    right: 16px !important;
+    position: absolute !important;
+    bottom: calc(100% + 8px) !important;
+    left: 50% !important;
+    right: auto !important;
     top: auto !important;
-    width: auto !important;
+    width: min(300px, calc(100vw - 32px)) !important;
     max-width: calc(100vw - 32px) !important;
-    margin: 0 auto !important;
-    transform: translateY(16px) !important;
-    max-height: 60vh !important;
+    transform: translateX(-50%) translateY(4px) !important;
+    max-height: 55vh !important;
     overflow-y: auto !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 24px rgba(99, 102, 241, 0.3) !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
-    padding: 14px !important;
-    gap: 12px !important;
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--glass-border) !important;
+    padding: 12px !important;
+    gap: 10px !important;
     pointer-events: auto !important;
-    background: rgba(10, 15, 26, 0.98) !important;
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    z-index: 99999 !important;
   }
 
   .movie-tooltip-card::after {
-    display: none !important;
+    border-color: var(--bg-secondary) transparent transparent transparent !important;
   }
 
   .movie-tooltip-trigger:hover .movie-tooltip-card,
@@ -1604,12 +1607,12 @@ details.movie-row-details {
   .movie-tooltip-trigger:active .movie-tooltip-card {
     visibility: visible !important;
     opacity: 1 !important;
-    transform: translateY(0) !important;
+    transform: translateX(-50%) translateY(0) !important;
   }
 
   .tooltip-poster {
-    width: 60px !important;
-    height: 90px !important;
+    width: 55px !important;
+    height: 82px !important;
     object-fit: cover !important;
   }
 }
