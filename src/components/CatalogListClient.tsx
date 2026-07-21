@@ -4,6 +4,7 @@ import { useState, useTransition, useMemo } from "react";
 import { deleteMovieAction, deleteCategoryAction } from "@/app/actions";
 import TrailerButton from "@/components/TrailerButton";
 import EditMovieButton from "@/components/EditMovieButton";
+import { PlotModal, MoviePlotModalData } from "@/components/PlotModal";
 
 interface Genre {
   id: string;
@@ -58,6 +59,7 @@ export default function CatalogListClient({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenreIds, setSelectedGenreIds] = useState<Set<string>>(new Set());
   const [selectedFormats, setSelectedFormats] = useState<Set<string>>(new Set());
+  const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleGenreToggle = (genreId: string) => {
@@ -348,31 +350,13 @@ export default function CatalogListClient({
                               </span>
                               {movie.watched && <span className="badge-watched">Watched</span>}
                               {(movie.plot || movie.posterUrl) && (
-                                <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedPlotMovie(movie)}
+                                  className="btn-plot"
+                                >
                                   🍿 Plot
-                                  <span className="movie-tooltip-card">
-                                    {movie.posterUrl && (
-                                      <img
-                                        src={movie.posterUrl}
-                                        alt={`${movie.title} Poster`}
-                                        className="tooltip-poster"
-                                      />
-                                    )}
-                                    <div className="flex-1 flex-col gap-xs">
-                                      <div className="flex-row justify-between items-baseline w-full gap-sm">
-                                        <span className="font-bold text-md text-primary-var">
-                                          {movie.title}
-                                        </span>
-                                        {movie.imdbRating && (
-                                          <span className="text-sm text-warning font-semibold flex-shrink-0">
-                                            ⭐ {movie.imdbRating}/10
-                                          </span>
-                                        )}
-                                      </div>
-                                      {movie.plot && <p className="tooltip-plot">{movie.plot}</p>}
-                                    </div>
-                                  </span>
-                                </span>
+                                </button>
                               )}
                               {movie.imdbRating && (
                                 <span className="badge-rating">⭐ {movie.imdbRating}</span>
@@ -597,6 +581,7 @@ export default function CatalogListClient({
         })}
       </div>
       )}
+      <PlotModal movie={selectedPlotMovie} onClose={() => setSelectedPlotMovie(null)} />
     </div>
   );
 }

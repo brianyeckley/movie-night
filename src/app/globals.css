@@ -232,61 +232,99 @@ details.movie-row-details {
   transition: all var(--transition-normal);
 }
 
-/* Cinematic Floating Movie Tooltip Styles */
-.movie-tooltip-trigger {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: help;
-  outline: none;
+/* Plot Modal Sheet (Portal) - Anchored to Phone Viewport Always */
+.plot-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 999999;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Bottom sheet on mobile! */
+  padding: 16px;
+  animation: fadeIn 0.15s ease-out;
 }
 
-.movie-tooltip-card {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%) translateY(6px);
-  width: min(380px, calc(100vw - 32px));
-  max-width: 380px;
+@media (min-width: 640px) {
+  .plot-modal-overlay {
+    align-items: center; /* Centered modal on tablet/desktop! */
+  }
+}
+
+.plot-modal-card {
+  width: 100%;
+  max-width: 480px;
   background-color: var(--bg-secondary);
   color: var(--text-primary);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.3);
-  z-index: 99999;
-  transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
-  pointer-events: none; /* Avoid flickering when pointer crosses boundary */
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.2);
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plot-modal-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  width: 28px;
+  height: 28px;
   display: flex;
-  gap: 16px;
-  align-items: start;
-  font-weight: normal;
-  text-align: left;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
 }
 
-/* Tooltip Arrow */
-.movie-tooltip-card::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: var(--bg-secondary) transparent transparent transparent;
+.plot-modal-close-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
-.movie-tooltip-trigger:hover .movie-tooltip-card,
-.movie-tooltip-trigger:focus .movie-tooltip-card,
-.movie-tooltip-trigger:focus-within .movie-tooltip-card,
-.movie-tooltip-trigger:active .movie-tooltip-card {
-  visibility: visible;
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+.plot-modal-poster {
+  width: 75px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.plot-modal-text {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Custom styles for movie row card layout */
@@ -1665,47 +1703,6 @@ details.movie-row-details {
   }
   .prior-round-item {
     padding: 8px 10px !important;
-  }
-
-  /* Mobile plot tooltip anchored above/at the trigger button */
-  .movie-tooltip-card {
-    position: absolute !important;
-    bottom: calc(100% + 8px) !important;
-    left: 50% !important;
-    right: auto !important;
-    top: auto !important;
-    width: min(300px, calc(100vw - 32px)) !important;
-    max-width: calc(100vw - 32px) !important;
-    transform: translateX(-50%) translateY(4px) !important;
-    max-height: 55vh !important;
-    overflow-y: auto !important;
-    box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid var(--glass-border) !important;
-    padding: 12px !important;
-    gap: 10px !important;
-    pointer-events: auto !important;
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-    z-index: 99999 !important;
-  }
-
-  .movie-tooltip-card::after {
-    border-color: var(--bg-secondary) transparent transparent transparent !important;
-  }
-
-  .movie-tooltip-trigger:hover .movie-tooltip-card,
-  .movie-tooltip-trigger:focus .movie-tooltip-card,
-  .movie-tooltip-trigger:focus-within .movie-tooltip-card,
-  .movie-tooltip-trigger:active .movie-tooltip-card {
-    visibility: visible !important;
-    opacity: 1 !important;
-    transform: translateX(-50%) translateY(0) !important;
-  }
-
-  .tooltip-poster {
-    width: 55px !important;
-    height: 82px !important;
-    object-fit: cover !important;
   }
 }
 

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { submitInPersonVotesAction, submitInPersonTiebreakerVoteAction } from "@/app/actions/inPersonVoting";
 import TrailerButton from "@/components/TrailerButton";
 import Toast from "@/components/Toast";
+import { PlotModal, MoviePlotModalData } from "@/components/PlotModal";
 
 interface InPersonVotingFormProps {
   weekId: string;
@@ -29,6 +30,7 @@ export default function InPersonVotingForm({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
 
   const isLimitReached = selectedIds.length >= maxVotes;
 
@@ -120,33 +122,13 @@ export default function InPersonVotingForm({
                       {movie.year ? ` (${movie.year})` : ""}
                     </span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlotMovie(movie)}
+                        className="btn-plot"
+                      >
                         🍿 Plot
-                        <span className="movie-tooltip-card">
-                          {movie.posterUrl && (
-                            <img
-                              src={movie.posterUrl}
-                              alt={`${movie.title} Poster`}
-                              className="tooltip-poster"
-                            />
-                          )}
-                          <div className="flex-1 flex-col gap-xs">
-                            <div className="flex-row justify-between items-baseline w-full gap-sm">
-                              <span className="font-bold text-md text-primary-var">
-                                {movie.title}
-                              </span>
-                              {movie.imdbRating && (
-                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
-                                  ⭐ {movie.imdbRating}/10
-                                </span>
-                              )}
-                            </div>
-                            {movie.plot && (
-                              <p className="tooltip-plot">{movie.plot}</p>
-                            )}
-                          </div>
-                        </span>
-                      </span>
+                      </button>
                     )}
                     {movie.imdbRating && (
                       <span className="badge-rating">⭐ {movie.imdbRating}</span>
@@ -232,6 +214,7 @@ export default function InPersonVotingForm({
           : "Cast In Person Votes"}
       </button>
       <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
+      <PlotModal movie={selectedPlotMovie} onClose={() => setSelectedPlotMovie(null)} />
     </form>
   );
 }

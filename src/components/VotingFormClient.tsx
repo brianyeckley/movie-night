@@ -11,6 +11,7 @@ import {
 } from "@/app/actions";
 import TrailerButton from "@/components/TrailerButton";
 import Toast from "@/components/Toast";
+import { PlotModal, MoviePlotModalData } from "@/components/PlotModal";
 
 // ======================================================================
 // 1. Category Selection Form (Round 1)
@@ -109,6 +110,7 @@ export function MovieVotingFormClient({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
 
   const maxVotes = 2;
   const isLimitReached = selectedIds.length >= maxVotes;
@@ -194,33 +196,13 @@ export function MovieVotingFormClient({
                   <div className="flex-row items-center gap-sm-plus flex-wrap">
                      <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlotMovie(movie)}
+                        className="btn-plot"
+                      >
                         🍿 Plot
-                        <span className="movie-tooltip-card">
-                          {movie.posterUrl && (
-                            <img
-                              src={movie.posterUrl}
-                              alt={`${movie.title} Poster`}
-                              className="tooltip-poster"
-                            />
-                          )}
-                          <div className="flex-1 flex-col gap-xs">
-                            <div className="flex-row justify-between items-baseline w-full gap-sm">
-                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
-                              {movie.imdbRating && (
-                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
-                                  ⭐ {movie.imdbRating}/10
-                                </span>
-                              )}
-                            </div>
-                            {movie.plot && (
-                              <p className="tooltip-plot">
-                                {movie.plot}
-                              </p>
-                            )}
-                          </div>
-                        </span>
-                      </span>
+                      </button>
                     )}
                     {movie.imdbRating && (
                       <span className="badge-rating">
@@ -289,6 +271,7 @@ export function MovieVotingFormClient({
         {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Votes" : "Cast Votes"}
       </button>
       <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
+      <PlotModal movie={selectedPlotMovie} onClose={() => setSelectedPlotMovie(null)} />
     </form>
   );
 }
@@ -315,6 +298,7 @@ export function SubcategoryVotingFormClient({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
 
   const maxVotes = 3;
   const isLimitReached = selectedIds.length >= maxVotes;
@@ -400,33 +384,13 @@ export function SubcategoryVotingFormClient({
                   <div className="flex-row items-center gap-sm-plus flex-wrap">
                     <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlotMovie(movie)}
+                        className="btn-plot"
+                      >
                         🍿 Plot
-                        <span className="movie-tooltip-card">
-                          {movie.posterUrl && (
-                            <img
-                              src={movie.posterUrl}
-                              alt={`${movie.title} Poster`}
-                              className="tooltip-poster"
-                            />
-                          )}
-                          <div className="flex-1 flex-col gap-xs">
-                            <div className="flex-row justify-between items-baseline w-full gap-sm">
-                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
-                              {movie.imdbRating && (
-                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
-                                  ⭐ {movie.imdbRating}/10
-                                </span>
-                              )}
-                            </div>
-                            {movie.plot && (
-                              <p className="tooltip-plot">
-                                {movie.plot}
-                              </p>
-                            )}
-                          </div>
-                        </span>
-                      </span>
+                      </button>
                     )}
                     {movie.imdbRating && (
                       <span className="badge-rating">
@@ -503,6 +467,7 @@ export function SubcategoryVotingFormClient({
           : "Cast Subcategory Votes"}
       </button>
       <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
+      <PlotModal movie={selectedPlotMovie} onClose={() => setSelectedPlotMovie(null)} />
     </form>
   );
 }
@@ -525,6 +490,7 @@ export function ShortlistVotingFormClient({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
 
   const maxVotes = 3;
   const isLimitReached = selectedIds.length >= maxVotes;
@@ -583,33 +549,13 @@ export function ShortlistVotingFormClient({
                   <div className="flex-row items-center gap-sm-plus flex-wrap">
                     <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                     {(movie.plot || movie.posterUrl) && (
-                      <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlotMovie(movie)}
+                        className="btn-plot"
+                      >
                         🍿 Plot
-                        <span className="movie-tooltip-card">
-                          {movie.posterUrl && (
-                            <img
-                              src={movie.posterUrl}
-                              alt={`${movie.title} Poster`}
-                              className="tooltip-poster"
-                            />
-                          )}
-                          <div className="flex-1 flex-col gap-xs">
-                            <div className="flex-row justify-between items-baseline w-full gap-sm">
-                              <span className="font-bold text-md text-primary-var">{movie.title}</span>
-                              {movie.imdbRating && (
-                                <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
-                                  ⭐ {movie.imdbRating}/10
-                                </span>
-                              )}
-                            </div>
-                            {movie.plot && (
-                              <p className="tooltip-plot">
-                                {movie.plot}
-                              </p>
-                            )}
-                          </div>
-                        </span>
-                      </span>
+                      </button>
                     )}
                     {movie.imdbRating && (
                       <span className="badge-rating">
@@ -678,6 +624,7 @@ export function ShortlistVotingFormClient({
         {isPending ? "Submitting Votes..." : initialVotes.length > 0 ? "Update Shortlist Votes" : "Cast Shortlist Votes"}
       </button>
       <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
+      <PlotModal movie={selectedPlotMovie} onClose={() => setSelectedPlotMovie(null)} />
     </form>
   );
 }
@@ -697,6 +644,7 @@ export function FinalVotingFormClient({
   initialVoteId,
 }: FinalVotingFormClientProps) {
   const [selectedId, setSelectedId] = useState<string | null>(initialVoteId);
+  const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -746,33 +694,13 @@ export function FinalVotingFormClient({
                 <div className="flex-row items-center gap-sm-plus flex-wrap">
                   <span className="font-semibold">{movie.title}{movie.year ? ` (${movie.year})` : ""}</span>
                   {(movie.plot || movie.posterUrl) && (
-                    <span className="movie-tooltip-trigger btn-plot" tabIndex={0}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlotMovie(movie)}
+                      className="btn-plot"
+                    >
                       🍿 Plot
-                      <span className="movie-tooltip-card">
-                        {movie.posterUrl && (
-                          <img
-                            src={movie.posterUrl}
-                            alt={`${movie.title} Poster`}
-                            className="tooltip-poster"
-                          />
-                        )}
-                        <div className="flex-1 flex-col gap-xs">
-                          <div className="flex-row justify-between items-baseline w-full gap-sm">
-                            <span className="font-bold text-md text-primary-var">{movie.title}</span>
-                            {movie.imdbRating && (
-                              <span className="text-sm-alt text-warning-color font-semibold flex-shrink-0">
-                                ⭐ {movie.imdbRating}/10
-                              </span>
-                            )}
-                          </div>
-                          {movie.plot && (
-                            <p className="tooltip-plot">
-                              {movie.plot}
-                            </p>
-                          )}
-                        </div>
-                      </span>
-                    </span>
+                    </button>
                   )}
                   {movie.imdbRating && (
                     <span className="badge-rating">
@@ -840,6 +768,7 @@ export function FinalVotingFormClient({
         {isPending ? "Submitting Vote..." : initialVoteId ? "Update Final Vote" : "Cast Final Vote"}
       </button>
       <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
+      <PlotModal movie={selectedPlotMovie} onClose={() => setSelectedPlotMovie(null)} />
     </form>
   );
 }
