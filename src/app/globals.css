@@ -47,22 +47,59 @@
   --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Light Mode Override (if user system prefers it, though cinematic dark is default/highly encouraged) */
+/* Light Mode Overrides */
 @media (prefers-color-scheme: light) {
   :root {
-    --bg-primary: #f8fafc;
+    --bg-primary: #f1f5f9;
     --bg-secondary: #ffffff;
-    --bg-tertiary: #f1f5f9;
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(15, 23, 42, 0.08);
+    --bg-tertiary: #e2e8f0;
+    --glass-bg: #ffffff;
+    --glass-border: rgba(15, 23, 42, 0.12);
     --glass-hover: rgba(15, 23, 42, 0.04);
 
     --text-primary: #0f172a;
     --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    --text-muted: #64748b;
 
     --primary-light: rgba(99, 102, 241, 0.08);
     --accent-light: rgba(244, 63, 94, 0.08);
+  }
+
+  .movie-row-card {
+    background-color: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .movie-row-card:hover {
+    background-color: #f8fafc !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+  }
+
+  .category-details-content {
+    background-color: #f8fafc !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+  }
+
+  .category-summary {
+    background-color: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+  }
+
+  .category-summary:hover {
+    background-color: #f8fafc !important;
+  }
+
+  .category-count-badge {
+    background-color: #e2e8f0 !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+    color: #475569 !important;
+  }
+
+  .subcategory-card {
+    background-color: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 }
 
