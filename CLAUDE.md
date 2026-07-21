@@ -21,9 +21,10 @@ This file provides system context, build/test commands, and architectural workfl
 *   **Backfill IMDb Metadata**: `npx tsx prisma/backfill-metadata.ts`
 
 ### Docker & Deployment Commands
-*   **Start Docker Stack**: `docker compose up -d` (starts web app on port 4000 and the cloudflared tunnel)
+*   **Start Docker Stack**: `docker compose up -d` (starts web app from GHCR on port 4000, Watchtower auto-updater, and cloudflared tunnel)
 *   **Stop Docker Stack**: `docker compose down`
 *   **View Web App Logs**: `docker compose logs -f web` (includes migrations & seeding checks)
+*   **View Watchtower Logs**: `docker compose logs -f watchtower`
 *   **View Tunnel Logs**: `docker compose logs -f tunnel`
 *   **View Cron Scheduler Logs**: `docker compose logs -f cron`
 
@@ -34,7 +35,8 @@ This file provides system context, build/test commands, and architectural workfl
 *   **Database**: SQLite (via Prisma ORM)
 *   **Styling**: Vanilla CSS (global rules in `src/app/globals.css`, no Tailwind unless requested)
 *   **Testing**: Vitest
-*   **Deployment**: Docker / Docker Compose (includes integrated `cloudflare/cloudflared` tunnel daemon)
+*   **CI/CD & Container Registry**: GitHub Actions (`.github/workflows/docker-publish.yml`) -> GHCR (`ghcr.io/brianyeckley/movie-night:latest`)
+*   **Deployment**: Docker / Docker Compose (includes pre-built image, Watchtower auto-updater with `DOCKER_API_VERSION=1.40`, and integrated `cloudflare/cloudflared` tunnel daemon)
 
 ---
 

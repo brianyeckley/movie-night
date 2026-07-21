@@ -83,14 +83,18 @@ If hosted on Vercel, you can declare the cron check in a `vercel.json` file in t
 ### 4. Triggering via Docker Compose (Recommended for Docker/NAS)
 If you deploy using `docker-compose.yml`, a dedicated `cron` container is automatically included. This service runs `crond`, maps to your host machine's timezone, and pings the `/api/cron/remind-votes` route internally. No external crontab configuration is necessary. You can customize the run time in your `.env` by setting `CRON_SCHEDULE`.
 
-## Docker Deployment (with Cloudflare Tunnel)
+## Docker Deployment & Auto-Updates (GHCR + Watchtower)
 
-You can run both the Next.js application and the Cloudflare Tunnel inside Docker containers using the provided `docker-compose.yml` file. This is the recommended approach for production or home server deployment, as it handles SQLite database persistence and automatically runs database migrations and seeding on startup.
+You can run the Next.js application, Watchtower (for automatic updates), and the Cloudflare Tunnel inside Docker containers using the provided `docker-compose.yml` file. This is the recommended approach for production or NAS deployment (e.g. UGREEN, Synology, Unraid), as it offloads Docker image building to GitHub Actions CI/CD and handles SQLite database persistence automatically.
 
-### Prerequisites
+### Automated CI/CD (GitHub Actions)
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
+Whenever code is pushed to `main` or `master`, the GitHub Actions workflow (`.github/workflows/docker-publish.yml`) automatically builds the production Docker image and publishes it to GitHub Container Registry:
+- Image: `ghcr.io/brianyeckley/movie-night:latest`
+
+### Automated NAS Updates (Watchtower)
+
+The `docker-compose.yml` includes `containrrr/watchtower`, configured with `DOCKER_API_VERSION=1.40`. Watchtower periodically checks GHCR for new image builds (every 5 minutes by default) and automatically pulls and restarts `movie-night-web` without any manual intervention or SSH access required.
 
 ### Deployment Steps
 
@@ -120,9 +124,10 @@ You can run both the Next.js application and the Cloudflare Tunnel inside Docker
    docker compose up -d
    ```
    This will:
-   - Build the Next.js standalone web image.
+   - Pull the pre-built Next.js image from `ghcr.io/brianyeckley/movie-night:latest`.
    - Mount the host data directory (defined by `DATA_DIR` in `.env`, falling back to `./data`) to `/app/data` to persist the SQLite database (`dev.db`).
-   - Run database migrations (`prisma migrate deploy`) and database seeding if starting from scratch.
+   - Run database migrations (`prisma migrate deploy`) and database seeding on container startup.
+   - Start Watchtower to auto-pull new GHCR builds every 5 minutes.
    - Run the `cloudflare/cloudflared` daemon service using your `TUNNEL_TOKEN`.
 
 3. **Configure Tunnel Routing**:
