@@ -1,8 +1,6 @@
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/brianyeckley/movie-night:latest
     container_name: movie-night-web
     user: "${PUID:-0}:${PGID:-0}"
     ports:
@@ -21,6 +19,17 @@ services:
       - STEW_PASSWORD=${STEW_PASSWORD:-stew}
       - NICK_PASSWORD=${NICK_PASSWORD:-nick}
     restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: movie-night-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+    # Automatically updates movie-night-web every 5 minutes when a new image is pushed
 
   tunnel:
     image: cloudflare/cloudflared:latest
