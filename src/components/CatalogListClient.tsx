@@ -340,57 +340,49 @@ export default function CatalogListClient({
                   {cat.movies.length > 0 && (
                     <div className="flex-col gap-sm-plus mb-lg">
                       {cat.movies.map((movie) => (
-                      <div key={movie.id} className="movie-row-card">
-                        <div className="flex-row justify-between items-start flex-wrap gap-md">
-                          <div className="flex-col gap-xs flex-1 min-w-250">
-                            <div className="flex-row items-center gap-sm-plus flex-wrap">
-                              <span className="font-semibold text-lg">
+                        <div key={movie.id} className="movie-row-card">
+                          <div className="movie-card-header">
+                            <div className="movie-card-title-group">
+                              <span className="movie-card-title">
                                 {movie.title}
-                                {movie.year ? ` (${movie.year})` : ""}
+                                {movie.year ? <span className="movie-card-year"> ({movie.year})</span> : ""}
                               </span>
-                              {movie.watched && <span className="badge-watched">Watched</span>}
-                              {(movie.plot || movie.posterUrl) && (
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedPlotMovie(movie)}
-                                  className="btn-plot"
-                                >
-                                  🍿 Plot
-                                </button>
-                              )}
+                            </div>
+                            <div className="movie-card-badges-inline">
                               {movie.imdbRating && (
                                 <span className="badge-rating">⭐ {movie.imdbRating}</span>
                               )}
+                              {movie.watched && <span className="badge-watched">Watched</span>}
                             </div>
-
-                            {(movie.director || movie.runtime || movie.stars) && (
-                              <div className="text-sm text-secondary flex-col gap-xxs mt-xs">
-                                {(movie.director || movie.runtime) && (
-                                  <div className="flex-row gap-sm items-center flex-wrap">
-                                    {movie.director && (
-                                      <span>
-                                        🎬 <span className="text-muted">Dir:</span>{" "}
-                                        {movie.director}
-                                      </span>
-                                    )}
-                                    {movie.director && movie.runtime && (
-                                      <span className="text-glass-border">•</span>
-                                    )}
-                                    {movie.runtime && <span>⏱️ {movie.runtime}</span>}
-                                  </div>
-                                )}
-                                {movie.stars && (
-                                  <div className="flex-row gap-xs items-baseline">
-                                    <span className="text-muted flex-shrink-0">👥 Cast:</span>
-                                    <span className="text-secondary">{movie.stars}</span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
                           </div>
 
-                          <div className="flex-col items-end gap-sm flex-shrink-0">
-                            <div className="flex-row gap-xs flex-wrap">
+                          {(movie.director || movie.runtime || movie.stars) && (
+                            <div className="movie-card-meta">
+                              {(movie.director || movie.runtime) && (
+                                <div className="flex-row gap-sm items-center flex-wrap">
+                                  {movie.director && (
+                                    <span>
+                                      🎬 <span className="text-muted">Dir:</span>{" "}
+                                      {movie.director}
+                                    </span>
+                                  )}
+                                  {movie.director && movie.runtime && (
+                                    <span className="text-glass-border">•</span>
+                                  )}
+                                  {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                                </div>
+                              )}
+                              {movie.stars && (
+                                <div className="flex-row gap-xs items-baseline text-xs text-secondary mt-xxs">
+                                  <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                                  <span className="text-secondary">{movie.stars}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="movie-card-footer">
+                            <div className="movie-card-tags">
                               {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
                               {movie.physicalBluRay && (
                                 <span className="badge-media badge-media-bluray">Blu-ray</span>
@@ -403,7 +395,16 @@ export default function CatalogListClient({
                               ))}
                             </div>
 
-                            <div className="flex-row gap-sm items-center mt-xs">
+                            <div className="movie-card-actions">
+                              {(movie.plot || movie.posterUrl) && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedPlotMovie(movie)}
+                                  className="btn btn-secondary btn-sm"
+                                >
+                                  🍿 Plot
+                                </button>
+                              )}
                               {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
                               {movie.imdbUrl && (
                                 <a
@@ -437,8 +438,7 @@ export default function CatalogListClient({
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
 
@@ -474,21 +474,49 @@ export default function CatalogListClient({
 
                         <div className="flex-col gap-sm">
                           {sub.movies.map((movie) => (
-                            <details
-                              key={movie.id}
-                              open={hasActiveFilters}
-                              className="movie-row-details movie-details-wrapper"
-                            >
-                              <summary className="movie-details-summary">
-                                <div className="flex-row items-center gap-sm-plus">
-                                  <span className="movie-chevron">▶</span>
-                                  <span className="font-semibold text-md">
+                            <div key={movie.id} className="movie-row-card">
+                              <div className="movie-card-header">
+                                <div className="movie-card-title-group">
+                                  <span className="movie-card-title">
                                     {movie.title}
-                                    {movie.year ? ` (${movie.year})` : ""}
+                                    {movie.year ? <span className="movie-card-year"> ({movie.year})</span> : ""}
                                   </span>
+                                </div>
+                                <div className="movie-card-badges-inline">
+                                  {movie.imdbRating && (
+                                    <span className="badge-rating">⭐ {movie.imdbRating}</span>
+                                  )}
                                   {movie.watched && <span className="badge-watched">Watched</span>}
                                 </div>
-                                <div className="flex-row gap-xs flex-wrap">
+                              </div>
+
+                              {(movie.director || movie.runtime || movie.stars) && (
+                                <div className="movie-card-meta">
+                                  {(movie.director || movie.runtime) && (
+                                    <div className="flex-row gap-sm items-center flex-wrap">
+                                      {movie.director && (
+                                        <span>
+                                          🎬 <span className="text-muted">Dir:</span>{" "}
+                                          {movie.director}
+                                        </span>
+                                      )}
+                                      {movie.director && movie.runtime && (
+                                        <span className="text-glass-border">•</span>
+                                      )}
+                                      {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                                    </div>
+                                  )}
+                                  {movie.stars && (
+                                    <div className="flex-row gap-xs items-baseline text-xs text-secondary mt-xxs">
+                                      <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                                      <span className="text-secondary">{movie.stars}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="movie-card-footer">
+                                <div className="movie-card-tags">
                                   {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
                                   {movie.physicalBluRay && (
                                     <span className="badge-media badge-media-bluray">Blu-ray</span>
@@ -500,75 +528,50 @@ export default function CatalogListClient({
                                     </span>
                                   ))}
                                 </div>
-                              </summary>
 
-                              <div className="movie-details-expanded">
-                                {movie.posterUrl && (
-                                  <img
-                                    src={movie.posterUrl}
-                                    alt={`${movie.title} Poster`}
-                                    className="expanded-poster"
-                                  />
-                                )}
-                                <div className="flex-1 flex-col gap-sm">
-                                  {movie.plot && <p className="expanded-plot">{movie.plot}</p>}
-
-                                  <div className="text-sm text-secondary flex-col gap-xs mt-xs">
-                                    {movie.director && (
-                                      <span>
-                                        🎬 <strong className="text-primary-var">Director:</strong>{" "}
-                                        {movie.director}
-                                      </span>
-                                    )}
-                                    {movie.stars && (
-                                      <span>
-                                        👥 <strong className="text-primary-var">Cast:</strong>{" "}
-                                        {movie.stars}
-                                      </span>
-                                    )}
-                                    {movie.runtime && (
-                                      <span>
-                                        ⏱️ <strong className="text-primary-var">Runtime:</strong>{" "}
-                                        {movie.runtime}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="flex-row gap-md items-center mt-sm">
-                                    {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
-                                    {movie.imdbUrl && (
-                                      <a
-                                        href={movie.imdbUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-secondary btn-sm"
-                                      >
-                                        IMDb ↗
-                                      </a>
-                                    )}
-                                    <EditMovieButton
-                                      movie={movie}
-                                      categories={flatCategories}
-                                      genres={genres}
-                                    />
+                                <div className="movie-card-actions">
+                                  {(movie.plot || movie.posterUrl) && (
                                     <button
                                       type="button"
-                                      disabled={isPending}
-                                      onClick={() => {
-                                        if (confirm(`Are you sure you want to remove the movie "${movie.title}" from the catalog?`)) {
-                                          startTransition(async () => {
-                                            await deleteMovieAction(movie.id);
-                                          });
-                                        }
-                                      }}
-                                      className="btn btn-secondary btn-sm btn-danger-outline"
+                                      onClick={() => setSelectedPlotMovie(movie)}
+                                      className="btn btn-secondary btn-sm"
                                     >
-                                      Remove
+                                      🍿 Plot
                                     </button>
-                                  </div>
+                                  )}
+                                  {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
+                                  {movie.imdbUrl && (
+                                    <a
+                                      href={movie.imdbUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-secondary btn-sm"
+                                    >
+                                      IMDb ↗
+                                    </a>
+                                  )}
+                                  <EditMovieButton
+                                    movie={movie}
+                                    categories={flatCategories}
+                                    genres={genres}
+                                  />
+                                  <button
+                                    type="button"
+                                    disabled={isPending}
+                                    onClick={() => {
+                                      if (confirm(`Are you sure you want to remove the movie "${movie.title}" from the catalog?`)) {
+                                        startTransition(async () => {
+                                          await deleteMovieAction(movie.id);
+                                        });
+                                      }
+                                    }}
+                                    className="btn btn-secondary btn-sm btn-danger-outline"
+                                  >
+                                    Remove
+                                  </button>
                                 </div>
                               </div>
-                            </details>
+                            </div>
                           ))}
                         </div>
                       </div>
