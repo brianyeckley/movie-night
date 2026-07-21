@@ -91,7 +91,7 @@ export default async function CatalogPage() {
             <div className="catalog-sidebar">
               <input type="checkbox" id="catalog-sidebar-toggle" className="sidebar-toggle-checkbox" />
               <label htmlFor="catalog-sidebar-toggle" className="sidebar-toggle-label">
-                <span>🛠️ Manage Catalog (Add Movie/Category...)</span>
+                <span>🛠️ Manage Catalog</span>
                 <span className="sidebar-chevron">▼</span>
               </label>
               <div className="sidebar-content">
