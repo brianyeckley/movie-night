@@ -294,50 +294,50 @@ export default function CatalogListClient({
           )}
         </div>
       ) : (
-        <div className="flex-col gap-2xl">
-          {filteredCategories.map((cat) => (
-            <details
-              key={cat.id}
-              open={cat.isThemed || hasActiveFilters}
-              className="category-details border-b"
-            >
-              {/* Top level Category Header */}
-              <summary className="category-summary">
-                <h3 className="text-3xl font-bold text-primary-color flex-row items-center gap-md">
-                  <span className="chevron-icon">▶</span>
-                  {cat.name}
-                  {cat.isThemed && <span className="badge-theme">Theme</span>}
-                  {hasActiveFilters && (
-                    <span className="text-sm-alt text-muted normal-case font-normal ml-xs">
-                      ({cat.movies.length + cat.subcategories.reduce((acc, s) => acc + s.movies.length, 0)} matches)
+        <div className="flex-col gap-lg">
+          {filteredCategories.map((cat) => {
+            const totalMovies = cat.movies.length + cat.subcategories.reduce((acc, s) => acc + s.movies.length, 0);
+            return (
+              <details
+                key={cat.id}
+                open={cat.isThemed || hasActiveFilters}
+                className="category-details"
+              >
+                {/* Top level Category Header Bar */}
+                <summary className="category-summary">
+                  <div className="category-title">
+                    <span className="chevron-icon">▶</span>
+                    <span>{cat.name}</span>
+                    {cat.isThemed && <span className="badge-theme">Theme</span>}
+                  </div>
+                  <div className="flex-row items-center gap-sm">
+                    <span className="category-count-badge">
+                      {totalMovies} {totalMovies === 1 ? "movie" : "movies"}
                     </span>
-                  )}
-                </h3>
-              </summary>
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Are you sure you want to delete the category "${cat.name}"? This will delete all subcategories and movies inside it.`)) {
+                          startTransition(async () => {
+                            await deleteCategoryAction(cat.id);
+                          });
+                        }
+                      }}
+                      className="text-btn nav-link text-xs"
+                      style={{ padding: "2px 6px" }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </summary>
 
-              <div className="category-details-content">
-                {/* Option to Delete Category */}
-                <div className="flex-row justify-end mb-lg">
-                  <button
-                    type="button"
-                    disabled={isPending}
-                    onClick={() => {
-                      if (confirm(`Are you sure you want to delete the category "${cat.name}"? This will delete all subcategories and movies inside it.`)) {
-                        startTransition(async () => {
-                          await deleteCategoryAction(cat.id);
-                        });
-                      }
-                    }}
-                    className="text-btn nav-link"
-                  >
-                    Delete Category
-                  </button>
-                </div>
-
-                {/* Direct Movies in Top level Category */}
-                {cat.movies.length > 0 && (
-                  <div className="flex-col gap-sm-plus mb-xl">
-                    {cat.movies.map((movie) => (
+                <div className="category-details-content">
+                  {/* Direct Movies in Top level Category */}
+                  {cat.movies.length > 0 && (
+                    <div className="flex-col gap-sm-plus mb-lg">
+                      {cat.movies.map((movie) => (
                       <div key={movie.id} className="movie-row-card">
                         <div className="flex-row justify-between items-start flex-wrap gap-md">
                           <div className="flex-col gap-xs flex-1 min-w-250">
@@ -593,8 +593,9 @@ export default function CatalogListClient({
                 )}
               </div>
             </details>
-          ))}
-        </div>
+          );
+        })}
+      </div>
       )}
     </div>
   );
