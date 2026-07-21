@@ -297,19 +297,8 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
 
   return (
     <div className="text-center py-md">
-      <span className="text-10xl block mb-sm">🏆</span>
-      {week.isInPerson ? (
-        <span className="text-base text-uppercase tracking-widest-2 text-accent-color font-bold">
-          Winning In-Person Movie Chosen!
-        </span>
-      ) : (
-        <span className="text-base text-uppercase tracking-widest-2 text-primary-color font-bold">
-          Winning Movie Chosen!
-        </span>
-      )}
-      
       {week.isInPerson && (
-        <p className="text-md text-secondary mt-xs font-semibold animate-slide-in" style={{ opacity: 0.9 }}>
+        <p className="text-md text-secondary mb-xs font-semibold animate-slide-in" style={{ opacity: 0.9 }}>
           Ready for screening on physical media.
         </p>
       )}
