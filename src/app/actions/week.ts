@@ -381,8 +381,18 @@ export async function advanceWeekRoundInternal(weekId: string, preloadedWeek?: a
           },
         });
 
+        const tiedMovies = await db.movie.findMany({
+          where: { id: { in: topItems } },
+          select: { title: true },
+        });
+        const tiedNames = [
+          ...categories.map((c) => c.name),
+          ...tiedMovies.map((m) => m.title),
+        ];
+
         notifyRoundAdvanced(weekId, "MOVIE_VOTING", "SUBCATEGORY_VOTING", {
-          winnerName: categories[0].name,
+          tiedItems: tiedNames,
+          isTie: true,
         }).catch((e) => console.error("Discord notification error:", e));
       } else {
         // All top tied items are movies. Transition straight to SHORTLIST_VOTING.

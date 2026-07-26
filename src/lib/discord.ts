@@ -83,6 +83,7 @@ export async function notifyRoundAdvanced(
     winnerYear?: number | null;
     winnerPoster?: string | null;
     isRandom?: boolean;
+    isTie?: boolean;
     tiedItems?: string[];
   }
 ) {
@@ -136,7 +137,17 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "MOVIE_VOTING") {
     if (newStatus === "SUBCATEGORY_VOTING") {
-      description = `**Round 2 (Movie Voting)** concluded with a subcategory winning!\n\nThe winning subcategory is: **${details.winnerName}**.`;
+      if (details.isTie || (details.tiedItems && details.tiedItems.length > 0)) {
+        description = `**Round 2 (Movie Voting)** ended in a tie! Advancing to Round 2b Tiebreaker Voting.`;
+        if (details.tiedItems && details.tiedItems.length > 0) {
+          fields.push({
+            name: "Tied Options",
+            value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+          });
+        }
+      } else {
+        description = `**Round 2 (Movie Voting)** concluded with a subcategory winning!\n\nThe winning subcategory is: **${details.winnerName}**.`;
+      }
     } else if (newStatus === "SHORTLIST_VOTING") {
       description = `**Round 2 (Movie Voting)** ended in a tie! The tied movies have advanced to the Shortlist.`;
       if (details.tiedItems && details.tiedItems.length > 0) {
