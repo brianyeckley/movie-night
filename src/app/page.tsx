@@ -188,6 +188,8 @@ export default async function DashboardPage() {
       if (isTie) {
         if (roundCode === "ROUND_1_CATEGORY_TIEBREAKER") {
           chosenTargetId = activeWeek.selectedCategoryId;
+        } else if (roundCode === "ROUND_2C_SUB_MOVIE" && activeWeek.isRandomlyChosen) {
+          chosenTargetId = activeWeek.selectedSubcategoryId || activeWeek.winningMovieId;
         } else if (
           (roundCode === "ROUND_4_TIEBREAKER" || 
            roundCode === "IN_PERSON_ROUND_1B" || 
@@ -213,6 +215,7 @@ export default async function DashboardPage() {
       "ROUND_1_CATEGORY_TIEBREAKER",
       "ROUND_2_MOVIE",
       "ROUND_2_SUB_MOVIE",
+      "ROUND_2C_SUB_MOVIE",
       "ROUND_3_SHORTLIST",
       "ROUND_4_TIEBREAKER",
       "IN_PERSON_ROUND_1",
