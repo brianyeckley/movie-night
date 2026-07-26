@@ -141,8 +141,18 @@ export async function submitShortlistVotesAction(weekId: string, movieIds: strin
   const currentUser = await getActiveUser();
   if (!currentUser) throw new Error("You must pick a user first.");
 
-  if (movieIds.length > 3) {
-    throw new Error("You can select a maximum of 3 movies.");
+  const week = await db.movieNightWeek.findUnique({
+    where: { id: weekId },
+  });
+
+  const maxAllowed = week?.selectedSubcategoryId ? 1 : 3;
+
+  if (movieIds.length > maxAllowed) {
+    throw new Error(
+      maxAllowed === 1
+        ? "You can select a maximum of 1 movie."
+        : "You can select a maximum of 3 movies."
+    );
   }
 
   // Delete previous votes for this user in this round

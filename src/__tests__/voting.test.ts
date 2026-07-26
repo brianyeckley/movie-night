@@ -13,6 +13,9 @@ import { revalidatePath } from "next/cache";
 
 vi.mock("@/lib/db", () => ({
   db: {
+    movieNightWeek: {
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
     weekVote: {
       deleteMany: vi.fn(),
       create: vi.fn(),
@@ -161,10 +164,19 @@ describe("Voting Server Actions", () => {
   });
 
   describe("submitShortlistVotesAction", () => {
-    it("throws an error if selecting more than 3 movies", async () => {
+    it("throws an error if selecting more than 3 movies for standard category", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockUser);
+      vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({ selectedSubcategoryId: null } as any);
       await expect(submitShortlistVotesAction("week-1", ["movie-1", "movie-2", "movie-3", "movie-4"])).rejects.toThrow(
         "You can select a maximum of 3 movies."
+      );
+    });
+
+    it("throws an error if selecting more than 1 movie for subcategory shortlist", async () => {
+      vi.mocked(getActiveUser).mockResolvedValueOnce(mockUser);
+      vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({ selectedSubcategoryId: "subcat-1" } as any);
+      await expect(submitShortlistVotesAction("week-1", ["movie-1", "movie-2"])).rejects.toThrow(
+        "You can select a maximum of 1 movie."
       );
     });
   });

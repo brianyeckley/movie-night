@@ -288,11 +288,18 @@ export async function ShortlistVotingForm({ week, currentUserId }: any) {
   });
   const userVoteIds = userVotes.map((v) => v.targetId);
 
+  const isSubcategory = !!week.selectedSubcategoryId;
+  const maxVotes = isSubcategory ? 1 : 3;
+
   return (
     <div>
-      <h3 className="text-3xl font-bold mb-sm">Round 3: Shortlist Voting</h3>
+      <h3 className="text-3xl font-bold mb-sm">
+        {isSubcategory ? "Round 3: Shortlist Voting (1 Vote)" : "Round 3: Shortlist Voting"}
+      </h3>
       <p className="text-secondary mb-xl text-md">
-        Vote on the compiled shortlist of tied movies. Outright highest voted movie wins! (Max 3 Votes)
+        {isSubcategory
+          ? "Select 1 movie from the subcategory shortlist. Outright highest voted movie wins!"
+          : "Vote on the compiled shortlist of tied movies. Outright highest voted movie wins! (Max 3 Votes)"}
       </p>
 
       {movies.length === 0 ? (
@@ -302,6 +309,7 @@ export async function ShortlistVotingForm({ week, currentUserId }: any) {
           weekId={week.id}
           movies={movies}
           initialVotes={userVoteIds}
+          maxVotes={maxVotes}
         />
       )}
     </div>

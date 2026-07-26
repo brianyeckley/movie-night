@@ -482,12 +482,14 @@ interface ShortlistVotingFormClientProps {
   weekId: string;
   movies: any[];
   initialVotes: string[];
+  maxVotes?: number;
 }
 
 export function ShortlistVotingFormClient({
   weekId,
   movies,
   initialVotes,
+  maxVotes = 3,
 }: ShortlistVotingFormClientProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
   const [error, setError] = useState<string | null>(null);
@@ -495,7 +497,6 @@ export function ShortlistVotingFormClient({
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
 
-  const maxVotes = 3;
   const isLimitReached = selectedIds.length >= maxVotes;
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
