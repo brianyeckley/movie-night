@@ -93,7 +93,7 @@ describe("Voting Data Compilation Helpers", () => {
       expect(result).toHaveLength(2);
     });
 
-    it("compiles shortlist movies when subcategory itself wins/ties in Round 2b tiebreaker", async () => {
+    it("compiles shortlist movies when subcategory itself wins in Round 2b tiebreaker", async () => {
       // Mock Round 2 votes (cat-3 subcategory and movie-1 are tied)
       vi.mocked(db.weekVote.findMany).mockImplementation((async ({ where }: any) => {
         if (where.round === "ROUND_2_MOVIE") {
@@ -125,7 +125,6 @@ describe("Voting Data Compilation Helpers", () => {
         }
         // Final select query
         return [
-          { id: "movie-1", title: "Shaun of the Dead" },
           { id: "movie-2", title: "Evil Dead 2" },
           { id: "movie-3", title: "Tucker & Dale vs. Evil" },
         ] as any;
@@ -139,13 +138,60 @@ describe("Voting Data Compilation Helpers", () => {
         select: { id: true },
       });
 
-      // Verify final movie query loads all 3 movies (movie-1 from R2 tie, movie-2 and movie-3 from cat-3)
+      // Verify final movie query loads only subcategory movies (movie-1 lost to cat-3 in Round 2b)
       expect(db.movie.findMany).toHaveBeenCalledWith({
-        where: { id: { in: ["movie-1", "movie-2", "movie-3"] } },
+        where: { id: { in: ["movie-2", "movie-3"] } },
         include: { genres: true, category: true },
       });
 
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(2);
+    });
+
+    it("compiles shortlist movies when subcategory AND a movie tie in Round 2b/2c tiebreaker while non-tied movies are eliminated", async () => {
+      // Mock Round 2 votes (cat-3, movie-1, and movie-99 are tied in R2)
+      vi.mocked(db.weekVote.findMany).mockImplementation((async ({ where }: any) => {
+        if (where.round === "ROUND_2_MOVIE") {
+          return [
+            { targetId: "cat-3", user: { id: "user-1", isApproved: true } },
+            { targetId: "movie-1", user: { id: "user-2", isApproved: true } },
+            { targetId: "movie-99", user: { id: "user-3", isApproved: true } },
+          ] as any;
+        }
+        if (where.round === "ROUND_2_SUB_MOVIE") {
+          // Vote for cat-3 and movie-1 in Round 2b tiebreaker (movie-99 gets 0 votes and is eliminated)
+          return [
+            { targetId: "cat-3", user: { id: "user-1", isApproved: true } },
+            { targetId: "movie-1", user: { id: "user-2", isApproved: true } },
+          ] as any;
+        }
+        return [];
+      }) as any);
+
+      vi.mocked(db.category.findMany).mockResolvedValueOnce([
+        { id: "cat-3", name: "Silly Horror" },
+      ] as any);
+
+      vi.mocked(db.movie.findMany).mockImplementation((async (args: any) => {
+        if (args.where?.categoryId === "cat-3") {
+          return [
+            { id: "movie-2", title: "Evil Dead 2" },
+          ] as any;
+        }
+        return [
+          { id: "movie-1", title: "Shaun of the Dead" },
+          { id: "movie-2", title: "Evil Dead 2" },
+        ] as any;
+      }) as any);
+
+      const result = await getShortlistMovies("week-1", "cat-horror", "cat-3");
+
+      // Verify final movie query includes movie-1 and movie-2, but EXCLUDES movie-99 which lost
+      expect(db.movie.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ["movie-1", "movie-2"] } },
+        include: { genres: true, category: true },
+      });
+
+      expect(result).toHaveLength(2);
     });
   });
 

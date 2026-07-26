@@ -45,7 +45,15 @@ export async function getShortlistMovies(weekId: string, selectedCategoryId: str
     const topSubIds = Object.keys(subCounts).filter((id) => subCounts[id] === subMax);
     const allSubVotedIds = Object.keys(subCounts);
 
-    // If subcategory was in the sub-round and won/tied
+    // Check if the sub-round was a tiebreaker round involving the subcategory
+    const isSubcategoryTiebreaker = selectedSubcategoryId && allSubVotedIds.includes(selectedSubcategoryId);
+
+    if (isSubcategoryTiebreaker) {
+      // In tiebreaker mode, only candidate movies from Round 2 that survived in topSubIds remain
+      candidateMovieIds = candidateMovieIds.filter((id) => topSubIds.includes(id));
+    }
+
+    // If subcategory was in topSubIds, unpack all unwatched movies from that subcategory
     if (selectedSubcategoryId && topSubIds.includes(selectedSubcategoryId)) {
       const subMovies = await db.movie.findMany({
         where: { categoryId: selectedSubcategoryId, watched: false },
@@ -57,10 +65,6 @@ export async function getShortlistMovies(weekId: string, selectedCategoryId: str
     // Include movies that tied/won in the sub-round
     const topSubMovies = topSubIds.filter((id) => id !== selectedSubcategoryId);
     subMovieIds.push(...topSubMovies);
-
-    // Filter candidateMovieIds from Round 2 to remove movies that were voted on in the sub-round but lost
-    const lostSubMovies = allSubVotedIds.filter((id) => !topSubIds.includes(id) && id !== selectedSubcategoryId);
-    candidateMovieIds = candidateMovieIds.filter((id) => !lostSubMovies.includes(id));
   }
 
   const finalShortlistIds = Array.from(new Set([...candidateMovieIds, ...subMovieIds]));
