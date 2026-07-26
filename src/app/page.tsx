@@ -94,6 +94,7 @@ export default async function DashboardPage() {
     else if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_1_CATEGORY_TIEBREAKER";
     else if (activeWeek.status === "MOVIE_VOTING") activeRoundCode = "ROUND_2_MOVIE";
     else if (activeWeek.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
+    else if (activeWeek.status === "SUBCATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_2C_SUB_MOVIE";
     else if (activeWeek.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
     else if (activeWeek.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
     else if (activeWeek.status === "IN_PERSON_VOTING") activeRoundCode = "IN_PERSON_ROUND_1";
@@ -103,6 +104,8 @@ export default async function DashboardPage() {
 
     if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") {
       roundTitle = "Category Tiebreaker Voting";
+    } else if (activeWeek.status === "SUBCATEGORY_TIEBREAKER_VOTING") {
+      roundTitle = "Subcategory Tiebreaker Voting";
     } else if (activeWeek.status === "IN_PERSON_VOTING") {
       roundTitle = "In Person Voting";
     } else if (activeWeek.status === "IN_PERSON_TIEBREAKER") {
@@ -150,6 +153,7 @@ export default async function DashboardPage() {
       ROUND_1_CATEGORY_TIEBREAKER: "Round 1b: Category Tiebreaker",
       ROUND_2_MOVIE: "Round 2: Movie Selection",
       ROUND_2_SUB_MOVIE: "Round 2b: Subcategory Movie Selection",
+      ROUND_2C_SUB_MOVIE: "Round 2c: Subcategory Tiebreaker",
       ROUND_3_SHORTLIST: "Round 3: Shortlist Selection",
       ROUND_4_TIEBREAKER: "Round 4: Final Tiebreaker",
       IN_PERSON_ROUND_1: "Round 1: In Person Movie Selection",
@@ -414,8 +418,8 @@ export default async function DashboardPage() {
                           <MovieVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
                         )}
 
-                        {/* ROUND 2b: Subcategory Movie Voting */}
-                        {activeWeek.status === "SUBCATEGORY_VOTING" && (
+                        {/* ROUND 2b / 2c: Subcategory Movie Voting & Tiebreaker */}
+                        {(activeWeek.status === "SUBCATEGORY_VOTING" || activeWeek.status === "SUBCATEGORY_TIEBREAKER_VOTING") && (
                           <SubcategoryVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
                         )}
 

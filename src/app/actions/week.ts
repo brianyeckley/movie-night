@@ -127,6 +127,7 @@ export async function resetRoundAction(weekId: string) {
   else if (week.status === "CATEGORY_TIEBREAKER_VOTING") roundStr = "ROUND_1_CATEGORY_TIEBREAKER";
   else if (week.status === "MOVIE_VOTING") roundStr = "ROUND_2_MOVIE";
   else if (week.status === "SUBCATEGORY_VOTING") roundStr = "ROUND_2_SUB_MOVIE";
+  else if (week.status === "SUBCATEGORY_TIEBREAKER_VOTING") roundStr = "ROUND_2C_SUB_MOVIE";
   else if (week.status === "SHORTLIST_VOTING") roundStr = "ROUND_3_SHORTLIST";
   else if (week.status === "FINAL_VOTING") roundStr = "ROUND_4_TIEBREAKER";
   else if (week.status === "IN_PERSON_VOTING") roundStr = "IN_PERSON_ROUND_1";
@@ -165,6 +166,7 @@ export async function advanceWeekRoundAction(weekId: string) {
   else if (week.status === "CATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_1_CATEGORY_TIEBREAKER";
   else if (week.status === "MOVIE_VOTING") activeRoundCode = "ROUND_2_MOVIE";
   else if (week.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
+  else if (week.status === "SUBCATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_2C_SUB_MOVIE";
   else if (week.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
   else if (week.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
   else if (week.status === "IN_PERSON_VOTING") activeRoundCode = "IN_PERSON_ROUND_1";
@@ -455,29 +457,114 @@ export async function advanceWeekRoundInternal(weekId: string, preloadedWeek?: a
         }).catch((e) => console.error("Discord notification error:", e));
       }
     } else {
-      // Tie! Transition to SHORTLIST_VOTING.
+      // Tie in Round 2b!
+      // Check if topItems includes any Subcategory (tiebreaker mode)
+      const categories = await db.category.findMany({
+        where: { id: { in: topItems } },
+        select: { id: true, name: true },
+      });
+
+      if (categories.length > 0) {
+        // Tie in Round 2b tiebreaker mode! Transition to SUBCATEGORY_TIEBREAKER_VOTING (Round 2c)!
+        await db.movieNightWeek.update({
+          where: { id: weekId },
+          data: {
+            status: "SUBCATEGORY_TIEBREAKER_VOTING",
+          },
+        });
+
+        const tiedMovies = await db.movie.findMany({
+          where: { id: { in: topItems } },
+          select: { title: true },
+        });
+        const tiedNames = [
+          ...categories.map((c) => c.name),
+          ...tiedMovies.map((m) => m.title),
+        ];
+
+        notifyRoundAdvanced(weekId, "SUBCATEGORY_VOTING", "SUBCATEGORY_TIEBREAKER_VOTING", {
+          tiedItems: tiedNames,
+        }).catch((e) => console.error("Discord notification error:", e));
+      } else {
+        // Normal mode (movies inside winning subcategory). Transition to SHORTLIST_VOTING.
+        await db.movieNightWeek.update({
+          where: { id: weekId },
+          data: {
+            status: "SHORTLIST_VOTING",
+          },
+        });
+
+        const tiedMovies = await db.movie.findMany({
+          where: { id: { in: topItems } },
+          select: { title: true },
+        });
+
+        notifyRoundAdvanced(weekId, "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", {
+          tiedItems: tiedMovies.map((m) => m.title),
+        }).catch((e) => console.error("Discord notification error:", e));
+      }
+    }
+  } 
+  else if (week.status === "SUBCATEGORY_TIEBREAKER_VOTING") {
+    // ----------------------------------------
+    // ROUND 2c: Subcategory Tiebreaker Voting (1 vote per user)
+    // ----------------------------------------
+    const votes = approvedVotes.filter((v) => v.round === "ROUND_2C_SUB_MOVIE");
+    if (votes.length === 0) return { success: false, error: "No votes have been cast yet." };
+
+    const counts: Record<string, number> = {};
+    votes.forEach((v) => {
+      counts[v.targetId] = (counts[v.targetId] || 0) + 1;
+    });
+
+    const maxVal = Math.max(...Object.values(counts));
+    const topItems = Object.keys(counts).filter((id) => counts[id] === maxVal);
+
+    let winnerId = topItems[0];
+    let isRandom = false;
+
+    if (topItems.length > 1) {
+      // Tie persisted in Round 2c tiebreaker. Draw a random winner from top tied items!
+      const randIdx = Math.floor(Math.random() * topItems.length);
+      winnerId = topItems[randIdx];
+      isRandom = true;
+    }
+
+    const category = await db.category.findUnique({
+      where: { id: winnerId },
+    });
+
+    if (category) {
+      // Subcategory won Round 2c! Transition to SHORTLIST_VOTING.
       await db.movieNightWeek.update({
         where: { id: weekId },
         data: {
+          selectedSubcategoryId: winnerId,
           status: "SHORTLIST_VOTING",
         },
       });
 
-      const tiedCategories = await db.category.findMany({
-        where: { id: { in: topItems } },
-        select: { name: true },
+      notifyRoundAdvanced(weekId, "SUBCATEGORY_TIEBREAKER_VOTING", "SHORTLIST_VOTING", {
+        winnerName: category.name,
+        isRandom,
+      }).catch((e) => console.error("Discord notification error:", e));
+    } else {
+      // Movie won Round 2c! It wins the week immediately.
+      await db.movieNightWeek.update({
+        where: { id: weekId },
+        data: {
+          winningMovieId: winnerId,
+          isRandomlyChosen: isRandom,
+          status: "COMPLETED",
+        },
       });
-      const tiedMovies = await db.movie.findMany({
-        where: { id: { in: topItems } },
-        select: { title: true },
-      });
-      const tiedNames = [
-        ...tiedCategories.map((c) => c.name),
-        ...tiedMovies.map((m) => m.title),
-      ];
 
-      notifyRoundAdvanced(weekId, "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", {
-        tiedItems: tiedNames,
+      const movie = await db.movie.findUnique({ where: { id: winnerId } });
+      notifyRoundAdvanced(weekId, "SUBCATEGORY_TIEBREAKER_VOTING", "COMPLETED", {
+        winnerName: movie?.title,
+        winnerYear: movie?.year,
+        winnerPoster: movie?.posterUrl,
+        isRandom,
       }).catch((e) => console.error("Discord notification error:", e));
     }
   } 

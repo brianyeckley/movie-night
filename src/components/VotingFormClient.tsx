@@ -285,6 +285,8 @@ interface SubcategoryVotingFormClientProps {
   subcategories?: any[];
   initialVotes: string[];
   isTie?: boolean;
+  maxVotes?: number;
+  roundCode?: string;
 }
 
 export function SubcategoryVotingFormClient({
@@ -293,6 +295,8 @@ export function SubcategoryVotingFormClient({
   subcategories = [],
   initialVotes,
   isTie = false,
+  maxVotes = 3,
+  roundCode = "ROUND_2_SUB_MOVIE",
 }: SubcategoryVotingFormClientProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialVotes);
   const [error, setError] = useState<string | null>(null);
@@ -300,7 +304,6 @@ export function SubcategoryVotingFormClient({
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
 
-  const maxVotes = 3;
   const isLimitReached = selectedIds.length >= maxVotes;
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
@@ -323,7 +326,7 @@ export function SubcategoryVotingFormClient({
     setError(null);
     startTransition(async () => {
       try {
-        await submitSubMovieVotesAction(weekId, selectedIds);
+        await submitSubMovieVotesAction(weekId, selectedIds, roundCode);
         setToastMsg(isTie ? "Tiebreaker votes cast successfully!" : "Subcategory votes cast successfully!");
       } catch (err) {
         console.error("Failed to submit sub-movie votes:", err);

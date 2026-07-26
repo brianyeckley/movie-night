@@ -2,59 +2,68 @@ import { db } from "@/lib/db";
 
 // Helper: Get shortlist movies compiled from Round 2/2b voting ties
 export async function getShortlistMovies(weekId: string, selectedCategoryId: string, selectedSubcategoryId: string | null) {
-  // 1. Get all votes in ROUND_2_MOVIE
+  // 1. Get initial tied movies from ROUND_2_MOVIE
   const r2Votes = await db.weekVote.findMany({
     where: { weekId, round: "ROUND_2_MOVIE" },
     include: { user: true },
   });
-
   const approvedR2Votes = r2Votes.filter((v) => v.user.isApproved);
   const r2Counts: Record<string, number> = {};
   approvedR2Votes.forEach((v) => {
     r2Counts[v.targetId] = (r2Counts[v.targetId] || 0) + 1;
   });
-
   const r2Max = Math.max(...Object.values(r2Counts), 0);
   const r2TiedIds = Object.keys(r2Counts).filter((id) => r2Counts[id] === r2Max);
 
-  // Separate subcategories from movies
   const r2TiedCategories = await db.category.findMany({
     where: { id: { in: r2TiedIds } },
   });
   const r2TiedCategoryIds = r2TiedCategories.map((c) => c.id);
-  const r2TiedMovieIds = r2TiedIds.filter((id) => !r2TiedCategoryIds.includes(id));
+  let candidateMovieIds = r2TiedIds.filter((id) => !r2TiedCategoryIds.includes(id));
 
-  // 2. If subcategory voting took place, get top movies from ROUND_2_SUB_MOVIE
+  // 2. Check latest sub-round votes (ROUND_2C_SUB_MOVIE or ROUND_2_SUB_MOVIE)
+  const r2cVotes = await db.weekVote.findMany({
+    where: { weekId, round: "ROUND_2C_SUB_MOVIE" },
+    include: { user: true },
+  });
+  const r2subVotes = await db.weekVote.findMany({
+    where: { weekId, round: "ROUND_2_SUB_MOVIE" },
+    include: { user: true },
+  });
+
+  const activeSubVotes = r2cVotes.length > 0 ? r2cVotes : r2subVotes;
+  const approvedSubVotes = activeSubVotes.filter((v) => v.user.isApproved);
+
   let subMovieIds: string[] = [];
-  if (selectedSubcategoryId) {
-    const subVotes = await db.weekVote.findMany({
-      where: { weekId, round: "ROUND_2_SUB_MOVIE" },
-      include: { user: true },
-    });
-    const approvedSubVotes = subVotes.filter((v) => v.user.isApproved);
+
+  if (approvedSubVotes.length > 0) {
     const subCounts: Record<string, number> = {};
     approvedSubVotes.forEach((v) => {
       subCounts[v.targetId] = (subCounts[v.targetId] || 0) + 1;
     });
     const subMax = Math.max(...Object.values(subCounts), 0);
-    const topTiedSubIds = Object.keys(subCounts).filter((id) => subCounts[id] === subMax);
+    const topSubIds = Object.keys(subCounts).filter((id) => subCounts[id] === subMax);
+    const allSubVotedIds = Object.keys(subCounts);
 
-    // If the subcategory itself is among the top voted items in ROUND_2_SUB_MOVIE,
-    // we should include all unwatched movies from that subcategory in the shortlist!
-    if (topTiedSubIds.includes(selectedSubcategoryId)) {
-      const subcategoryMovies = await db.movie.findMany({
+    // If subcategory was in the sub-round and won/tied
+    if (selectedSubcategoryId && topSubIds.includes(selectedSubcategoryId)) {
+      const subMovies = await db.movie.findMany({
         where: { categoryId: selectedSubcategoryId, watched: false },
         select: { id: true },
       });
-      subMovieIds.push(...subcategoryMovies.map((m) => m.id));
+      subMovieIds.push(...subMovies.map((m) => m.id));
     }
 
-    // Also include any specific movies that were voted on and won/tied in ROUND_2_SUB_MOVIE
-    const specificMovieIds = topTiedSubIds.filter((id) => id !== selectedSubcategoryId);
-    subMovieIds.push(...specificMovieIds);
+    // Include movies that tied/won in the sub-round
+    const topSubMovies = topSubIds.filter((id) => id !== selectedSubcategoryId);
+    subMovieIds.push(...topSubMovies);
+
+    // Filter candidateMovieIds from Round 2 to remove movies that were voted on in the sub-round but lost
+    const lostSubMovies = allSubVotedIds.filter((id) => !topSubIds.includes(id) && id !== selectedSubcategoryId);
+    candidateMovieIds = candidateMovieIds.filter((id) => !lostSubMovies.includes(id));
   }
 
-  const finalShortlistIds = Array.from(new Set([...r2TiedMovieIds, ...subMovieIds]));
+  const finalShortlistIds = Array.from(new Set([...candidateMovieIds, ...subMovieIds]));
 
   return db.movie.findMany({
     where: { id: { in: finalShortlistIds } },

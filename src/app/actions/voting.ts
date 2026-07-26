@@ -94,13 +94,22 @@ export async function submitMovieVotesAction(weekId: string, targets: string[]) 
   revalidatePath("/");
 }
 
-// 7. Submit Subcategory Movie Votes (Round 2b)
-export async function submitSubMovieVotesAction(weekId: string, movieIds: string[]) {
+// 7. Submit Subcategory Movie Votes (Round 2b / 2c)
+export async function submitSubMovieVotesAction(
+  weekId: string, 
+  movieIds: string[], 
+  roundCode: string = "ROUND_2_SUB_MOVIE"
+) {
   const currentUser = await getActiveUser();
   if (!currentUser) throw new Error("You must pick a user first.");
 
-  if (movieIds.length > 3) {
-    throw new Error("You can select a maximum of 3 movies.");
+  const maxAllowed = roundCode === "ROUND_2C_SUB_MOVIE" ? 1 : 3;
+  if (movieIds.length > maxAllowed) {
+    throw new Error(
+      roundCode === "ROUND_2C_SUB_MOVIE"
+        ? "You can select a maximum of 1 option."
+        : "You can select a maximum of 3 movies."
+    );
   }
 
   // Delete previous votes for this user in this round
@@ -108,7 +117,7 @@ export async function submitSubMovieVotesAction(weekId: string, movieIds: string
     where: {
       weekId,
       userId: currentUser.id,
-      round: "ROUND_2_SUB_MOVIE",
+      round: roundCode,
     },
   });
 
@@ -118,7 +127,7 @@ export async function submitSubMovieVotesAction(weekId: string, movieIds: string
       data: {
         weekId,
         userId: currentUser.id,
-        round: "ROUND_2_SUB_MOVIE",
+        round: roundCode,
         targetId,
       },
     });

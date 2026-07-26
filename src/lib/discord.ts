@@ -105,6 +105,7 @@ export async function notifyRoundAdvanced(
       case "CATEGORY_TIEBREAKER_VOTING": return "Category Tiebreaker Voting";
       case "MOVIE_VOTING": return "Movie Voting";
       case "SUBCATEGORY_VOTING": return "Subcategory Voting";
+      case "SUBCATEGORY_TIEBREAKER_VOTING": return "Subcategory Tiebreaker Voting";
       case "SHORTLIST_VOTING": return "Shortlist Voting";
       case "FINAL_VOTING": return "Final Tiebreaker Voting";
       case "IN_PERSON_VOTING": return "In Person Voting";
@@ -160,12 +161,37 @@ export async function notifyRoundAdvanced(
       if (details.winnerPoster) {
         thumbnail = { url: details.winnerPoster };
       }
+    } else if (newStatus === "SUBCATEGORY_TIEBREAKER_VOTING") {
+      description = `**Round 2b (Subcategory Voting)** ended in a tie! Advancing to Round 2c Subcategory Tiebreaker.`;
+      if (details.tiedItems && details.tiedItems.length > 0) {
+        fields.push({
+          name: "Tied Options",
+          value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+        });
+      }
     } else {
       description = `**Round 2b (Subcategory Voting)** has concluded! We are advancing to Shortlist Voting.`;
       if (details.tiedItems && details.tiedItems.length > 0) {
         fields.push({
           name: "Tied Options",
           value: details.tiedItems.map(m => `• ${m}`).join("\n"),
+        });
+      }
+    }
+  } else if (prevStatus === "SUBCATEGORY_TIEBREAKER_VOTING") {
+    if (newStatus === "COMPLETED") {
+      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      color = 0xf1c40f; // Gold
+      description = `**Round 2c (Subcategory Tiebreaker)** concluded!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
+      if (details.winnerPoster) {
+        thumbnail = { url: details.winnerPoster };
+      }
+    } else {
+      description = `**Round 2c (Subcategory Tiebreaker)** has concluded! We are advancing to Shortlist Voting.`;
+      if (details.winnerName) {
+        fields.push({
+          name: "Winning Subcategory",
+          value: `• ${details.winnerName}`,
         });
       }
     }

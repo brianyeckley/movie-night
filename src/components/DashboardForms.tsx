@@ -144,60 +144,101 @@ export async function MovieVotingForm({ week, currentUserId }: any) {
   );
 }
 
-// 3. Round 2b: Subcategory Movie Voting
+// 3. Round 2b/2c: Subcategory Movie Voting & Tiebreaker
 export async function SubcategoryVotingForm({ week, currentUserId }: any) {
   if (!week.selectedSubcategoryId) return <p>Subcategory not selected.</p>;
-
-  // Check if this round is a tiebreaker from Round 2
-  const r2Votes = await db.weekVote.findMany({
-    where: { weekId: week.id, round: "ROUND_2_MOVIE" },
-    include: { user: true },
-  });
-  const approvedR2Votes = r2Votes.filter((v) => v.user.isApproved);
-  const r2Counts: Record<string, number> = {};
-  approvedR2Votes.forEach((v) => {
-    r2Counts[v.targetId] = (r2Counts[v.targetId] || 0) + 1;
-  });
-  const r2Max = Math.max(...Object.values(r2Counts), 0);
-  const r2TiedIds = Object.keys(r2Counts).filter((id) => r2Counts[id] === r2Max);
-  const isTie = r2TiedIds.length > 1;
 
   const subcategory = await db.category.findUnique({
     where: { id: week.selectedSubcategoryId },
   });
 
+  const isRound2c = week.status === "SUBCATEGORY_TIEBREAKER_VOTING";
+
   let movies: any[] = [];
   let subcategories: any[] = [];
+  let isTie = false;
+  let maxVotes = 3;
+  let roundCode = "ROUND_2_SUB_MOVIE";
 
-  if (isTie) {
-    // Tiebreaker mode: show the subcategory itself plus the other tied movies
-    if (subcategory) {
+  if (isRound2c) {
+    roundCode = "ROUND_2C_SUB_MOVIE";
+    maxVotes = 1;
+    isTie = true;
+
+    // Get top tied items from Round 2b (ROUND_2_SUB_MOVIE)
+    const r2bVotes = await db.weekVote.findMany({
+      where: { weekId: week.id, round: "ROUND_2_SUB_MOVIE" },
+      include: { user: true },
+    });
+    const approvedR2bVotes = r2bVotes.filter((v) => v.user.isApproved);
+    const r2bCounts: Record<string, number> = {};
+    approvedR2bVotes.forEach((v) => {
+      r2bCounts[v.targetId] = (r2bCounts[v.targetId] || 0) + 1;
+    });
+    const r2bMax = Math.max(...Object.values(r2bCounts), 0);
+    const r2bTiedIds = Object.keys(r2bCounts).filter((id) => r2bCounts[id] === r2bMax);
+
+    if (subcategory && r2bTiedIds.includes(subcategory.id)) {
       subcategories = [subcategory];
     }
-    const tiedMovieIds = r2TiedIds.filter((id) => id !== week.selectedSubcategoryId);
+    const tiedMovieIds = r2bTiedIds.filter((id) => id !== week.selectedSubcategoryId);
     movies = await db.movie.findMany({
       where: { id: { in: tiedMovieIds } },
       include: { genres: true },
       orderBy: { title: "asc" },
     });
   } else {
-    // Normal mode: movies in this subcategory (exclude watched)
-    movies = await db.movie.findMany({
-      where: { categoryId: week.selectedSubcategoryId, watched: false },
-      include: { genres: true },
-      orderBy: { title: "asc" },
+    // Round 2b
+    const r2Votes = await db.weekVote.findMany({
+      where: { weekId: week.id, round: "ROUND_2_MOVIE" },
+      include: { user: true },
     });
+    const approvedR2Votes = r2Votes.filter((v) => v.user.isApproved);
+    const r2Counts: Record<string, number> = {};
+    approvedR2Votes.forEach((v) => {
+      r2Counts[v.targetId] = (r2Counts[v.targetId] || 0) + 1;
+    });
+    const r2Max = Math.max(...Object.values(r2Counts), 0);
+    const r2TiedIds = Object.keys(r2Counts).filter((id) => r2Counts[id] === r2Max);
+    isTie = r2TiedIds.length > 1;
+
+    if (isTie) {
+      if (subcategory) {
+        subcategories = [subcategory];
+      }
+      const tiedMovieIds = r2TiedIds.filter((id) => id !== week.selectedSubcategoryId);
+      movies = await db.movie.findMany({
+        where: { id: { in: tiedMovieIds } },
+        include: { genres: true },
+        orderBy: { title: "asc" },
+      });
+    } else {
+      movies = await db.movie.findMany({
+        where: { categoryId: week.selectedSubcategoryId, watched: false },
+        include: { genres: true },
+        orderBy: { title: "asc" },
+      });
+    }
   }
 
   // User's current votes in this sub-round
   const userVotes = await db.weekVote.findMany({
-    where: { weekId: week.id, userId: currentUserId, round: "ROUND_2_SUB_MOVIE" },
+    where: { weekId: week.id, userId: currentUserId, round: roundCode },
   });
   const userVoteIds = userVotes.map((v) => v.targetId);
 
   return (
     <div>
-      {isTie ? (
+      {isRound2c ? (
+        <>
+          <h3 className="text-3xl font-bold mb-sm">
+            Round 2c: Subcategory Tiebreaker (1 Vote)
+          </h3>
+          <p className="text-secondary mb-xl text-md">
+            Round 2b ended in a tie! Cast 1 vote for your top choice among the tied options.
+          </p>
+        </>
+      ) : isTie ? (
         <>
           <h3 className="text-3xl font-bold mb-sm">
             Round 2b: Tiebreaker Voting
@@ -228,6 +269,8 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
           subcategories={subcategories}
           initialVotes={userVoteIds}
           isTie={isTie}
+          maxVotes={maxVotes}
+          roundCode={roundCode}
         />
       )}
     </div>
