@@ -2,6 +2,7 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import fs from "fs";
 import path from "path";
+import type { Prisma } from "../src/generated/prisma/client";
 
 const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
 const dbPath = dbUrl.startsWith("file:") ? dbUrl.substring(5) : dbUrl;
@@ -30,7 +31,7 @@ async function main() {
   console.log(`Fetched ${dbMovies.length} movies from the database.`);
 
   // 3. Create a lookup map of normalized movie titles in the DB
-  const dbMovieMap = new Map<string, any>();
+  const dbMovieMap = new Map<string, (typeof dbMovies)[number]>();
   dbMovies.forEach((movie) => {
     dbMovieMap.set(movie.title.toLowerCase().trim(), movie);
   });
@@ -44,7 +45,7 @@ async function main() {
     const matchedMovie = dbMovieMap.get(key);
 
     if (matchedMovie) {
-      const updateData: any = {};
+      const updateData: Prisma.MovieUpdateInput = {};
       if (item.type === "4K") {
         updateData.physical4K = true;
       } else if (item.type === "blu-ray") {

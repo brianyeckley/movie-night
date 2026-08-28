@@ -1,12 +1,9 @@
 import { db } from "@/lib/db";
 import {
   getActiveUser,
-  createWeekAction,
   deleteWeekAction,
   resetRoundAction,
-  advanceWeekRoundAction,
 } from "@/app/actions";
-import Link from "next/link";
 import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
 import AdvanceRoundButton from "@/components/AdvanceRoundButton";
 import AutoRefresh from "@/components/AutoRefresh";
@@ -25,8 +22,34 @@ import {
   InPersonRound3,
 } from "@/components/DashboardForms";
 import AdminStartWeekFormClient from "@/components/AdminStartWeekFormClient";
+import {
+  approvedVotes,
+  formatRound,
+  formatStatus,
+  roundCodeForStatus,
+  ROUND_ORDER,
+  type RoundCode,
+} from "@/lib/rounds";
 
 export const dynamic = "force-dynamic";
+
+/** One option within a closed round's results. */
+interface RoundTarget {
+  targetId: string;
+  name: string;
+  count: number;
+  voters: string[];
+}
+
+/** A closed round, as shown under "Prior Round Results". */
+interface RoundResult {
+  roundCode: string;
+  title: string;
+  targets: RoundTarget[];
+  isTie: boolean;
+  /** Set when a random draw resolved this round's tie. */
+  chosenTargetId: string | null;
+}
 
 
 export default async function DashboardPage() {
@@ -70,50 +93,35 @@ export default async function DashboardPage() {
     orderBy: { weekNumber: "desc" },
   });
 
-  // Fetch details for past winning movies
-  const pastWeeks = await Promise.all(
-    closedWeeks.map(async (wk) => {
-      const winner = wk.winningMovieId
-        ? await db.movie.findUnique({
-            where: { id: wk.winningMovieId },
-            include: { genres: true, category: true },
-          })
-        : null;
-      return { ...wk, winner };
-    })
-  );
+  // Fetch details for past winning movies in one query rather than one per week
+  const pastWinnerIds = closedWeeks
+    .map((wk) => wk.winningMovieId)
+    .filter((id): id is string => Boolean(id));
+
+  const pastWinners = await db.movie.findMany({
+    where: { id: { in: pastWinnerIds } },
+    include: { genres: true, category: true },
+  });
+  const pastWinnersById = new Map(pastWinners.map((m) => [m.id, m]));
+
+  const pastWeeks = closedWeeks.map((wk) => ({
+    ...wk,
+    winner: wk.winningMovieId
+      ? pastWinnersById.get(wk.winningMovieId) ?? null
+      : null,
+  }));
 
   // Compute round status details
   let roundTitle = "";
   let roundVotedUserIds: string[] = [];
   let activeRoundCode = "";
-  let completedRoundsData: any[] = [];
+  let completedRoundsData: RoundResult[] = [];
 
   if (activeWeek) {
-    if (activeWeek.status === "CATEGORY_VOTING") activeRoundCode = "ROUND_1_CATEGORY";
-    else if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_1_CATEGORY_TIEBREAKER";
-    else if (activeWeek.status === "MOVIE_VOTING") activeRoundCode = "ROUND_2_MOVIE";
-    else if (activeWeek.status === "SUBCATEGORY_VOTING") activeRoundCode = "ROUND_2_SUB_MOVIE";
-    else if (activeWeek.status === "SUBCATEGORY_TIEBREAKER_VOTING") activeRoundCode = "ROUND_2C_SUB_MOVIE";
-    else if (activeWeek.status === "SHORTLIST_VOTING") activeRoundCode = "ROUND_3_SHORTLIST";
-    else if (activeWeek.status === "FINAL_VOTING") activeRoundCode = "ROUND_4_TIEBREAKER";
-    else if (activeWeek.status === "IN_PERSON_VOTING") activeRoundCode = "IN_PERSON_ROUND_1";
-    else if (activeWeek.status === "IN_PERSON_TIEBREAKER") activeRoundCode = "IN_PERSON_ROUND_1B";
-    else if (activeWeek.status === "IN_PERSON_ROUND_2") activeRoundCode = "IN_PERSON_ROUND_2";
-    else if (activeWeek.status === "IN_PERSON_ROUND_3") activeRoundCode = "IN_PERSON_ROUND_3";
+    activeRoundCode = roundCodeForStatus(activeWeek.status) ?? "";
+    roundTitle = formatStatus(activeWeek.status);
 
-    if (activeWeek.status === "CATEGORY_TIEBREAKER_VOTING") {
-      roundTitle = "Category Tiebreaker Voting";
-    } else if (activeWeek.status === "SUBCATEGORY_TIEBREAKER_VOTING") {
-      roundTitle = "Subcategory Tiebreaker Voting";
-    } else if (activeWeek.status === "IN_PERSON_VOTING") {
-      roundTitle = "In Person Voting";
-    } else if (activeWeek.status === "IN_PERSON_TIEBREAKER") {
-      roundTitle = "In Person Tiebreaker Voting";
-    } else {
-      roundTitle = activeWeek.status.replace("_", " ");
-    }
-    const approvedActiveVotes = activeWeek.votes.filter((v) => v.user.isApproved);
+    const approvedActiveVotes = approvedVotes(activeWeek.votes);
 
     roundVotedUserIds = approvedActiveVotes
       .filter((v) => v.round === activeRoundCode)
@@ -138,7 +146,7 @@ export default async function DashboardPage() {
       targetLookup[m.id] = m.title + (m.year ? ` (${m.year})` : "");
     });
 
-    const votesByRound: Record<string, any[]> = {};
+    const votesByRound: Record<string, typeof approvedActiveVotes> = {};
     approvedActiveVotes.forEach((v) => {
       if (v.round !== activeRoundCode) {
         if (!votesByRound[v.round]) {
@@ -148,22 +156,8 @@ export default async function DashboardPage() {
       }
     });
 
-    const roundTitles: Record<string, string> = {
-      ROUND_1_CATEGORY: "Round 1: Category Selection",
-      ROUND_1_CATEGORY_TIEBREAKER: "Round 1b: Category Tiebreaker",
-      ROUND_2_MOVIE: "Round 2: Movie Selection",
-      ROUND_2_SUB_MOVIE: "Round 2b: Subcategory Movie Selection",
-      ROUND_2C_SUB_MOVIE: "Round 2c: Subcategory Tiebreaker",
-      ROUND_3_SHORTLIST: "Round 3: Shortlist Selection",
-      ROUND_4_TIEBREAKER: "Round 4: Final Tiebreaker",
-      IN_PERSON_ROUND_1: "Round 1: In Person Movie Selection",
-      IN_PERSON_ROUND_1B: "Round 1b: In Person Tiebreaker",
-      IN_PERSON_ROUND_2: "Round 2: In Person Tiebreaker (1 vote)",
-      IN_PERSON_ROUND_3: "Round 3: In Person Final Tiebreaker (2 votes)",
-    };
-
     const parsedRounds = Object.entries(votesByRound).map(([roundCode, roundVotes]) => {
-      const targetCounts: Record<string, { targetId: string; name: string; count: number; voters: string[] }> = {};
+      const targetCounts: Record<string, RoundTarget> = {};
       
       roundVotes.forEach((v) => {
         if (!targetCounts[v.targetId]) {
@@ -203,35 +197,26 @@ export default async function DashboardPage() {
 
       return {
         roundCode,
-        title: roundTitles[roundCode] || roundCode,
+        title: formatRound(roundCode),
         targets: sortedTargets,
         isTie,
         chosenTargetId,
       };
     });
 
-    const roundOrder = [
-      "ROUND_1_CATEGORY",
-      "ROUND_1_CATEGORY_TIEBREAKER",
-      "ROUND_2_MOVIE",
-      "ROUND_2_SUB_MOVIE",
-      "ROUND_2C_SUB_MOVIE",
-      "ROUND_3_SHORTLIST",
-      "ROUND_4_TIEBREAKER",
-      "IN_PERSON_ROUND_1",
-      "IN_PERSON_ROUND_1B",
-      "IN_PERSON_ROUND_2",
-      "IN_PERSON_ROUND_3",
-    ];
-
-    parsedRounds.sort((a, b) => roundOrder.indexOf(b.roundCode) - roundOrder.indexOf(a.roundCode));
+    // Newest round first
+    parsedRounds.sort(
+      (a, b) =>
+        ROUND_ORDER.indexOf(b.roundCode as RoundCode) -
+        ROUND_ORDER.indexOf(a.roundCode as RoundCode)
+    );
     completedRoundsData = parsedRounds;
   }
 
   const allVotesIn = activeWeek ? users.every((u) => roundVotedUserIds.includes(u.id)) : false;
   const round1TiebreakerTieInfo = completedRoundsData.find((r) => r.roundCode === "ROUND_1_CATEGORY_TIEBREAKER" && r.isTie);
   const round1TiebreakerChosenName = round1TiebreakerTieInfo && activeWeek?.selectedCategoryId
-    ? round1TiebreakerTieInfo.targets.find((t: any) => t.targetId === activeWeek.selectedCategoryId)?.name
+    ? round1TiebreakerTieInfo.targets.find((t) => t.targetId === activeWeek.selectedCategoryId)?.name
     : null;
 
   const inPersonTiebreakerTieInfo = completedRoundsData.find((r) => 
@@ -240,7 +225,7 @@ export default async function DashboardPage() {
     r.chosenTargetId
   );
   const inPersonTiebreakerChosenName = inPersonTiebreakerTieInfo && activeWeek?.winningMovieId
-    ? inPersonTiebreakerTieInfo.targets.find((t: any) => t.targetId === activeWeek.winningMovieId)?.name
+    ? inPersonTiebreakerTieInfo.targets.find((t) => t.targetId === activeWeek.winningMovieId)?.name
     : null;
 
   return (
@@ -408,52 +393,52 @@ export default async function DashboardPage() {
                         
                         {/* ROUND 1: Category Voting */}
                         {activeWeek.status === "CATEGORY_VOTING" && (
-                          <CategoryVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <CategoryVotingForm week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* ROUND 1b: Category Tiebreaker Voting */}
                         {activeWeek.status === "CATEGORY_TIEBREAKER_VOTING" && (
-                          <CategoryTiebreakerVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <CategoryTiebreakerVotingForm week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* ROUND 2: Movie/Subcategory Voting */}
                         {activeWeek.status === "MOVIE_VOTING" && (
-                          <MovieVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <MovieVotingForm week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* ROUND 2b / 2c: Subcategory Movie Voting & Tiebreaker */}
                         {(activeWeek.status === "SUBCATEGORY_VOTING" || activeWeek.status === "SUBCATEGORY_TIEBREAKER_VOTING") && (
-                          <SubcategoryVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <SubcategoryVotingForm week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* ROUND 3: Shortlist Voting */}
                         {activeWeek.status === "SHORTLIST_VOTING" && (
-                          <ShortlistVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <ShortlistVotingForm week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* ROUND 4: Tiebreaker Voting */}
                         {activeWeek.status === "FINAL_VOTING" && (
-                          <FinalVotingForm week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <FinalVotingForm week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* IN PERSON: Round 1 Voting */}
                         {activeWeek.status === "IN_PERSON_VOTING" && (
-                          <InPersonVotingRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <InPersonVotingRound week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* IN PERSON: Round 1b Tiebreaker Voting */}
                         {activeWeek.status === "IN_PERSON_TIEBREAKER" && (
-                          <InPersonTiebreakerRound week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <InPersonTiebreakerRound week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* IN PERSON: Round 2 Tiebreaker Voting */}
                         {activeWeek.status === "IN_PERSON_ROUND_2" && (
-                          <InPersonRound2 week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <InPersonRound2 week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* IN PERSON: Round 3 Tiebreaker Voting */}
                         {activeWeek.status === "IN_PERSON_ROUND_3" && (
-                          <InPersonRound3 week={activeWeek} currentUserId={currentUser.id} roundVotedUserIds={roundVotedUserIds} />
+                          <InPersonRound3 week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* COMPLETED / WINNER STATE */}
@@ -470,7 +455,7 @@ export default async function DashboardPage() {
                             📊 Prior Round Results
                           </h3>
                           <div className="flex-col gap-md">
-                            {completedRoundsData.map((round: any) => (
+                            {completedRoundsData.map((round) => (
                               <div 
                                 key={round.roundCode} 
                                 className="prior-round-card"
@@ -486,7 +471,7 @@ export default async function DashboardPage() {
                                       <>
                                         🎲 <strong>Tiebreaker:</strong> Random draw selected{" "}
                                         <strong className="text-accent-color">
-                                          {round.targets.find((t: any) => t.targetId === round.chosenTargetId)?.name || "Option"}
+                                          {round.targets.find((t) => t.targetId === round.chosenTargetId)?.name || "Option"}
                                         </strong>
                                       </>
                                     ) : (
@@ -498,8 +483,9 @@ export default async function DashboardPage() {
                                 )}
 
                                 <div className="flex-col gap-sm">
-                                  {round.targets.map((target: any, idx: number) => {
-                                    const isWinner = idx === 0 || target.count === round.targets[0].count;
+                                  {round.targets.map((target) => {
+                                    // Targets are sorted by count, so the leaders match the first entry
+                                    const isWinner = target.count === round.targets[0].count;
                                     const isChosenRandomly = round.chosenTargetId === target.targetId;
 
                                     let itemBgColor = "rgba(255, 255, 255, 0.015)";

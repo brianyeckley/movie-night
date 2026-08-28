@@ -21,10 +21,30 @@ import {
   getInPersonTiedMovies,
 } from "@/lib/voting-helpers";
 import InPersonVotingForm from "@/components/InPersonVotingForm";
+import { approvedVotes, tallyVotes, type RoundCode } from "@/lib/rounds";
+import type {
+  ActiveWeek,
+  Category,
+  MovieWithGenres,
+  MovieWithGenresAndCategory,
+  RoundFormProps,
+  User,
+} from "@/lib/types";
+
+// Load a week's votes for one round, keeping only approved voters
+async function loadApprovedRoundVotes(weekId: string, round: RoundCode) {
+  const votes = await db.weekVote.findMany({
+    where: { weekId, round },
+    include: { user: true },
+  });
+  return approvedVotes(votes);
+}
 
 // 1. Round 1: Category Voting
-export async function CategoryVotingForm({ week, currentUserId }: any) {
-  // Fetch active categories (Comedy, Other, Legacy, and active Theme)
+export async function CategoryVotingForm({ week, currentUserId }: RoundFormProps) {
+  // Fetch active categories (Comedy, Other, Legacy, and active Theme).
+  // A week without a theme contributes no id clause at all - matching on
+  // `{ id: null }` would be meaningless.
   const categories = await db.category.findMany({
     where: {
       parentId: null,
@@ -32,7 +52,7 @@ export async function CategoryVotingForm({ week, currentUserId }: any) {
         { name: "Comedy" },
         { name: "Other" },
         { name: "Legacy" },
-        { id: week.themeCategoryId },
+        ...(week.themeCategoryId ? [{ id: week.themeCategoryId }] : []),
       ],
     },
   });
@@ -59,7 +79,7 @@ export async function CategoryVotingForm({ week, currentUserId }: any) {
 }
 
 // 1b. Round 1b: Category Tiebreaker Voting
-export async function CategoryTiebreakerVotingForm({ week, currentUserId }: any) {
+export async function CategoryTiebreakerVotingForm({ week, currentUserId }: RoundFormProps) {
   const categories = await getCategoryTiebreakerCategories(week.id);
 
   // User's current votes in this round
@@ -89,7 +109,7 @@ export async function CategoryTiebreakerVotingForm({ week, currentUserId }: any)
 }
 
 // 2. Round 2: Movie/Subcategory Voting in Category
-export async function MovieVotingForm({ week, currentUserId }: any) {
+export async function MovieVotingForm({ week, currentUserId }: RoundFormProps) {
   if (!week.selectedCategoryId) return <p>Category not selected.</p>;
 
   const category = await db.category.findUnique({
@@ -146,7 +166,7 @@ export async function MovieVotingForm({ week, currentUserId }: any) {
 }
 
 // 3. Round 2b/2c: Subcategory Movie Voting & Tiebreaker
-export async function SubcategoryVotingForm({ week, currentUserId }: any) {
+export async function SubcategoryVotingForm({ week, currentUserId }: RoundFormProps) {
   if (!week.selectedSubcategoryId) return <p>Subcategory not selected.</p>;
 
   const subcategory = await db.category.findUnique({
@@ -155,8 +175,8 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
 
   const isRound2c = week.status === "SUBCATEGORY_TIEBREAKER_VOTING";
 
-  let movies: any[] = [];
-  let subcategories: any[] = [];
+  let movies: MovieWithGenres[] = [];
+  let subcategories: Category[] = [];
   let isTie = false;
   let maxVotes = 3;
   let roundCode = "ROUND_2_SUB_MOVIE";
@@ -167,17 +187,9 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
     isTie = true;
 
     // Get top tied items from Round 2b (ROUND_2_SUB_MOVIE)
-    const r2bVotes = await db.weekVote.findMany({
-      where: { weekId: week.id, round: "ROUND_2_SUB_MOVIE" },
-      include: { user: true },
-    });
-    const approvedR2bVotes = r2bVotes.filter((v) => v.user.isApproved);
-    const r2bCounts: Record<string, number> = {};
-    approvedR2bVotes.forEach((v) => {
-      r2bCounts[v.targetId] = (r2bCounts[v.targetId] || 0) + 1;
-    });
-    const r2bMax = Math.max(...Object.values(r2bCounts), 0);
-    const r2bTiedIds = Object.keys(r2bCounts).filter((id) => r2bCounts[id] === r2bMax);
+    const { tiedIds: r2bTiedIds } = tallyVotes(
+      await loadApprovedRoundVotes(week.id, "ROUND_2_SUB_MOVIE")
+    );
 
     if (subcategory && r2bTiedIds.includes(subcategory.id)) {
       subcategories = [subcategory];
@@ -190,17 +202,9 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
     movies = sortMoviesByTitle(rawTiedMovies);
   } else {
     // Round 2b
-    const r2Votes = await db.weekVote.findMany({
-      where: { weekId: week.id, round: "ROUND_2_MOVIE" },
-      include: { user: true },
-    });
-    const approvedR2Votes = r2Votes.filter((v) => v.user.isApproved);
-    const r2Counts: Record<string, number> = {};
-    approvedR2Votes.forEach((v) => {
-      r2Counts[v.targetId] = (r2Counts[v.targetId] || 0) + 1;
-    });
-    const r2Max = Math.max(...Object.values(r2Counts), 0);
-    const r2TiedIds = Object.keys(r2Counts).filter((id) => r2Counts[id] === r2Max);
+    const { tiedIds: r2TiedIds } = tallyVotes(
+      await loadApprovedRoundVotes(week.id, "ROUND_2_MOVIE")
+    );
     isTie = r2TiedIds.length > 1;
 
     if (isTie) {
@@ -279,9 +283,9 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
 }
 
 // 4. Round 3: Shortlist Voting
-export async function ShortlistVotingForm({ week, currentUserId }: any) {
+export async function ShortlistVotingForm({ week, currentUserId }: RoundFormProps) {
   // Dynamically compile shortlist movies based on ties in R2 / R2b
-  const movies = await getShortlistMovies(week.id, week.selectedCategoryId, week.selectedSubcategoryId);
+  const movies = await getShortlistMovies(week.id, week.selectedSubcategoryId);
 
   // User's current votes in this round
   const userVotes = await db.weekVote.findMany({
@@ -318,7 +322,7 @@ export async function ShortlistVotingForm({ week, currentUserId }: any) {
 }
 
 // 5. Round 4: Final Tiebreaker Voting
-export async function FinalVotingForm({ week, currentUserId }: any) {
+export async function FinalVotingForm({ week, currentUserId }: RoundFormProps) {
   // Dynamically compile tied movies from Round 3
   const movies = await getFinalTiebreakerMovies(week.id);
 
@@ -344,7 +348,17 @@ export async function FinalVotingForm({ week, currentUserId }: any) {
 }
 
 // 6. Completed Week / Winner Announcement View
-export function CompletedWeekView({ week, movie, currentUser }: any) {
+interface CompletedWeekViewProps {
+  week: ActiveWeek;
+  movie: MovieWithGenresAndCategory;
+  currentUser: User;
+}
+
+export function CompletedWeekView({
+  week,
+  movie,
+  currentUser,
+}: CompletedWeekViewProps) {
   const isLegacyMovie = movie.category.name === "Legacy";
 
   return (
@@ -421,7 +435,7 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
         {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
         {movie.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
         {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
-        {movie.genres.map((g: any) => (
+        {movie.genres.map((g) => (
           <span key={g.id} className="badge badge-user">
             {g.name}
           </span>
@@ -435,7 +449,7 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
             👑 Admin: Close out Movie Night Week
           </h3>
           <p className="text-sm text-secondary mb-md">
-            Ready to finalize the week? Choose an action below. This will mark the movie as watched and archive the week's history.
+            Ready to finalize the week? Choose an action below. This will mark the movie as watched and archive the week&apos;s history.
           </p>
 
           {!isLegacyMovie ? (
@@ -494,7 +508,7 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
 }
 
 // 7. In Person: Round 1 In Person Voting
-export async function InPersonVotingRound({ week, currentUserId }: any) {
+export async function InPersonVotingRound({ week, currentUserId }: RoundFormProps) {
   const rawMovies = await db.movie.findMany({
     where: {
       watched: false,
@@ -537,7 +551,7 @@ export async function InPersonVotingRound({ week, currentUserId }: any) {
 }
 
 // 8. In Person: Round 1b In Person Tiebreaker Voting
-export async function InPersonTiebreakerRound({ week, currentUserId }: any) {
+export async function InPersonTiebreakerRound({ week, currentUserId }: RoundFormProps) {
   const movies = await getInPersonTiebreakerMovies(week.id);
 
   const userVotes = await db.weekVote.findMany({
@@ -569,7 +583,7 @@ export async function InPersonTiebreakerRound({ week, currentUserId }: any) {
 }
 
 // 9. In Person: Round 2 In Person Tiebreaker Voting (Third Round)
-export async function InPersonRound2({ week, currentUserId }: any) {
+export async function InPersonRound2({ week, currentUserId }: RoundFormProps) {
   const movies = await getInPersonTiedMovies(week.id, "IN_PERSON_ROUND_1B");
 
   const userVotes = await db.weekVote.findMany({
@@ -601,7 +615,7 @@ export async function InPersonRound2({ week, currentUserId }: any) {
 }
 
 // 10. In Person: Round 3 In Person Tiebreaker Voting (Final Round)
-export async function InPersonRound3({ week, currentUserId }: any) {
+export async function InPersonRound3({ week, currentUserId }: RoundFormProps) {
   const movies = await getInPersonTiedMovies(week.id, "IN_PERSON_ROUND_2");
 
   const userVotes = await db.weekVote.findMany({

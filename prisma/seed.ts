@@ -42,7 +42,7 @@ async function main() {
     },
   });
 
-  const stew = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { username: "stew" },
     update: {
       passwordHash: stewHash,
@@ -57,7 +57,7 @@ async function main() {
     },
   });
 
-  const nick = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { username: "nick" },
     update: {
       passwordHash: nickHash,
@@ -76,7 +76,7 @@ async function main() {
 
   // 2. Seed Genres
   const genresList = ["Horror", "Sci-Fi", "Action", "Comedy", "Crime", "Schlock", "Martial Arts", "Fantasy"];
-  const genres: Record<string, any> = {};
+  const genres: Record<string, { id: string; name: string }> = {};
 
   for (const genreName of genresList) {
     const genre = await prisma.genre.upsert({

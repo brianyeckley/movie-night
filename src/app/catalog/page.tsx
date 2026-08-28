@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
 import { getActiveUser, addCategoryAction, addSubcategoryAction } from "@/app/actions";
 import AddMovieForm from "@/components/AddMovieForm";
-import Link from "next/link";
 import CatalogListClient from "@/components/CatalogListClient";
 import { sortMoviesByTitle } from "@/lib/movie-sort";
 
@@ -91,6 +90,7 @@ export default async function CatalogPage() {
                   categories={categories}
                   flatCategories={flatCategories}
                   genres={genres}
+                  isAdmin={currentUser.role === "ADMIN"}
                 />
               )}
             </div>

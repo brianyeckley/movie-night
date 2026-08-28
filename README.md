@@ -48,7 +48,9 @@ If you pull updates that include database schema changes (such as the IMDb scrap
 A background check is available at `/api/cron/remind-votes` to see who hasn't voted in the current active round and send reminders to your Discord webhook.
 
 ### 1. Setup Environment Variables
-Configure the optional security key in your `.env` file to prevent unauthorized triggering of the webhook:
+Configure the security key in your `.env` file to prevent unauthorized triggering of the
+webhook. `CRON_SECRET` is required: with no secret configured the endpoint rejects every
+request rather than leaving itself open.
 ```env
 DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
 NEXT_PUBLIC_APP_URL="https://your-app-domain.com"
@@ -99,7 +101,17 @@ The `docker-compose.yml` includes `containrrr/watchtower`, configured with `DOCK
 ### Deployment Steps
 
 1. **Configure Environment Variables**:
-   Create a `.env` file in the root of the project (if you haven't already). Make sure it includes your Cloudflare Tunnel Token and other necessary keys:
+   Create a `.env` file in the root of the project (if you haven't already) —
+   `cp .env.example .env` covers every variable with notes on each. Compose reads
+   this file on `docker compose up` to substitute the `${VARS}` in
+   `docker-compose.yml`, so it persists across restarts.
+
+   > **After adding or changing a variable, run `docker compose up -d`.**
+   > Watchtower clones the running container's existing environment when it pulls
+   > a new image, so it will not pick up a variable added since that container was
+   > last created.
+
+   Make sure it includes your Cloudflare Tunnel Token and other necessary keys:
    ```env
    # Host directory for persistent SQLite database storage (defaults to ./data if omitted)
    DATA_DIR="./data"
@@ -108,6 +120,10 @@ The `docker-compose.yml` includes `containrrr/watchtower`, configured with `DOCK
    TUNNEL_TOKEN="your-cloudflare-tunnel-token"
 
    # Project Settings
+   # Required in production - the app refuses to start without it, so that
+   # session cookies are never signed with a key committed to the repo.
+   # Generate one with: openssl rand -base64 32
+   SESSION_SECRET="your-generated-session-secret"
    OMDB_API_KEY="your-omdb-api-key"
    DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
    NEXT_PUBLIC_APP_URL="https://your-app-domain.com"

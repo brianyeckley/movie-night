@@ -2,29 +2,61 @@ import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const secretKey = process.env.SESSION_SECRET || "default_super_secret_local_key_for_movie_night";
-const encodedKey = new TextEncoder().encode(secretKey);
+const DEV_FALLBACK_SECRET = "insecure_local_development_key_do_not_deploy";
 
-export interface SessionPayload {
-  userId: string;
-  expiresAt: Date;
+let cachedKey: Uint8Array | null = null;
+
+/**
+ * The HMAC key used to sign session cookies.
+ *
+ * A committed fallback would let anyone who can read this repository mint a
+ * valid admin session, so in production the secret must come from the
+ * environment. This is resolved lazily rather than at module scope because
+ * `next build` evaluates modules with NODE_ENV=production, and the build has
+ * no reason to hold a runtime secret.
+ */
+function getSigningKey(): Uint8Array {
+  if (cachedKey) return cachedKey;
+
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "SESSION_SECRET is not set. Refusing to sign sessions with a default key."
+      );
+    }
+    console.warn(
+      "SESSION_SECRET is not set - using the insecure development key."
+    );
+  }
+
+  cachedKey = new TextEncoder().encode(secret || DEV_FALLBACK_SECRET);
+  return cachedKey;
 }
 
-export async function encrypt(payload: any, expiration = "24h") {
+export async function encrypt(
+  payload: Record<string, unknown>,
+  expiration = "24h"
+) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expiration)
-    .sign(encodedKey);
+    .sign(getSigningKey());
 }
 
 export async function decrypt(session: string | undefined = "") {
+  // Resolved outside the try so a missing SESSION_SECRET surfaces as a
+  // configuration error rather than being swallowed as "not signed in".
+  const key = getSigningKey();
+
   try {
-    const { payload } = await jwtVerify(session, encodedKey, {
+    const { payload } = await jwtVerify(session, key, {
       algorithms: ["HS256"],
     });
     return payload;
-  } catch (error) {
+  } catch {
+    // An invalid, expired or tampered token is simply "not signed in".
     return null;
   }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getSortableTitle, compareMovieTitles, sortMoviesByTitle } from "@/lib/movie-sort";
+import { getSortableTitle, sortMoviesByTitle } from "@/lib/movie-sort";
 
 describe("movie-sort", () => {
   describe("getSortableTitle", () => {

@@ -20,13 +20,17 @@ export async function getActiveUser() {
       return null;
     }
     return user;
-  } catch (error) {
+  } catch {
+    // Treat a lookup failure the same as "not signed in".
     return null;
   }
 }
 
 // 1. Log in a user
-export async function loginAction(prevState: any, formData: FormData) {
+export async function loginAction(
+  prevState: unknown,
+  formData: FormData
+) {
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
   const rememberMe = formData.get("rememberMe") === "on";
@@ -64,7 +68,10 @@ export async function loginAction(prevState: any, formData: FormData) {
 }
 
 // 2. Sign up a new user
-export async function signupAction(prevState: any, formData: FormData) {
+export async function signupAction(
+  prevState: unknown,
+  formData: FormData
+) {
   const username = formData.get("username") as string;
   const name = formData.get("name") as string;
   const password = formData.get("password") as string;
@@ -190,7 +197,10 @@ export async function deleteUserAction(userId: string) {
 }
 
 // 7. Change Password
-export async function changePasswordAction(prevState: any, formData: FormData) {
+export async function changePasswordAction(
+  prevState: unknown,
+  formData: FormData
+) {
   const currentUser = await getActiveUser();
   if (!currentUser) {
     return { error: "You must be logged in to change your password." };

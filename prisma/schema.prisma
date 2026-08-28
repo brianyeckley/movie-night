@@ -65,8 +65,9 @@ model Movie {
 model MovieNightWeek {
   id                    String     @id @default(uuid())
   weekNumber            Int        @unique
-  status                String     @default("CATEGORY_VOTING") 
-  // Statuses: "CATEGORY_VOTING", "MOVIE_VOTING", "SUBCATEGORY_VOTING", "SHORTLIST_VOTING", "FINAL_VOTING", "COMPLETED"
+  // Statuses are defined by the WeekStatus union in src/lib/rounds.ts, which
+  // also maps each one to the round that is open for voting.
+  status                String     @default("CATEGORY_VOTING")
   themeCategoryId       String?
   themeCategory         Category?  @relation("ThemeCategory", fields: [themeCategoryId], references: [id])
   selectedCategoryId    String?    // Winning category from Round 1
@@ -85,7 +86,16 @@ model WeekVote {
   week       MovieNightWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
   userId     String
   user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  round      String         // "ROUND_1_CATEGORY", "ROUND_2_MOVIE", "ROUND_2_SUB_MOVIE", "ROUND_3_SHORTLIST", "ROUND_4_TIEBREAKER"
+  // Round codes are defined by the RoundCode union in src/lib/rounds.ts.
+  round      String
   targetId   String         // Can represent Category ID, Subcategory ID, or Movie ID
   createdAt  DateTime       @default(now())
+
+  // Every read filters on the week plus the round, and tallying additionally
+  // groups by user, so both shapes are indexed rather than table-scanned.
+  @@index([weekId, round])
+  @@index([weekId, userId, round])
+  // A user cannot cast the same vote twice in a round. Per-round limits are
+  // still enforced in the actions; this is the backstop against double submits.
+  @@unique([weekId, userId, round, targetId])
 }

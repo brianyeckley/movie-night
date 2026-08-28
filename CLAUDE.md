@@ -11,6 +11,7 @@ This file provides system context, build/test commands, and architectural workfl
 *   **Run Tests in Watch Mode**: `npm run test:watch`
 *   **Run Test Coverage**: `npm run test:coverage`
 *   **Lint Code**: `npm run lint`
+*   **Typecheck**: `npm run typecheck`
 *   **Database Backup**: `npm run db:backup`
 
 ### Prisma & Database Actions
@@ -35,7 +36,9 @@ This file provides system context, build/test commands, and architectural workfl
 *   **Database**: SQLite (via Prisma ORM)
 *   **Styling**: Vanilla CSS (global rules in `src/app/globals.css`, no Tailwind unless requested)
 *   **Testing**: Vitest
-*   **CI/CD & Container Registry**: GitHub Actions (`.github/workflows/docker-publish.yml`) -> GHCR (`ghcr.io/brianyeckley/movie-night:latest`)
+*   **CI/CD & Container Registry**: GitHub Actions -> GHCR (`ghcr.io/brianyeckley/movie-night:latest`).
+    `ci.yml` runs typecheck, lint and tests on pull requests; `docker-publish.yml`
+    repeats that gate on pushes to main and only then builds and pushes the image.
 *   **Deployment**: Docker / Docker Compose (includes pre-built image, Watchtower auto-updater with `DOCKER_API_VERSION=1.40`, and integrated `cloudflare/cloudflared` tunnel daemon)
 
 ---
@@ -43,9 +46,19 @@ This file provides system context, build/test commands, and architectural workfl
 ## Key Directories & File Roles
 *   `src/app/page.tsx`: Main dashboard and routing entry point.
 *   `src/app/actions/`: Server actions containing mutation logic (e.g., `week.ts`, `voting.ts`).
+    Everything exported from a `"use server"` file is a public endpoint, so each
+    export must do its own authorization -- see `src/lib/auth.ts`.
+*   `src/lib/rounds.ts`: **Single source of truth** for week statuses, their round
+    codes, display names and vote limits. Add a status here first; the total
+    `Record` types make the build fail until every consumer handles it.
+*   `src/lib/round-engine.ts`: The voting state machine. Deliberately outside
+    `actions/` so it is not itself a callable endpoint.
 *   `src/components/DashboardForms.tsx`: Houses container server components that fetch data for each voting round.
 *   `src/components/VotingFormClient.tsx`: Houses interactive client forms for checkbox checking and submitting.
+*   `src/components/MovieVoteRow.tsx`: The one movie row every voting round renders.
+*   `src/hooks/useVoteSelection.ts`: Selection/submit state shared by those forms.
 *   `src/lib/voting-helpers.ts`: Compiles shortlist and tiebreaker movie selections from raw database votes.
+*   `src/lib/types.ts`: Prisma-derived shapes for the data the UI renders.
 
 ---
 
@@ -82,8 +95,11 @@ graph TD
 *   **Round 4**: `FINAL_VOTING` (Target: Shortlist Movie, Limit: 1 vote, random draw tiebreak)
 
 ### In-Person Week Statuses (`MovieNightWeek.isInPerson === true`)
-*   `IN_PERSON_VOTING` (Round 1: Select up to 1 vote)
-*   `IN_PERSON_TIEBREAKER` (Round 1b: Tiebreaker, select up to 1 vote)
-*   `IN_PERSON_ROUND_2` (Round 2: Tiebreaker, select up to 1 vote)
+Vote limits live in `IN_PERSON_ROUNDS` in `src/lib/rounds.ts`, which is what the
+server action enforces and the forms render -- update that table, not this list.
+
+*   `IN_PERSON_VOTING` (Round 1: Select up to 3 votes)
+*   `IN_PERSON_TIEBREAKER` (Round 1b: Tiebreaker, select up to 4 votes)
+*   `IN_PERSON_ROUND_2` (Round 2: Tiebreaker, select exactly 1 vote)
 *   `IN_PERSON_ROUND_3` (Round 3: Final tiebreaker, select up to 2 votes)
 *   `COMPLETED`

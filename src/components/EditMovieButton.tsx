@@ -36,27 +36,26 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
   const [physicalBluRay, setPhysicalBluRay] = useState(movie.physicalBluRay);
   const [physicalDvd, setPhysicalDvd] = useState(movie.physicalDvd);
 
-  // Sync state if movie prop changes
-  useEffect(() => {
-    setTitle(movie.title);
-    setImdbUrl(movie.imdbUrl || "");
-    setTrailerUrl(movie.trailerUrl || "");
-    setCategoryId(movie.categoryId);
-    setSelectedGenreIds(movie.genres.map((g) => g.id));
-    setPhysical4K(movie.physical4K);
-    setPhysicalBluRay(movie.physicalBluRay);
-    setPhysicalDvd(movie.physicalDvd);
-  }, [movie]);
+  // The form is seeded from `movie` on mount only. It deliberately does not
+  // re-sync on prop change: `movie` is a fresh object on every server render,
+  // so an effect keyed on it wiped whatever the user had typed each time the
+  // page revalidated. The dialog is remounted per movie by its `key` instead.
+
+  const openModal = () => {
+    // Mounted here rather than in an effect so opening is a single render.
+    setIsRendered(true);
+    setIsOpen(true);
+  };
 
   useEffect(() => {
     if (isOpen) {
-      setIsRendered(true);
       document.body.style.overflow = "hidden";
-    } else {
-      const timer = setTimeout(() => setIsRendered(false), 300);
-      document.body.style.overflow = "";
-      return () => clearTimeout(timer);
+      return;
     }
+    // Keep the overlay mounted until the close transition has finished.
+    const timer = setTimeout(() => setIsRendered(false), 300);
+    document.body.style.overflow = "";
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   const handleGenreToggle = (genreId: string) => {
@@ -91,7 +90,7 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={openModal}
         className="btn-edit"
       >
         ✏️ Edit

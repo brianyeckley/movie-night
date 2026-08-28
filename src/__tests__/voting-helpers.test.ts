@@ -77,7 +77,7 @@ describe("Voting Data Compilation Helpers", () => {
         { id: "movie-2", title: "Evil Dead 2" },
       ] as any);
 
-      const result = await getShortlistMovies("week-1", "cat-horror", "cat-3");
+      const result = await getShortlistMovies("week-1", "cat-3");
 
       // Should check categories and determine that cat-3 was a tied category, while movie-1 is a movie.
       expect(db.category.findMany).toHaveBeenCalledWith({
@@ -130,7 +130,7 @@ describe("Voting Data Compilation Helpers", () => {
         ] as any;
       }) as any);
 
-      const result = await getShortlistMovies("week-1", "cat-horror", "cat-3");
+      const result = await getShortlistMovies("week-1", "cat-3");
 
       // Verify that movie.findMany was called to get subcategory movies
       expect(db.movie.findMany).toHaveBeenCalledWith({
@@ -183,7 +183,7 @@ describe("Voting Data Compilation Helpers", () => {
         ] as any;
       }) as any);
 
-      const result = await getShortlistMovies("week-1", "cat-horror", "cat-3");
+      const result = await getShortlistMovies("week-1", "cat-3");
 
       // Verify final movie query includes movie-1 and movie-2, but EXCLUDES movie-99 which lost
       expect(db.movie.findMany).toHaveBeenCalledWith({

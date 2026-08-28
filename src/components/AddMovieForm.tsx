@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { addMovieAction } from "@/app/actions";
 import Toast from "@/components/Toast";
 
@@ -33,17 +33,24 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Auto-check "Comedy" genre when Comedy category is selected
-  useEffect(() => {
-    const selectedCategory = categories.find((c) => c.id === categoryId);
-    const comedyGenre = genres.find((g) => g.name.toLowerCase() === "comedy");
+  /**
+   * Picking the Comedy category pre-ticks the Comedy genre as a convenience.
+   *
+   * This runs on the change itself rather than in an effect watching
+   * `selectedGenreIds` - as an effect it re-applied the moment the user
+   * unticked the box, making the genre impossible to remove.
+   */
+  const handleCategoryChange = (nextCategoryId: string) => {
+    setCategoryId(nextCategoryId);
 
-    if (selectedCategory && selectedCategory.name.toLowerCase() === "comedy" && comedyGenre) {
-      if (!selectedGenreIds.includes(comedyGenre.id)) {
-        setSelectedGenreIds((prev) => [...prev, comedyGenre.id]);
-      }
+    const category = categories.find((c) => c.id === nextCategoryId);
+    const comedyGenre = genres.find((g) => g.name.toLowerCase() === "comedy");
+    if (category?.name.toLowerCase() === "comedy" && comedyGenre) {
+      setSelectedGenreIds((prev) =>
+        prev.includes(comedyGenre.id) ? prev : [...prev, comedyGenre.id]
+      );
     }
-  }, [categoryId, categories, genres, selectedGenreIds]);
+  };
 
   const handleGenreChange = (genreId: string, checked: boolean) => {
     if (checked) {
@@ -83,8 +90,10 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
         setPhysicalDvd(false);
         setSuccessMsg(`"${movie.title}" added successfully!`);
         setTimeout(() => setSuccessMsg(null), 5000);
-      } catch (err: any) {
-        setError(err.message || "Failed to add movie.");
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to add movie."
+        );
       }
     });
   };
@@ -143,7 +152,7 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
         <select
           id="movie-category"
           value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
+          onChange={(e) => handleCategoryChange(e.target.value)}
           disabled={isPending}
           required
           className="form-select"

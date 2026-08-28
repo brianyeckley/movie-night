@@ -20,9 +20,10 @@ export default function AdvanceRoundButton({ weekId, isGreen = false }: Props) {
         if (result && !result.success) {
           setError(result.error || "An unexpected error occurred.");
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Failed to advance round:", err);
-        const msg = err.message || "An unexpected error occurred.";
+        const msg =
+          err instanceof Error ? err.message : "An unexpected error occurred.";
         setError(msg.replace("An error occurred in the Server Action: ", ""));
       }
     });

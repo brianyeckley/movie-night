@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { formatStatus } from "@/lib/rounds";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:4000";
@@ -98,25 +99,6 @@ export async function notifyRoundAdvanced(
   let description = "";
   const fields: { name: string; value: string; inline?: boolean }[] = [];
   let thumbnail: { url: string } | undefined = undefined;
-
-  // Format status names nicely
-  const formatStatus = (s: string) => {
-    switch (s) {
-      case "CATEGORY_VOTING": return "Category Voting";
-      case "CATEGORY_TIEBREAKER_VOTING": return "Category Tiebreaker Voting";
-      case "MOVIE_VOTING": return "Movie Voting";
-      case "SUBCATEGORY_VOTING": return "Subcategory Voting";
-      case "SUBCATEGORY_TIEBREAKER_VOTING": return "Subcategory Tiebreaker Voting";
-      case "SHORTLIST_VOTING": return "Shortlist Voting";
-      case "FINAL_VOTING": return "Final Tiebreaker Voting";
-      case "IN_PERSON_VOTING": return "In Person Voting";
-      case "IN_PERSON_TIEBREAKER": return "In Person Tiebreaker Voting";
-      case "IN_PERSON_ROUND_2": return "In Person Round 2 Tiebreaker";
-      case "IN_PERSON_ROUND_3": return "In Person Round 3 Final Tiebreaker";
-      case "COMPLETED": return "Completed";
-      default: return s;
-    }
-  };
 
   // Determine what happened in the previous round
   if (prevStatus === "CATEGORY_VOTING") {
@@ -334,21 +316,6 @@ export async function notifyReminder(weekId: string, pendingVoterNames: string[]
   if (!week) return;
 
   const weekNum = week.weekNumber;
-  const formatStatus = (s: string) => {
-    switch (s) {
-      case "CATEGORY_VOTING": return "Category Voting";
-      case "MOVIE_VOTING": return "Movie Voting";
-      case "SUBCATEGORY_VOTING": return "Subcategory Voting";
-      case "SHORTLIST_VOTING": return "Shortlist Voting";
-      case "FINAL_VOTING": return "Final Tiebreaker Voting";
-      case "IN_PERSON_VOTING": return "In Person Voting";
-      case "IN_PERSON_TIEBREAKER": return "In Person Tiebreaker Voting";
-      case "IN_PERSON_ROUND_2": return "In Person Round 2 Tiebreaker";
-      case "IN_PERSON_ROUND_3": return "In Person Round 3 Final Tiebreaker";
-      default: return s;
-    }
-  };
-
   const roundName = formatStatus(week.status);
 
   await sendDiscordPayload({
