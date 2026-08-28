@@ -60,7 +60,9 @@ const env = {
   ...parseEnvFile(path.join(root, ".env.local")),
 };
 
-const fromEnv = resolveDbPath(env["DATABASE_URL"]);
+// Check process.env first (e.g. in Docker), then parsed .env files
+const databaseUrl = process.env.DATABASE_URL || env["DATABASE_URL"];
+const fromEnv = resolveDbPath(databaseUrl);
 const fallback = path.join(root, "prisma", "dev.db");
 
 let src = null;
@@ -68,11 +70,11 @@ let srcLabel = null;
 
 if (fromEnv && fs.existsSync(fromEnv)) {
   src = fromEnv;
-  srcLabel = `DATABASE_URL → ${path.relative(root, fromEnv)}`;
+  srcLabel = `DATABASE_URL → ${path.relative(root, fromEnv) || fromEnv}`;
 } else if (fromEnv) {
   // Env file found but path doesn't exist yet
   console.error(`❌  DATABASE_URL points to: ${fromEnv}`);
-  console.error("    File not found. Run 'npx prisma migrate dev' first.");
+  console.error("    File not found. Run 'npx prisma migrate dev' or ensure the volume is mounted.");
   process.exit(1);
 } else if (fs.existsSync(fallback)) {
   src = fallback;
@@ -84,9 +86,18 @@ if (fromEnv && fs.existsSync(fromEnv)) {
 }
 
 // ---------------------------------------------------------------------------
-// Copy to backups/<name>-YYYY-MM-DD_HH-MM-SS.db
+// Copy to backups directory
 // ---------------------------------------------------------------------------
-const backupsDir = path.join(root, "backups");
+// If BACKUP_DIR is specified in env, use it. Otherwise, if /app/data exists (e.g. Docker container),
+// default to /app/data/backups so backups persist across container restarts. Otherwise, backups/ in root.
+const defaultBackupDir = fs.existsSync("/app/data")
+  ? "/app/data/backups"
+  : path.join(root, "backups");
+
+const backupsDir = process.env.BACKUP_DIR
+  ? path.resolve(root, process.env.BACKUP_DIR)
+  : defaultBackupDir;
+
 fs.mkdirSync(backupsDir, { recursive: true });
 
 const now = new Date();
@@ -101,5 +112,6 @@ const dest = path.join(backupsDir, `${baseName}-${timestamp}.db`);
 fs.copyFileSync(src, dest);
 
 const size = (fs.statSync(dest).size / 1024).toFixed(1);
-console.log(`✅  Backup created: backups/${path.basename(dest)} (${size} KB)`);
+const relativeDest = path.relative(root, dest);
+console.log(`✅  Backup created: ${relativeDest.startsWith("..") ? dest : relativeDest} (${size} KB)`);
 console.log(`    Source: ${srcLabel}`);
