@@ -337,252 +337,265 @@ export default function CatalogListClient({
                 </summary>
 
                 <div className="category-details-content">
-                  {/* Direct Movies in Top level Category */}
-                  {cat.movies.length > 0 && (
-                    <div className="flex-col gap-sm-plus mb-lg">
-                      {cat.movies.map((movie) => (
-                        <div key={movie.id} className="movie-row-card">
-                          <div className="movie-card-header">
-                            <div className="movie-card-title-group">
-                              <span className="movie-card-title">
-                                {movie.title}
-                                {movie.year ? <span className="movie-card-year"> ({movie.year})</span> : ""}
+                  {/* Nested Subcategories (At Top of Category) */}
+                  {cat.subcategories.length > 0 && (
+                    <div className="flex-col gap-sm mb-lg">
+                      {cat.subcategories.map((sub) => (
+                        <details
+                          key={sub.id}
+                          open={hasActiveFilters}
+                          className="subcategory-details"
+                        >
+                          <summary className="subcategory-summary">
+                            <div className="subcategory-details-title">
+                              <span className="chevron-icon">▶</span>
+                              <span>📂 {sub.name}</span>
+                              <span className="category-count-badge">
+                                {sub.movies.length} {sub.movies.length === 1 ? "movie" : "movies"}
+                                {hasActiveFilters && ` (${sub.movies.length} matches)`}
                               </span>
                             </div>
-                            <div className="movie-card-badges-inline">
-                              {movie.imdbRating && (
-                                <span className="badge-rating">⭐ {movie.imdbRating}</span>
-                              )}
-                              {movie.watched && <span className="badge-watched">Watched</span>}
-                            </div>
-                          </div>
+                            <button
+                              type="button"
+                              disabled={isPending}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Are you sure you want to delete the subcategory "${sub.name}"? This will delete all movies inside it.`)) {
+                                  startTransition(async () => {
+                                    await deleteCategoryAction(sub.id);
+                                  });
+                                }
+                              }}
+                              className="text-btn text-xs text-danger-outline"
+                              style={{ padding: "2px 6px" }}
+                            >
+                              Delete
+                            </button>
+                          </summary>
 
-                          {(movie.director || movie.runtime || movie.stars) && (
-                            <div className="movie-card-meta">
-                              {(movie.director || movie.runtime) && (
-                                <div className="flex-row gap-sm items-center flex-wrap">
-                                  {movie.director && (
-                                    <span>
-                                      🎬 <span className="text-muted">Dir:</span>{" "}
-                                      {movie.director}
+                          <div className="subcategory-details-content">
+                            {sub.movies.map((movie) => (
+                              <div key={movie.id} className="movie-row-card">
+                                <div className="movie-card-header">
+                                  <div className="movie-card-title-group">
+                                    <span className="movie-card-title">
+                                      {movie.title}
+                                      {movie.year ? <span className="movie-card-year"> ({movie.year})</span> : ""}
                                     </span>
-                                  )}
-                                  {movie.director && movie.runtime && (
-                                    <span className="text-glass-border">•</span>
-                                  )}
-                                  {movie.runtime && <span>⏱️ {movie.runtime}</span>}
-                                </div>
-                              )}
-                              {movie.stars && (
-                                <div className="flex-row gap-xs items-baseline text-xs text-secondary mt-xxs">
-                                  <span className="text-muted flex-shrink-0">👥 Cast:</span>
-                                  <span className="text-secondary">{movie.stars}</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          <div className="movie-card-footer">
-                            <div className="movie-card-tags">
-                              {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
-                              {movie.physicalBluRay && (
-                                <span className="badge-media badge-media-bluray">Blu-ray</span>
-                              )}
-                              {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
-                              {movie.genres.map((g) => (
-                                <span key={g.id} className="badge-genre">
-                                  {g.name}
-                                </span>
-                              ))}
-                            </div>
-
-                            <div className="movie-card-actions">
-                              {(movie.plot || movie.posterUrl) && (
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedPlotMovie(movie)}
-                                  className="btn btn-secondary btn-sm"
-                                >
-                                  🍿 Plot
-                                </button>
-                              )}
-                              {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
-                              {movie.imdbUrl && (
-                                <a
-                                  href={movie.imdbUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="btn btn-secondary btn-sm"
-                                >
-                                  IMDb ↗
-                                </a>
-                              )}
-                              <EditMovieButton
-                                movie={movie}
-                                categories={flatCategories}
-                                genres={genres}
-                              />
-                              <button
-                                type="button"
-                                disabled={isPending}
-                                onClick={() => {
-                                  if (confirm(`Are you sure you want to remove the movie "${movie.title}" from the catalog?`)) {
-                                    startTransition(async () => {
-                                      await deleteMovieAction(movie.id);
-                                    });
-                                  }
-                                }}
-                                className="btn btn-secondary btn-sm btn-danger-outline"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-
-                {/* Nested Subcategories */}
-                {cat.subcategories.length > 0 && (
-                  <div className="flex-col gap-lg ml-lg mt-md">
-                    {cat.subcategories.map((sub) => (
-                      <div key={sub.id} className="subcategory-card">
-                        <div className="flex-between mb-md">
-                          <h4 className="text-xl font-bold text-primary-var">
-                            ↳ {sub.name}
-                            {hasActiveFilters && (
-                              <span className="text-sm-alt text-muted normal-case font-normal ml-xs">
-                                ({sub.movies.length} matches)
-                              </span>
-                            )}
-                          </h4>
-                          <button
-                            type="button"
-                            disabled={isPending}
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete the subcategory "${sub.name}"? This will delete all movies inside it.`)) {
-                                startTransition(async () => {
-                                  await deleteCategoryAction(sub.id);
-                                });
-                              }
-                            }}
-                            className="text-btn text-sm"
-                          >
-                            Delete Subcategory
-                          </button>
-                        </div>
-
-                        <div className="flex-col gap-sm">
-                          {sub.movies.map((movie) => (
-                            <div key={movie.id} className="movie-row-card">
-                              <div className="movie-card-header">
-                                <div className="movie-card-title-group">
-                                  <span className="movie-card-title">
-                                    {movie.title}
-                                    {movie.year ? <span className="movie-card-year"> ({movie.year})</span> : ""}
-                                  </span>
-                                </div>
-                                <div className="movie-card-badges-inline">
-                                  {movie.imdbRating && (
-                                    <span className="badge-rating">⭐ {movie.imdbRating}</span>
-                                  )}
-                                  {movie.watched && <span className="badge-watched">Watched</span>}
-                                </div>
-                              </div>
-
-                              {(movie.director || movie.runtime || movie.stars) && (
-                                <div className="movie-card-meta">
-                                  {(movie.director || movie.runtime) && (
-                                    <div className="flex-row gap-sm items-center flex-wrap">
-                                      {movie.director && (
-                                        <span>
-                                          🎬 <span className="text-muted">Dir:</span>{" "}
-                                          {movie.director}
-                                        </span>
-                                      )}
-                                      {movie.director && movie.runtime && (
-                                        <span className="text-glass-border">•</span>
-                                      )}
-                                      {movie.runtime && <span>⏱️ {movie.runtime}</span>}
-                                    </div>
-                                  )}
-                                  {movie.stars && (
-                                    <div className="flex-row gap-xs items-baseline text-xs text-secondary mt-xxs">
-                                      <span className="text-muted flex-shrink-0">👥 Cast:</span>
-                                      <span className="text-secondary">{movie.stars}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              <div className="movie-card-footer">
-                                <div className="movie-card-tags">
-                                  {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
-                                  {movie.physicalBluRay && (
-                                    <span className="badge-media badge-media-bluray">Blu-ray</span>
-                                  )}
-                                  {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
-                                  {movie.genres.map((g) => (
-                                    <span key={g.id} className="badge-genre">
-                                      {g.name}
-                                    </span>
-                                  ))}
+                                  </div>
+                                  <div className="movie-card-badges-inline">
+                                    {movie.imdbRating && (
+                                      <span className="badge-rating">⭐ {movie.imdbRating}</span>
+                                    )}
+                                    {movie.watched && <span className="badge-watched">Watched</span>}
+                                  </div>
                                 </div>
 
-                                <div className="movie-card-actions">
-                                  {(movie.plot || movie.posterUrl) && (
+                                {(movie.director || movie.runtime || movie.stars) && (
+                                  <div className="movie-card-meta">
+                                    {(movie.director || movie.runtime) && (
+                                      <div className="flex-row gap-sm items-center flex-wrap">
+                                        {movie.director && (
+                                          <span>
+                                            🎬 <span className="text-muted">Dir:</span>{" "}
+                                            {movie.director}
+                                          </span>
+                                        )}
+                                        {movie.director && movie.runtime && (
+                                          <span className="text-glass-border">•</span>
+                                        )}
+                                        {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                                      </div>
+                                    )}
+                                    {movie.stars && (
+                                      <div className="flex-row gap-xs items-baseline text-xs text-secondary mt-xxs">
+                                        <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                                        <span className="text-secondary">{movie.stars}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                <div className="movie-card-footer">
+                                  <div className="movie-card-tags">
+                                    {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                                    {movie.physicalBluRay && (
+                                      <span className="badge-media badge-media-bluray">Blu-ray</span>
+                                    )}
+                                    {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
+                                    {movie.genres.map((g) => (
+                                      <span key={g.id} className="badge-genre">
+                                        {g.name}
+                                      </span>
+                                    ))}
+                                  </div>
+
+                                  <div className="movie-card-actions">
+                                    {(movie.plot || movie.posterUrl) && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedPlotMovie(movie)}
+                                        className="btn btn-secondary btn-sm"
+                                      >
+                                        🍿 Plot
+                                      </button>
+                                    )}
+                                    {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
+                                    {movie.imdbUrl && (
+                                      <a
+                                        href={movie.imdbUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-secondary btn-sm"
+                                      >
+                                        IMDb ↗
+                                      </a>
+                                    )}
+                                    <EditMovieButton
+                                      movie={movie}
+                                      categories={flatCategories}
+                                      genres={genres}
+                                    />
                                     <button
                                       type="button"
-                                      onClick={() => setSelectedPlotMovie(movie)}
-                                      className="btn btn-secondary btn-sm"
+                                      disabled={isPending}
+                                      onClick={() => {
+                                        if (confirm(`Are you sure you want to remove the movie "${movie.title}" from the catalog?`)) {
+                                          startTransition(async () => {
+                                            await deleteMovieAction(movie.id);
+                                          });
+                                        }
+                                      }}
+                                      className="btn btn-secondary btn-sm btn-danger-outline"
                                     >
-                                      🍿 Plot
+                                      Remove
                                     </button>
-                                  )}
-                                  {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
-                                  {movie.imdbUrl && (
-                                    <a
-                                      href={movie.imdbUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="btn btn-secondary btn-sm"
-                                    >
-                                      IMDb ↗
-                                    </a>
-                                  )}
-                                  <EditMovieButton
-                                    movie={movie}
-                                    categories={flatCategories}
-                                    genres={genres}
-                                  />
-                                  <button
-                                    type="button"
-                                    disabled={isPending}
-                                    onClick={() => {
-                                      if (confirm(`Are you sure you want to remove the movie "${movie.title}" from the catalog?`)) {
-                                        startTransition(async () => {
-                                          await deleteMovieAction(movie.id);
-                                        });
-                                      }
-                                    }}
-                                    className="btn btn-secondary btn-sm btn-danger-outline"
-                                  >
-                                    Remove
-                                  </button>
+                                  </div>
                                 </div>
                               </div>
+                            ))}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Direct Movies in Top level Category (Below Subcategories) */}
+                  {cat.movies.length > 0 && (
+                    <div>
+                      {cat.subcategories.length > 0 && (
+                        <h5 className="text-xs font-bold text-muted uppercase tracking-widest mb-sm px-xs">
+                          🎬 Direct Movies ({cat.movies.length})
+                        </h5>
+                      )}
+                      <div className="flex-col gap-sm-plus">
+                        {cat.movies.map((movie) => (
+                          <div key={movie.id} className="movie-row-card">
+                            <div className="movie-card-header">
+                              <div className="movie-card-title-group">
+                                <span className="movie-card-title">
+                                  {movie.title}
+                                  {movie.year ? <span className="movie-card-year"> ({movie.year})</span> : ""}
+                                </span>
+                              </div>
+                              <div className="movie-card-badges-inline">
+                                {movie.imdbRating && (
+                                  <span className="badge-rating">⭐ {movie.imdbRating}</span>
+                                )}
+                                {movie.watched && <span className="badge-watched">Watched</span>}
+                              </div>
                             </div>
-                          ))}
-                        </div>
+
+                            {(movie.director || movie.runtime || movie.stars) && (
+                              <div className="movie-card-meta">
+                                {(movie.director || movie.runtime) && (
+                                  <div className="flex-row gap-sm items-center flex-wrap">
+                                    {movie.director && (
+                                      <span>
+                                        🎬 <span className="text-muted">Dir:</span>{" "}
+                                        {movie.director}
+                                      </span>
+                                    )}
+                                    {movie.director && movie.runtime && (
+                                      <span className="text-glass-border">•</span>
+                                    )}
+                                    {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                                  </div>
+                                )}
+                                {movie.stars && (
+                                  <div className="flex-row gap-xs items-baseline text-xs text-secondary mt-xxs">
+                                    <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                                    <span className="text-secondary">{movie.stars}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            <div className="movie-card-footer">
+                              <div className="movie-card-tags">
+                                {movie.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+                                {movie.physicalBluRay && (
+                                  <span className="badge-media badge-media-bluray">Blu-ray</span>
+                                )}
+                                {movie.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
+                                {movie.genres.map((g) => (
+                                  <span key={g.id} className="badge-genre">
+                                    {g.name}
+                                  </span>
+                                ))}
+                              </div>
+
+                              <div className="movie-card-actions">
+                                {(movie.plot || movie.posterUrl) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedPlotMovie(movie)}
+                                    className="btn btn-secondary btn-sm"
+                                  >
+                                    🍿 Plot
+                                  </button>
+                                )}
+                                {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
+                                {movie.imdbUrl && (
+                                  <a
+                                    href={movie.imdbUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn btn-secondary btn-sm"
+                                  >
+                                    IMDb ↗
+                                  </a>
+                                )}
+                                <EditMovieButton
+                                  movie={movie}
+                                  categories={flatCategories}
+                                  genres={genres}
+                                />
+                                <button
+                                  type="button"
+                                  disabled={isPending}
+                                  onClick={() => {
+                                    if (confirm(`Are you sure you want to remove the movie "${movie.title}" from the catalog?`)) {
+                                      startTransition(async () => {
+                                        await deleteMovieAction(movie.id);
+                                      });
+                                    }
+                                  }}
+                                  className="btn btn-secondary btn-sm btn-danger-outline"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </details>
-          );
-        })}
+                    </div>
+                  )}
+                </div>
+              </details>
+            );
+          })}
       </div>
       )}
       <PlotModal movie={selectedPlotMovie} onClose={() => setSelectedPlotMovie(null)} />

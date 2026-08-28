@@ -1805,6 +1805,67 @@ details.movie-row-details {
   margin-top: -1px;
 }
 
+/* Collapsible Subcategory Accordion */
+.subcategory-details {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background-color: rgba(255, 255, 255, 0.015);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+.subcategory-details:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.subcategory-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all var(--transition-fast);
+}
+
+.subcategory-summary::-webkit-details-marker,
+.subcategory-summary::marker {
+  display: none;
+}
+
+.subcategory-summary:hover {
+  background: var(--glass-hover);
+}
+
+.subcategory-details[open] > .subcategory-summary {
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.subcategory-details-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.subcategory-details[open] > .subcategory-summary .chevron-icon {
+  transform: rotate(90deg);
+}
+
+.subcategory-details-content {
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
 .text-10xl {
   font-size: 4rem;
 }
