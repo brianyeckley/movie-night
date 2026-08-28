@@ -240,13 +240,16 @@ a {
 }
 
 /* Custom Collapsible Category Styling */
+details.category-details > summary::-webkit-details-marker,
 details.category-details summary::-webkit-details-marker {
   display: none;
 }
+details.category-details > summary,
 details.category-details summary {
   list-style: none;
 }
-details.category-details[open] summary .chevron-icon {
+details.category-details[open] > summary .chevron-icon,
+details.category-details[open] > .category-summary .chevron-icon {
   transform: rotate(90deg);
   color: var(--primary) !important;
 }
