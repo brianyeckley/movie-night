@@ -16,22 +16,26 @@ import {
   ShortlistVotingForm,
   FinalVotingForm,
   CompletedWeekView,
-  InPersonVotingRound,
-  InPersonTiebreakerRound,
-  InPersonRound2,
-  InPersonRound3,
+  InPersonRound,
 } from "@/components/DashboardForms";
 import AdminStartWeekFormClient from "@/components/AdminStartWeekFormClient";
+import { ACTIVE_WEEK } from "@/lib/weeks";
 import {
   approvedVotes,
   formatRound,
   formatStatus,
+  IN_PERSON_ROUNDS,
   roundCodeForStatus,
   ROUND_ORDER,
   type RoundCode,
 } from "@/lib/rounds";
 
 export const dynamic = "force-dynamic";
+
+/** True while an in-person week is on one of its voting rounds. */
+function isInPersonRound(status: string) {
+  return status in IN_PERSON_ROUNDS;
+}
 
 /** One option within a closed round's results. */
 interface RoundTarget {
@@ -55,9 +59,8 @@ interface RoundResult {
 export default async function DashboardPage() {
   const currentUser = await getActiveUser();
 
-  // Find active week (a week is active until it is closed / closedAt is set)
   const activeWeek = await db.movieNightWeek.findFirst({
-    where: { closedAt: null },
+    where: ACTIVE_WEEK,
     include: {
       themeCategory: true,
       votes: { include: { user: true } },
@@ -421,24 +424,9 @@ export default async function DashboardPage() {
                           <FinalVotingForm week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
-                        {/* IN PERSON: Round 1 Voting */}
-                        {activeWeek.status === "IN_PERSON_VOTING" && (
-                          <InPersonVotingRound week={activeWeek} currentUserId={currentUser.id} />
-                        )}
-
-                        {/* IN PERSON: Round 1b Tiebreaker Voting */}
-                        {activeWeek.status === "IN_PERSON_TIEBREAKER" && (
-                          <InPersonTiebreakerRound week={activeWeek} currentUserId={currentUser.id} />
-                        )}
-
-                        {/* IN PERSON: Round 2 Tiebreaker Voting */}
-                        {activeWeek.status === "IN_PERSON_ROUND_2" && (
-                          <InPersonRound2 week={activeWeek} currentUserId={currentUser.id} />
-                        )}
-
-                        {/* IN PERSON: Round 3 Tiebreaker Voting */}
-                        {activeWeek.status === "IN_PERSON_ROUND_3" && (
-                          <InPersonRound3 week={activeWeek} currentUserId={currentUser.id} />
+                        {/* IN PERSON: every round, driven by the week's status */}
+                        {isInPersonRound(activeWeek.status) && (
+                          <InPersonRound week={activeWeek} currentUserId={currentUser.id} />
                         )}
 
                         {/* COMPLETED / WINNER STATE */}

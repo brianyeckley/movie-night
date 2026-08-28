@@ -61,7 +61,15 @@ export async function decrypt(session: string | undefined = "") {
   }
 }
 
-export async function createSession(userId: string, role: string, rememberMe: boolean) {
+/**
+ * Issue a session cookie.
+ *
+ * The token carries only the user id. Role deliberately stays out of it: a
+ * "remember me" token lasts ten years, so a role baked in at login would keep
+ * working long after the account was demoted. Anything that needs the role
+ * reads it from the database per request via `getActiveUser()`.
+ */
+export async function createSession(userId: string, rememberMe: boolean) {
   // If rememberMe is checked, set 10 years cookie, otherwise 24 hours
   const durationMs = rememberMe 
     ? 10 * 365 * 24 * 60 * 60 * 1000 
@@ -70,7 +78,7 @@ export async function createSession(userId: string, role: string, rememberMe: bo
   const expirationStr = rememberMe ? "3650d" : "24h";
   const expiresAt = new Date(Date.now() + durationMs);
 
-  const session = await encrypt({ userId, role }, expirationStr);
+  const session = await encrypt({ userId }, expirationStr);
   const cookieStore = await cookies();
 
   cookieStore.set("movie_night_session", session, {
