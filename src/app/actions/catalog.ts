@@ -1,14 +1,14 @@
 "use server";
 
 import { db } from "@/lib/db";
+import type { Prisma } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
-import { getActiveUser } from "./user";
+import { requireAdmin, requireUser } from "@/lib/auth";
 import { fetchMovieMetadata } from "@/lib/imdb";
 
 // 12. Catalog Management: Add Category
 export async function addCategoryAction(name: string, isThemed: boolean = false) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  await requireUser();
 
   const category = await db.category.upsert({
     where: { name },
@@ -23,8 +23,7 @@ export async function addCategoryAction(name: string, isThemed: boolean = false)
 
 // 13. Catalog Management: Add Subcategory
 export async function addSubcategoryAction(name: string, parentId: string) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  await requireUser();
 
   const subcategory = await db.category.create({
     data: {
@@ -48,8 +47,7 @@ export async function addMovieAction(
   physicalBluRay?: boolean,
   physicalDvd?: boolean
 ) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  await requireUser();
   if (!imdbUrl) throw new Error("IMDb URL is required.");
 
   let title = "Unknown Movie";
@@ -104,10 +102,32 @@ export async function addMovieAction(
   return movie;
 }
 
+/**
+ * Refuse to delete a movie that a past movie night points at.
+ *
+ * `winningMovieId` is a plain column rather than a foreign key, so deleting a
+ * winner leaves the week pointing at nothing and its entry in Past Movie
+ * Nights permanently reads "Unknown Movie".
+ */
+async function assertNotAPastWinner(movieIds: string[]) {
+  if (movieIds.length === 0) return;
+
+  const week = await db.movieNightWeek.findFirst({
+    where: { winningMovieId: { in: movieIds } },
+    select: { weekNumber: true },
+  });
+
+  if (week) {
+    throw new Error(
+      `This movie won Week #${week.weekNumber}. Delete that movie night first if you really want to remove it.`
+    );
+  }
+}
+
 // 15. Catalog Management: Delete Movie
 export async function deleteMovieAction(movieId: string) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  await requireAdmin("remove movies from the catalog");
+  await assertNotAPastWinner([movieId]);
 
   await db.movie.delete({ where: { id: movieId } });
   revalidatePath("/catalog");
@@ -116,10 +136,18 @@ export async function deleteMovieAction(movieId: string) {
 
 // 16. Catalog Management: Delete Category/Subcategory
 export async function deleteCategoryAction(categoryId: string) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  await requireAdmin("delete categories");
 
-  // Delete category (cascade deletes movies and subcategories in schema)
+  // Deleting a category cascades to its subcategories and every movie inside
+  // them, so check the whole subtree for past winners before removing it.
+  const doomedMovies = await db.movie.findMany({
+    where: {
+      OR: [{ categoryId }, { category: { parentId: categoryId } }],
+    },
+    select: { id: true },
+  });
+  await assertNotAPastWinner(doomedMovies.map((m) => m.id));
+
   await db.category.delete({ where: { id: categoryId } });
   revalidatePath("/catalog");
   revalidatePath("/");
@@ -137,8 +165,7 @@ export async function updateMovieAction(
   physicalBluRay?: boolean,
   physicalDvd?: boolean
 ) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  await requireUser();
 
   const existingMovie = await db.movie.findUnique({
     where: { id: movieId },
@@ -179,7 +206,7 @@ export async function updateMovieAction(
     imdbRating = null;
   }
 
-  const updateData: any = {
+  const updateData: Prisma.MovieUpdateInput = {
     title,
     imdbUrl: imdbUrl || null,
     trailerUrl: trailerUrl || null,
@@ -196,7 +223,7 @@ export async function updateMovieAction(
   };
 
   if (categoryId) {
-    updateData.categoryId = categoryId;
+    updateData.category = { connect: { id: categoryId } };
   }
 
   if (genreIds) {

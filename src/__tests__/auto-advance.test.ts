@@ -2,18 +2,19 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { submitCategoryVoteAction } from "@/app/actions/voting";
 import { db } from "@/lib/db";
 import { getActiveUser } from "@/app/actions/user";
-import { advanceWeekRoundInternal } from "@/app/actions/week";
+import { advanceWeekRound } from "@/lib/round-engine";
 
 vi.mock("@/lib/db", () => ({
   db: {
     weekVote: {
       deleteMany: vi.fn(),
-      create: vi.fn(),
+      createMany: vi.fn(),
       findMany: vi.fn(),
     },
     user: {
       findMany: vi.fn(),
     },
+    $transaction: vi.fn((ops) => Promise.all(ops)),
   },
 }));
 
@@ -21,8 +22,8 @@ vi.mock("@/app/actions/user", () => ({
   getActiveUser: vi.fn(),
 }));
 
-vi.mock("@/app/actions/week", () => ({
-  advanceWeekRoundInternal: vi.fn().mockResolvedValue(undefined),
+vi.mock("@/lib/round-engine", () => ({
+  advanceWeekRound: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("next/cache", () => ({
@@ -54,7 +55,7 @@ describe("Category Voting Auto-Advancement Checks", () => {
 
       await submitCategoryVoteAction("week-1", "cat-comedy");
 
-      expect(advanceWeekRoundInternal).not.toHaveBeenCalled();
+      expect(advanceWeekRound).not.toHaveBeenCalled();
     });
 
     it("auto-advances on the 2nd vote if both voted for Comedy", async () => {
@@ -69,7 +70,7 @@ describe("Category Voting Auto-Advancement Checks", () => {
 
       await submitCategoryVoteAction("week-1", "cat-comedy");
 
-      expect(advanceWeekRoundInternal).toHaveBeenCalledWith("week-1");
+      expect(advanceWeekRound).toHaveBeenCalledWith("week-1");
     });
   });
 
@@ -92,7 +93,7 @@ describe("Category Voting Auto-Advancement Checks", () => {
 
       await submitCategoryVoteAction("week-1", "cat-comedy");
 
-      expect(advanceWeekRoundInternal).not.toHaveBeenCalled();
+      expect(advanceWeekRound).not.toHaveBeenCalled();
     });
 
     it("does not auto-advance when Comedy leads 2-1 with 1 remaining (tie possible)", async () => {
@@ -107,7 +108,7 @@ describe("Category Voting Auto-Advancement Checks", () => {
 
       await submitCategoryVoteAction("week-1", "cat-comedy");
 
-      expect(advanceWeekRoundInternal).not.toHaveBeenCalled();
+      expect(advanceWeekRound).not.toHaveBeenCalled();
     });
 
     it("auto-advances when Comedy leads 3-0 with 1 remaining (unbeatable)", async () => {
@@ -122,7 +123,7 @@ describe("Category Voting Auto-Advancement Checks", () => {
 
       await submitCategoryVoteAction("week-1", "cat-comedy");
 
-      expect(advanceWeekRoundInternal).toHaveBeenCalledWith("week-1");
+      expect(advanceWeekRound).toHaveBeenCalledWith("week-1");
     });
   });
 });

@@ -1,9 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import {
-  submitInPersonVotesAction,
-  submitInPersonTiebreakerVoteAction,
-  advanceInPersonWeekRound,
-} from "@/app/actions/inPersonVoting";
+import { submitInPersonVotesAction } from "@/app/actions/inPersonVoting";
+import { advanceInPersonWeekRound } from "@/lib/round-engine";
 import { db } from "@/lib/db";
 import { getActiveUser } from "@/app/actions/user";
 import { notifyRoundAdvanced } from "@/lib/discord";
@@ -25,10 +22,10 @@ vi.mock("@/lib/db", () => ({
     },
     weekVote: {
       deleteMany: vi.fn(),
-      create: vi.fn(),
       createMany: vi.fn(),
       findMany: vi.fn(),
     },
+    $transaction: vi.fn((ops) => Promise.all(ops)),
   },
 }));
 
@@ -130,20 +127,32 @@ describe("In-Person Voting Server Actions", () => {
     });
   });
 
-  describe("submitInPersonTiebreakerVoteAction", () => {
-    it("throws if week status is not IN_PERSON_TIEBREAKER", async () => {
+  describe("submitInPersonVotesAction - Round 1b tiebreaker", () => {
+    it("throws if the week is not in a round that accepts votes", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockUser);
       vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({
         id: "week-1",
-        status: "IN_PERSON_VOTING",
+        status: "COMPLETED",
       } as any);
 
       await expect(
-        submitInPersonTiebreakerVoteAction("week-1", "movie-1")
+        submitInPersonVotesAction("week-1", ["movie-1"])
       ).rejects.toThrow("Voting is not open for this round.");
     });
 
-    it("throws if movieId is empty", async () => {
+    it("throws if no movie is selected", async () => {
+      vi.mocked(getActiveUser).mockResolvedValueOnce(mockUser);
+      vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({
+        id: "week-1",
+        status: "IN_PERSON_TIEBREAKER",
+      } as any);
+
+      await expect(submitInPersonVotesAction("week-1", [])).rejects.toThrow(
+        "You can select between 1 and 4 movies."
+      );
+    });
+
+    it("throws if more than the round's 4 votes are selected", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockUser);
       vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({
         id: "week-1",
@@ -151,18 +160,18 @@ describe("In-Person Voting Server Actions", () => {
       } as any);
 
       await expect(
-        submitInPersonTiebreakerVoteAction("week-1", "")
-      ).rejects.toThrow("Please select a movie.");
+        submitInPersonVotesAction("week-1", ["m1", "m2", "m3", "m4", "m5"])
+      ).rejects.toThrow("You can select between 1 and 4 movies.");
     });
 
-    it("saves tiebreaker vote correctly", async () => {
+    it("saves tiebreaker votes against IN_PERSON_ROUND_1B", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockUser);
       vi.mocked(db.movieNightWeek.findUnique).mockResolvedValueOnce({
         id: "week-1",
         status: "IN_PERSON_TIEBREAKER",
       } as any);
 
-      const result = await submitInPersonTiebreakerVoteAction("week-1", "movie-1");
+      const result = await submitInPersonVotesAction("week-1", ["movie-1"]);
       expect(result).toEqual({ success: true });
 
       expect(db.weekVote.deleteMany).toHaveBeenCalledWith({
