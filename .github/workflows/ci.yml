@@ -1,0 +1,36 @@
+name: CI
+
+# Pushes to main/master are covered by the gate inside docker-publish.yml,
+# so this workflow handles pull requests and manual runs.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Typecheck & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          # Kept in step with .node-version; better-sqlite3 ships a native
+          # module, so a mismatched major breaks the suite with an ABI error.
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Lint
+        run: npm run lint

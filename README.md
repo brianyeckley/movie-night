@@ -48,7 +48,9 @@ If you pull updates that include database schema changes (such as the IMDb scrap
 A background check is available at `/api/cron/remind-votes` to see who hasn't voted in the current active round and send reminders to your Discord webhook.
 
 ### 1. Setup Environment Variables
-Configure the optional security key in your `.env` file to prevent unauthorized triggering of the webhook:
+Configure the security key in your `.env` file to prevent unauthorized triggering of the
+webhook. `CRON_SECRET` is required: with no secret configured the endpoint rejects every
+request rather than leaving itself open.
 ```env
 DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
 NEXT_PUBLIC_APP_URL="https://your-app-domain.com"
@@ -108,6 +110,10 @@ The `docker-compose.yml` includes `containrrr/watchtower`, configured with `DOCK
    TUNNEL_TOKEN="your-cloudflare-tunnel-token"
 
    # Project Settings
+   # Required in production - the app refuses to start without it, so that
+   # session cookies are never signed with a key committed to the repo.
+   # Generate one with: openssl rand -base64 32
+   SESSION_SECRET="your-generated-session-secret"
    OMDB_API_KEY="your-omdb-api-key"
    DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
    NEXT_PUBLIC_APP_URL="https://your-app-domain.com"

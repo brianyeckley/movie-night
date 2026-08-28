@@ -9,6 +9,9 @@ services:
       - ${DATA_DIR:-./data}:/app/data
     environment:
       - DATABASE_URL=file:/app/data/dev.db
+      # Required. The app refuses to start in production without it, so that a
+      # session cookie can never be signed with a key that is in the repository.
+      - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET must be set}
       - OMDB_API_KEY=${OMDB_API_KEY}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
