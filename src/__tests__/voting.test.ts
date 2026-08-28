@@ -18,12 +18,15 @@ vi.mock("@/lib/db", () => ({
     },
     weekVote: {
       deleteMany: vi.fn(),
-      create: vi.fn(),
+      createMany: vi.fn(),
       findMany: vi.fn().mockResolvedValue([]),
     },
     user: {
       findMany: vi.fn().mockResolvedValue([]),
     },
+    // The actions batch the delete and the inserts; running the array is
+    // enough for these tests to observe both calls.
+    $transaction: vi.fn((ops) => Promise.all(ops)),
   },
 }));
 
@@ -61,13 +64,15 @@ describe("Voting Server Actions", () => {
         },
       });
 
-      expect(db.weekVote.create).toHaveBeenCalledWith({
-        data: {
-          weekId: "week-1",
-          userId: "user-1",
-          round: "ROUND_1_CATEGORY",
-          targetId: "cat-1",
-        },
+      expect(db.weekVote.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            weekId: "week-1",
+            userId: "user-1",
+            round: "ROUND_1_CATEGORY",
+            targetId: "cat-1",
+          },
+        ],
       });
 
       expect(revalidatePath).toHaveBeenCalledWith("/");
@@ -100,23 +105,26 @@ describe("Voting Server Actions", () => {
         },
       });
 
-      expect(db.weekVote.create).toHaveBeenCalledTimes(2);
-      expect(db.weekVote.create).toHaveBeenNthCalledWith(1, {
-        data: {
-          weekId: "week-1",
-          userId: "user-1",
-          round: "ROUND_1_CATEGORY_TIEBREAKER",
-          targetId: "cat-1",
-        },
+      expect(db.weekVote.createMany).toHaveBeenCalledTimes(1);
+      expect(db.weekVote.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            weekId: "week-1",
+            userId: "user-1",
+            round: "ROUND_1_CATEGORY_TIEBREAKER",
+            targetId: "cat-1",
+          },
+          {
+            weekId: "week-1",
+            userId: "user-1",
+            round: "ROUND_1_CATEGORY_TIEBREAKER",
+            targetId: "cat-2",
+          },
+        ],
       });
-      expect(db.weekVote.create).toHaveBeenNthCalledWith(2, {
-        data: {
-          weekId: "week-1",
-          userId: "user-1",
-          round: "ROUND_1_CATEGORY_TIEBREAKER",
-          targetId: "cat-2",
-        },
-      });
+
+      // Both writes must go through one transaction.
+      expect(db.$transaction).toHaveBeenCalledTimes(1);
 
       expect(revalidatePath).toHaveBeenCalledWith("/");
     });
@@ -143,13 +151,15 @@ describe("Voting Server Actions", () => {
         },
       });
 
-      expect(db.weekVote.create).toHaveBeenCalledWith({
-        data: {
-          weekId: "week-1",
-          userId: "user-1",
-          round: "ROUND_2_MOVIE",
-          targetId: "movie-1",
-        },
+      expect(db.weekVote.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            weekId: "week-1",
+            userId: "user-1",
+            round: "ROUND_2_MOVIE",
+            targetId: "movie-1",
+          },
+        ],
       });
     });
   });
@@ -195,13 +205,15 @@ describe("Voting Server Actions", () => {
         },
       });
 
-      expect(db.weekVote.create).toHaveBeenCalledWith({
-        data: {
-          weekId: "week-1",
-          userId: "user-1",
-          round: "ROUND_4_TIEBREAKER",
-          targetId: "movie-1",
-        },
+      expect(db.weekVote.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            weekId: "week-1",
+            userId: "user-1",
+            round: "ROUND_4_TIEBREAKER",
+            targetId: "movie-1",
+          },
+        ],
       });
     });
   });

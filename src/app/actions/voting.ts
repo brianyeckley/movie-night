@@ -3,59 +3,81 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getActiveUser } from "./user";
+import { advanceWeekRound } from "@/lib/round-engine";
+import { tallyVotes, type RoundCode } from "@/lib/rounds";
+
+/**
+ * Replace this user's votes for one round.
+ *
+ * The delete and the inserts run in a single transaction: without one, a
+ * failure partway through leaves the user with their old votes already gone
+ * and only some of the new ones written.
+ */
+async function replaceVotes({
+  weekId,
+  userId,
+  round,
+  targetIds,
+}: {
+  weekId: string;
+  userId: string;
+  round: RoundCode;
+  targetIds: string[];
+}) {
+  await db.$transaction([
+    db.weekVote.deleteMany({ where: { weekId, userId, round } }),
+    db.weekVote.createMany({
+      data: targetIds.map((targetId) => ({
+        weekId,
+        userId,
+        round,
+        targetId,
+      })),
+    }),
+  ]);
+}
+
+/** Resolve the signed-in user and reject a selection that breaks the limit. */
+async function prepareVote(targetIds: string[], maxVotes: number, limitError: string) {
+  const currentUser = await getActiveUser();
+  if (!currentUser) throw new Error("You must pick a user first.");
+  if (targetIds.length > maxVotes) throw new Error(limitError);
+  return currentUser;
+}
 
 // 5. Submit Category Vote (Round 1)
 export async function submitCategoryVoteAction(weekId: string, categoryId: string) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  const currentUser = await prepareVote(
+    [categoryId],
+    1,
+    "You can select a maximum of 1 category."
+  );
 
-  // Delete previous vote for this user in this round
-  await db.weekVote.deleteMany({
-    where: {
-      weekId,
-      userId: currentUser.id,
-      round: "ROUND_1_CATEGORY",
-    },
+  await replaceVotes({
+    weekId,
+    userId: currentUser.id,
+    round: "ROUND_1_CATEGORY",
+    targetIds: [categoryId],
   });
 
-  // Create new vote
-  await db.weekVote.create({
-    data: {
-      weekId,
-      userId: currentUser.id,
-      round: "ROUND_1_CATEGORY",
-      targetId: categoryId,
-    },
-  });
-
-  // Auto-advance checking:
-  // Fetch total number of approved users
+  // Auto-advance when the leader can no longer be caught by the votes still
+  // outstanding, so the round does not sit waiting on a foregone conclusion.
   const approvedUsers = await db.user.findMany({ where: { isApproved: true } });
-  const totalVoters = approvedUsers.length;
 
-  // Fetch all votes in the current round
   const votes = await db.weekVote.findMany({
     where: { weekId, round: "ROUND_1_CATEGORY" },
     include: { user: true },
   });
-  const approvedVotes = votes.filter((v) => v.user.isApproved);
-  const currentVotesCount = approvedVotes.length;
-  const remainingVotersCount = totalVoters - currentVotesCount;
+  const approved = votes.filter((v) => v.user.isApproved);
+  const remainingVoters = approvedUsers.length - approved.length;
 
-  // Count votes
-  const counts: Record<string, number> = {};
-  approvedVotes.forEach((v) => {
-    counts[v.targetId] = (counts[v.targetId] || 0) + 1;
-  });
+  const { counts } = tallyVotes(approved);
+  const [maxCount = 0, runnerUpCount = 0] = Object.values(counts).sort(
+    (a, b) => b - a
+  );
 
-  const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  const maxCount = sortedCounts[0]?.[1] || 0;
-  const runnerUpCount = sortedCounts[1]?.[1] || 0;
-
-  if (maxCount > runnerUpCount + remainingVotersCount) {
-    // Leading category has mathematically won! Trigger auto-advancement.
-    const { advanceWeekRoundInternal } = await import("./week");
-    await advanceWeekRoundInternal(weekId);
+  if (maxCount > runnerUpCount + remainingVoters) {
+    await advanceWeekRound(weekId);
   }
 
   revalidatePath("/");
@@ -63,178 +85,106 @@ export async function submitCategoryVoteAction(weekId: string, categoryId: strin
 
 // 6. Submit Movie/Subcategory Votes (Round 2)
 export async function submitMovieVotesAction(weekId: string, targets: string[]) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  const currentUser = await prepareVote(
+    targets,
+    2,
+    "You can select a maximum of 2 options."
+  );
 
-  if (targets.length > 2) {
-    throw new Error("You can select a maximum of 2 options.");
-  }
-
-  // Delete previous votes for this user in this round
-  await db.weekVote.deleteMany({
-    where: {
-      weekId,
-      userId: currentUser.id,
-      round: "ROUND_2_MOVIE",
-    },
+  await replaceVotes({
+    weekId,
+    userId: currentUser.id,
+    round: "ROUND_2_MOVIE",
+    targetIds: targets,
   });
-
-  // Create new votes
-  for (const targetId of targets) {
-    await db.weekVote.create({
-      data: {
-        weekId,
-        userId: currentUser.id,
-        round: "ROUND_2_MOVIE",
-        targetId,
-      },
-    });
-  }
 
   revalidatePath("/");
 }
 
 // 7. Submit Subcategory Movie Votes (Round 2b / 2c)
 export async function submitSubMovieVotesAction(
-  weekId: string, 
-  movieIds: string[], 
+  weekId: string,
+  movieIds: string[],
   roundCode: string = "ROUND_2_SUB_MOVIE"
 ) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  const isRound2c = roundCode === "ROUND_2C_SUB_MOVIE";
+  const currentUser = await prepareVote(
+    movieIds,
+    isRound2c ? 1 : 3,
+    isRound2c
+      ? "You can select a maximum of 1 option."
+      : "You can select a maximum of 3 movies."
+  );
 
-  const maxAllowed = roundCode === "ROUND_2C_SUB_MOVIE" ? 1 : 3;
-  if (movieIds.length > maxAllowed) {
-    throw new Error(
-      roundCode === "ROUND_2C_SUB_MOVIE"
-        ? "You can select a maximum of 1 option."
-        : "You can select a maximum of 3 movies."
-    );
-  }
-
-  // Delete previous votes for this user in this round
-  await db.weekVote.deleteMany({
-    where: {
-      weekId,
-      userId: currentUser.id,
-      round: roundCode,
-    },
+  await replaceVotes({
+    weekId,
+    userId: currentUser.id,
+    round: roundCode as RoundCode,
+    targetIds: movieIds,
   });
-
-  // Create new votes
-  for (const targetId of movieIds) {
-    await db.weekVote.create({
-      data: {
-        weekId,
-        userId: currentUser.id,
-        round: roundCode,
-        targetId,
-      },
-    });
-  }
 
   revalidatePath("/");
 }
 
 // 8. Submit Shortlist Votes (Round 3)
 export async function submitShortlistVotesAction(weekId: string, movieIds: string[]) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
-
-  const week = await db.movieNightWeek.findUnique({
-    where: { id: weekId },
-  });
-
+  const week = await db.movieNightWeek.findUnique({ where: { id: weekId } });
+  // A shortlist drawn from a single subcategory is a straight pick, not a rank.
   const maxAllowed = week?.selectedSubcategoryId ? 1 : 3;
 
-  if (movieIds.length > maxAllowed) {
-    throw new Error(
-      maxAllowed === 1
-        ? "You can select a maximum of 1 movie."
-        : "You can select a maximum of 3 movies."
-    );
-  }
+  const currentUser = await prepareVote(
+    movieIds,
+    maxAllowed,
+    maxAllowed === 1
+      ? "You can select a maximum of 1 movie."
+      : "You can select a maximum of 3 movies."
+  );
 
-  // Delete previous votes for this user in this round
-  await db.weekVote.deleteMany({
-    where: {
-      weekId,
-      userId: currentUser.id,
-      round: "ROUND_3_SHORTLIST",
-    },
+  await replaceVotes({
+    weekId,
+    userId: currentUser.id,
+    round: "ROUND_3_SHORTLIST",
+    targetIds: movieIds,
   });
-
-  // Create new votes
-  for (const targetId of movieIds) {
-    await db.weekVote.create({
-      data: {
-        weekId,
-        userId: currentUser.id,
-        round: "ROUND_3_SHORTLIST",
-        targetId,
-      },
-    });
-  }
 
   revalidatePath("/");
 }
 
 // 9. Submit Final Tiebreaker Vote (Round 4)
 export async function submitFinalVoteAction(weekId: string, movieId: string) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+  const currentUser = await prepareVote(
+    [movieId],
+    1,
+    "You can select a maximum of 1 movie."
+  );
 
-  // Delete previous vote for this user in this round
-  await db.weekVote.deleteMany({
-    where: {
-      weekId,
-      userId: currentUser.id,
-      round: "ROUND_4_TIEBREAKER",
-    },
-  });
-
-  // Create new vote
-  await db.weekVote.create({
-    data: {
-      weekId,
-      userId: currentUser.id,
-      round: "ROUND_4_TIEBREAKER",
-      targetId: movieId,
-    },
+  await replaceVotes({
+    weekId,
+    userId: currentUser.id,
+    round: "ROUND_4_TIEBREAKER",
+    targetIds: [movieId],
   });
 
   revalidatePath("/");
 }
 
 // 9b. Submit Category Tiebreaker Votes (Round 1b)
-export async function submitCategoryTiebreakerVotesAction(weekId: string, categoryIds: string[]) {
-  const currentUser = await getActiveUser();
-  if (!currentUser) throw new Error("You must pick a user first.");
+export async function submitCategoryTiebreakerVotesAction(
+  weekId: string,
+  categoryIds: string[]
+) {
+  const currentUser = await prepareVote(
+    categoryIds,
+    2,
+    "You can select a maximum of 2 categories."
+  );
 
-  if (categoryIds.length > 2) {
-    throw new Error("You can select a maximum of 2 categories.");
-  }
-
-  // Delete previous votes for this user in this round
-  await db.weekVote.deleteMany({
-    where: {
-      weekId,
-      userId: currentUser.id,
-      round: "ROUND_1_CATEGORY_TIEBREAKER",
-    },
+  await replaceVotes({
+    weekId,
+    userId: currentUser.id,
+    round: "ROUND_1_CATEGORY_TIEBREAKER",
+    targetIds: categoryIds,
   });
-
-  // Create new votes
-  for (const targetId of categoryIds) {
-    await db.weekVote.create({
-      data: {
-        weekId,
-        userId: currentUser.id,
-        round: "ROUND_1_CATEGORY_TIEBREAKER",
-        targetId,
-      },
-    });
-  }
 
   revalidatePath("/");
 }
