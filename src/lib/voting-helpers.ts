@@ -1,20 +1,36 @@
 import { db } from "@/lib/db";
 import { sortMoviesByTitle } from "@/lib/movie-sort";
+import { approvedVotes, tallyVotes, type RoundCode } from "@/lib/rounds";
 
-// Helper: Get shortlist movies compiled from Round 2/2b voting ties
-export async function getShortlistMovies(weekId: string, selectedCategoryId: string, selectedSubcategoryId: string | null) {
-  // 1. Get initial tied movies from ROUND_2_MOVIE
-  const r2Votes = await db.weekVote.findMany({
-    where: { weekId, round: "ROUND_2_MOVIE" },
+// Helper: Load every vote cast in one round of a week, approved or not
+function loadRawRoundVotes(weekId: string, round: RoundCode) {
+  return db.weekVote.findMany({
+    where: { weekId, round },
     include: { user: true },
   });
-  const approvedR2Votes = r2Votes.filter((v) => v.user.isApproved);
-  const r2Counts: Record<string, number> = {};
-  approvedR2Votes.forEach((v) => {
-    r2Counts[v.targetId] = (r2Counts[v.targetId] || 0) + 1;
+}
+
+// Helper: Load a week's votes for one round, keeping only approved voters
+async function loadRoundVotes(weekId: string, round: RoundCode) {
+  return approvedVotes(await loadRawRoundVotes(weekId, round));
+}
+
+// Helper: Load the movies for a set of ids, sorted for display
+async function loadMoviesById(ids: string[]) {
+  const movies = await db.movie.findMany({
+    where: { id: { in: ids } },
+    include: { genres: true, category: true },
   });
-  const r2Max = Math.max(...Object.values(r2Counts), 0);
-  const r2TiedIds = Object.keys(r2Counts).filter((id) => r2Counts[id] === r2Max);
+  return sortMoviesByTitle(movies);
+}
+
+// Helper: Get shortlist movies compiled from Round 2/2b voting ties
+export async function getShortlistMovies(
+  weekId: string,
+  selectedSubcategoryId: string | null
+) {
+  // 1. Get initial tied movies from ROUND_2_MOVIE
+  const { tiedIds: r2TiedIds } = tallyVotes(await loadRoundVotes(weekId, "ROUND_2_MOVIE"));
 
   const r2TiedCategories = await db.category.findMany({
     where: { id: { in: r2TiedIds } },
@@ -22,28 +38,17 @@ export async function getShortlistMovies(weekId: string, selectedCategoryId: str
   const r2TiedCategoryIds = r2TiedCategories.map((c) => c.id);
   let candidateMovieIds = r2TiedIds.filter((id) => !r2TiedCategoryIds.includes(id));
 
-  // 2. Check latest sub-round votes (ROUND_2C_SUB_MOVIE or ROUND_2_SUB_MOVIE)
-  const r2cVotes = await db.weekVote.findMany({
-    where: { weekId, round: "ROUND_2C_SUB_MOVIE" },
-    include: { user: true },
-  });
-  const r2subVotes = await db.weekVote.findMany({
-    where: { weekId, round: "ROUND_2_SUB_MOVIE" },
-    include: { user: true },
-  });
+  // 2. Check latest sub-round votes. Whether round 2c happened at all is judged
+  // on raw votes, so the approval filter cannot fall us back to the earlier round.
+  const r2cVotes = await loadRawRoundVotes(weekId, "ROUND_2C_SUB_MOVIE");
+  const activeSubVotes =
+    r2cVotes.length > 0 ? r2cVotes : await loadRawRoundVotes(weekId, "ROUND_2_SUB_MOVIE");
+  const approvedSubVotes = approvedVotes(activeSubVotes);
 
-  const activeSubVotes = r2cVotes.length > 0 ? r2cVotes : r2subVotes;
-  const approvedSubVotes = activeSubVotes.filter((v) => v.user.isApproved);
-
-  let subMovieIds: string[] = [];
+  const subMovieIds: string[] = [];
 
   if (approvedSubVotes.length > 0) {
-    const subCounts: Record<string, number> = {};
-    approvedSubVotes.forEach((v) => {
-      subCounts[v.targetId] = (subCounts[v.targetId] || 0) + 1;
-    });
-    const subMax = Math.max(...Object.values(subCounts), 0);
-    const topSubIds = Object.keys(subCounts).filter((id) => subCounts[id] === subMax);
+    const { counts: subCounts, tiedIds: topSubIds } = tallyVotes(approvedSubVotes);
     const allSubVotedIds = Object.keys(subCounts);
 
     // Check if the sub-round was a tiebreaker round involving the subcategory
@@ -70,53 +75,18 @@ export async function getShortlistMovies(weekId: string, selectedCategoryId: str
 
   const finalShortlistIds = Array.from(new Set([...candidateMovieIds, ...subMovieIds]));
 
-  const movies = await db.movie.findMany({
-    where: { id: { in: finalShortlistIds } },
-    include: { genres: true, category: true },
-  });
-
-  return sortMoviesByTitle(movies);
+  return loadMoviesById(finalShortlistIds);
 }
 
 // Helper: Get final tiebreaker movies from Round 3 shortlist voting ties
 export async function getFinalTiebreakerMovies(weekId: string) {
-  const r3Votes = await db.weekVote.findMany({
-    where: { weekId, round: "ROUND_3_SHORTLIST" },
-    include: { user: true },
-  });
-
-  const approvedR3Votes = r3Votes.filter((v) => v.user.isApproved);
-  const r3Counts: Record<string, number> = {};
-  approvedR3Votes.forEach((v) => {
-    r3Counts[v.targetId] = (r3Counts[v.targetId] || 0) + 1;
-  });
-
-  const r3Max = Math.max(...Object.values(r3Counts), 0);
-  const r3TiedIds = Object.keys(r3Counts).filter((id) => r3Counts[id] === r3Max);
-
-  const movies = await db.movie.findMany({
-    where: { id: { in: r3TiedIds } },
-    include: { genres: true, category: true },
-  });
-
-  return sortMoviesByTitle(movies);
+  const { tiedIds } = tallyVotes(await loadRoundVotes(weekId, "ROUND_3_SHORTLIST"));
+  return loadMoviesById(tiedIds);
 }
 
 // Helper: Get category tiebreaker categories from Round 1 category voting ties
 export async function getCategoryTiebreakerCategories(weekId: string) {
-  const votes = await db.weekVote.findMany({
-    where: { weekId, round: "ROUND_1_CATEGORY" },
-    include: { user: true },
-  });
-
-  const approvedVotes = votes.filter((v) => v.user.isApproved);
-  const counts: Record<string, number> = {};
-  approvedVotes.forEach((v) => {
-    counts[v.targetId] = (counts[v.targetId] || 0) + 1;
-  });
-
-  const maxVal = Math.max(...Object.values(counts), 0);
-  const tiedIds = Object.keys(counts).filter((id) => counts[id] === maxVal);
+  const { tiedIds } = tallyVotes(await loadRoundVotes(weekId, "ROUND_1_CATEGORY"));
 
   return db.category.findMany({
     where: { id: { in: tiedIds } },
@@ -124,53 +94,14 @@ export async function getCategoryTiebreakerCategories(weekId: string) {
   });
 }
 
-// Helper: Get in-person tiebreaker movies (any movie with >= 1 vote in Round 1)
+// Helper: Get in-person tiebreaker movies (every movie that received a vote in Round 1)
 export async function getInPersonTiebreakerMovies(weekId: string) {
-  const votes = await db.weekVote.findMany({
-    where: { weekId, round: "IN_PERSON_ROUND_1" },
-    include: { user: true },
-  });
-
-  const approvedVotes = votes.filter((v) => v.user.isApproved);
-  const counts: Record<string, number> = {};
-  approvedVotes.forEach((v) => {
-    counts[v.targetId] = (counts[v.targetId] || 0) + 1;
-  });
-
-  const candidateIds = Object.keys(counts).filter((id) => counts[id] >= 1);
-
-  const movies = await db.movie.findMany({
-    where: { id: { in: candidateIds } },
-    include: { genres: true, category: true },
-  });
-
-  return sortMoviesByTitle(movies);
+  const { counts } = tallyVotes(await loadRoundVotes(weekId, "IN_PERSON_ROUND_1"));
+  return loadMoviesById(Object.keys(counts));
 }
 
 // Helper: Get in-person tied movies with max votes in a given round
-export async function getInPersonTiedMovies(weekId: string, roundCode: string) {
-  const votes = await db.weekVote.findMany({
-    where: { weekId, round: roundCode },
-    include: { user: true },
-  });
-
-  const approvedVotes = votes.filter((v) => v.user.isApproved);
-  if (approvedVotes.length === 0) return [];
-
-  const counts: Record<string, number> = {};
-  approvedVotes.forEach((v) => {
-    counts[v.targetId] = (counts[v.targetId] || 0) + 1;
-  });
-
-  const maxVal = Math.max(...Object.values(counts));
-  const tiedIds = Object.keys(counts).filter((id) => counts[id] === maxVal);
-
-  const movies = await db.movie.findMany({
-    where: { id: { in: tiedIds } },
-    include: { genres: true, category: true },
-  });
-
-  return sortMoviesByTitle(movies);
+export async function getInPersonTiedMovies(weekId: string, roundCode: RoundCode) {
+  const { tiedIds } = tallyVotes(await loadRoundVotes(weekId, roundCode));
+  return loadMoviesById(tiedIds);
 }
-
-
