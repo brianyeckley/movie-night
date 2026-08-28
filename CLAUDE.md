@@ -6,6 +6,11 @@ This file provides system context, build/test commands, and architectural workfl
 
 ## Build & Test Commands
 
+> **Node 22 only.** `better-sqlite3` is a native module tied to Node's ABI;
+> another major fails at runtime with `NODE_MODULE_VERSION`, not at install.
+> Pinned in `.node-version`, enforced by `engines` + `engine-strict`. After a
+> version switch, run `npm rebuild better-sqlite3`.
+
 *   **Run Development Server**: `npm run dev` (starts on port 4000)
 *   **Run Tests Once**: `npm run test`
 *   **Run Tests in Watch Mode**: `npm run test:watch`

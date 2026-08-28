@@ -9,6 +9,17 @@ A modern web application to vote on and track weekly movies to watch.
 
 ## Getting Started
 
+0. Use the pinned Node version:
+   ```bash
+   fnm use 22   # or: nvm use
+   ```
+   `better-sqlite3` ships a compiled binary tied to Node's ABI, so running under
+   a different major fails at runtime with a `NODE_MODULE_VERSION` error rather
+   than anything that points at the cause. The version is pinned in
+   `.node-version` and enforced by `engines` in `package.json`. If you have
+   already installed under the wrong major, `npm rebuild better-sqlite3` fixes
+   the binary without a full reinstall.
+
 1. Install dependencies:
    ```bash
    npm install
