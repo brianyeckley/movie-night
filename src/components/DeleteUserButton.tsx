@@ -13,8 +13,10 @@ export default function DeleteUserButton({ userId, userName }: DeleteUserButtonP
     if (confirm(`Are you sure you want to permanently delete user "${userName}"? This action cannot be undone.`)) {
       try {
         await deleteUserAction(userId);
-      } catch (error: any) {
-        alert(error.message || "Failed to delete user.");
+      } catch (error) {
+        alert(
+          error instanceof Error ? error.message : "Failed to delete user."
+        );
       }
     }
   };

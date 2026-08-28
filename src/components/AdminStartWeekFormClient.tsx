@@ -30,67 +30,71 @@ export default function AdminStartWeekFormClient({
       try {
         // Bypassing theme selection if in person, passing undefined triggers default "In Person Physical Media"
         await createWeekAction(isInPerson ? undefined : theme, isInPerson);
-      } catch (err: any) {
+      } catch (err) {
         console.error("Failed to start week:", err);
-        setError(err.message || "Failed to start week. Please try again.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to start week. Please try again."
+        );
       }
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex-col gap-md text-left">
-      <div className="flex-col gap-xs mb-sm">
-        <label className="form-label" style={{ fontWeight: "600", fontSize: "0.9rem" }}>
+      <fieldset className="flex-col gap-xs mb-sm">
+        <legend className="form-label mode-picker-label">
           Select Movie Night Mode
-        </label>
-        <div className="flex-row gap-md flex-wrap w-full">
-          <div
-            onClick={() => !isPending && setIsInPerson(false)}
-            className={`flex-1 min-w-[200px] p-md glass-panel cursor-pointer flex-col gap-sm items-center text-center transition-all ${
-              !isInPerson
-                ? "border-primary bg-primary-light shadow-glow"
-                : "opacity-60 hover:opacity-100"
+        </legend>
+        <div className="mode-picker">
+          <label
+            className={`glass-panel mode-option mode-option-standard ${
+              !isInPerson ? "selected" : ""
             }`}
-            style={{
-              borderRadius: "var(--radius-md)",
-              border: !isInPerson ? "2px solid var(--primary)" : "1px solid var(--glass-border)",
-              transform: !isInPerson ? "scale(1.02)" : "scale(1)",
-              pointerEvents: isPending ? "none" : "auto",
-            }}
+            aria-disabled={isPending}
           >
-            <span className="text-4xl" style={{ display: "block", marginBottom: "4px" }}>🎬</span>
+            <input
+              type="radio"
+              name="weekMode"
+              value="standard"
+              checked={!isInPerson}
+              disabled={isPending}
+              onChange={() => setIsInPerson(false)}
+            />
+            <span className="mode-option-icon">🎬</span>
             <div className="flex-col gap-xxs">
               <span className="font-bold text-md text-primary-var">Standard Week</span>
               <span className="text-xs text-secondary">
                 Theme category selection, movie nominations, and multi-round voting.
               </span>
             </div>
-          </div>
+          </label>
 
-          <div
-            onClick={() => !isPending && setIsInPerson(true)}
-            className={`flex-1 min-w-[200px] p-md glass-panel cursor-pointer flex-col gap-sm items-center text-center transition-all ${
-              isInPerson
-                ? "border-accent bg-accent-light shadow-glow-accent"
-                : "opacity-60 hover:opacity-100"
+          <label
+            className={`glass-panel mode-option mode-option-in-person ${
+              isInPerson ? "selected" : ""
             }`}
-            style={{
-              borderRadius: "var(--radius-md)",
-              border: isInPerson ? "2px solid var(--accent)" : "1px solid var(--glass-border)",
-              transform: isInPerson ? "scale(1.02)" : "scale(1)",
-              pointerEvents: isPending ? "none" : "auto",
-            }}
+            aria-disabled={isPending}
           >
-            <span className="text-4xl" style={{ display: "block", marginBottom: "4px" }}>🍿</span>
+            <input
+              type="radio"
+              name="weekMode"
+              value="in-person"
+              checked={isInPerson}
+              disabled={isPending}
+              onChange={() => setIsInPerson(true)}
+            />
+            <span className="mode-option-icon">🍿</span>
             <div className="flex-col gap-xxs">
               <span className="font-bold text-md text-primary-var">In Person Night</span>
               <span className="text-xs text-secondary">
                 Skip category rounds. Users vote directly on physical media (4K, Blu-ray, DVD).
               </span>
             </div>
-          </div>
+          </label>
         </div>
-      </div>
+      </fieldset>
 
       {!isInPerson ? (
         <div className="form-group animate-slide-in">
@@ -127,7 +131,7 @@ export default function AdminStartWeekFormClient({
         </div>
       ) : (
         <div className="text-sm text-secondary italic mb-sm p-sm glass-panel text-center animate-slide-in" style={{ opacity: 0.9, backgroundColor: "var(--accent-light)", borderColor: "rgba(244, 63, 94, 0.2)" }}>
-          ℹ️ The Theme will default to <strong>"In Person Physical Media"</strong> and the Category Selection round will be skipped.
+          ℹ️ The Theme will default to <strong>&quot;In Person Physical Media&quot;</strong> and the Category Selection round will be skipped.
         </div>
       )}
 

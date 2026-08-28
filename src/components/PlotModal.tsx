@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export interface MoviePlotModalData {
@@ -17,10 +17,7 @@ interface PlotModalProps {
 }
 
 export function PlotModal({ movie, onClose }: PlotModalProps) {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -28,7 +25,9 @@ export function PlotModal({ movie, onClose }: PlotModalProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  if (!mounted || !movie) return null;
+  // No "mounted" guard needed: `movie` is null until a click sets it, so the
+  // server render returns here and never reaches `document.body`.
+  if (!movie) return null;
 
   return createPortal(
     <div 

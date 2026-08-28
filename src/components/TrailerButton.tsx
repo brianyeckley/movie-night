@@ -34,15 +34,21 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const openModal = () => {
+    // Mounted here rather than in an effect so opening is a single render.
+    setIsRendered(true);
+    setIsOpen(true);
+  };
+
   useEffect(() => {
     if (isOpen) {
-      setIsRendered(true);
       document.body.style.overflow = "hidden";
-    } else {
-      const timer = setTimeout(() => setIsRendered(false), 300);
-      document.body.style.overflow = "";
-      return () => clearTimeout(timer);
+      return;
     }
+    // Keep the overlay mounted until the close transition has finished.
+    const timer = setTimeout(() => setIsRendered(false), 300);
+    document.body.style.overflow = "";
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   if (!trailerUrl) return null;
@@ -66,7 +72,7 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={openModal}
         className={`btn btn-secondary btn-trailer ${className || ""}`}
         style={style}
       >
