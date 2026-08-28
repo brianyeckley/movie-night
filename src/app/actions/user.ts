@@ -57,7 +57,7 @@ export async function loginAction(
       return { error: "Invalid username or password." };
     }
 
-    await createSession(user.id, user.role, rememberMe);
+    await createSession(user.id, rememberMe);
   } catch (error) {
     console.error("Login action error:", error);
     return { error: "An unexpected error occurred. Please try again." };

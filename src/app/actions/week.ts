@@ -6,6 +6,7 @@ import { getActiveUser } from "./user";
 import { notifyNewWeek } from "@/lib/discord";
 import { advanceWeekRound } from "@/lib/round-engine";
 import { approvedVotesForRound, roundCodeForStatus } from "@/lib/rounds";
+import { ACTIVE_WEEK } from "@/lib/weeks";
 
 // 2. Create new Movie Night Week
 export async function createWeekAction(themeCategoryName?: string, isInPerson: boolean = false) {
@@ -14,12 +15,13 @@ export async function createWeekAction(themeCategoryName?: string, isInPerson: b
     throw new Error("Unauthorized: Only Admin can create weeks.");
   }
 
-  // Find if there is an active week already
-  const activeWeek = await db.movieNightWeek.findFirst({
-    where: { NOT: { status: "COMPLETED" } },
-  });
+  // A week counts as active until it is closed out, which includes a week
+  // that already has a winner but has not been marked watched yet.
+  const activeWeek = await db.movieNightWeek.findFirst({ where: ACTIVE_WEEK });
   if (activeWeek) {
-    throw new Error("An active week is already in progress.");
+    throw new Error(
+      "An active week is already in progress. Close it out before starting the next one."
+    );
   }
 
   // Get current week number

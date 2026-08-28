@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { notifyReminder } from "@/lib/discord";
 import { approvedVotesForRound, roundCodeForStatus } from "@/lib/rounds";
+import { ACTIVE_WEEK } from "@/lib/weeks";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
   try {
     // 1. Find the active week
     const activeWeek = await db.movieNightWeek.findFirst({
-      where: { closedAt: null },
+      where: ACTIVE_WEEK,
       include: { votes: { include: { user: true } } },
     });
 

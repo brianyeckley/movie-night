@@ -60,16 +60,48 @@ describe("Week Management Server Actions", () => {
       await expect(createWeekAction("Action")).rejects.toThrow("Unauthorized: Only Admin can create weeks.");
     });
 
-    it("throws an error if there is an active week already in progress", async () => {
+    it("refuses to start a week while one is still open (including one awaiting close-out)", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
       vi.mocked(db.movieNightWeek.findFirst).mockResolvedValueOnce({ id: "week-active" } as any);
-      await expect(createWeekAction("Action")).rejects.toThrow("An active week is already in progress.");
+      await expect(createWeekAction("Action")).rejects.toThrow(
+        "An active week is already in progress."
+      );
+    });
+
+    // Regression: the dashboard and the cron treated a week as active until it
+    // was closed, while this guard used status !== COMPLETED. In the window
+    // between a winner being picked and the admin closing out, an admin could
+    // start a second week and leave two matching closedAt: null.
+    it("treats a COMPLETED but unclosed week as still active", async () => {
+      vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
+      vi.mocked(db.movieNightWeek.findFirst).mockResolvedValueOnce({
+        id: "week-5",
+        status: "COMPLETED",
+        closedAt: null,
+      } as any);
+
+      await expect(createWeekAction("Action")).rejects.toThrow(
+        "Close it out before starting the next one."
+      );
+      expect(db.movieNightWeek.create).not.toHaveBeenCalled();
+    });
+
+    it("looks for the active week by closedAt, not by status", async () => {
+      vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
+      vi.mocked(db.movieNightWeek.findFirst).mockResolvedValueOnce({ id: "w" } as any);
+
+      await expect(createWeekAction("Action")).rejects.toThrow();
+      expect(db.movieNightWeek.findFirst).toHaveBeenCalledWith({
+        where: { closedAt: null },
+      });
     });
 
     it("creates a standard week successfully with category selection", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
       vi.mocked(db.movieNightWeek.findFirst).mockImplementation((async ({ where }: any) => {
-        if (where && where.NOT) return null; // No active week
+        // The active-week lookup filters on closedAt; the other findFirst
+        // call is the "highest week number so far" lookup.
+        if (where && "closedAt" in where) return null; // No active week
         return { weekNumber: 5 } as any; // Last week
       }) as any);
 
@@ -99,7 +131,9 @@ describe("Week Management Server Actions", () => {
     it("creates an In-Person week and skips categories selection using default theme", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
       vi.mocked(db.movieNightWeek.findFirst).mockImplementation((async ({ where }: any) => {
-        if (where && where.NOT) return null; // No active week
+        // The active-week lookup filters on closedAt; the other findFirst
+        // call is the "highest week number so far" lookup.
+        if (where && "closedAt" in where) return null; // No active week
         return { weekNumber: 10 } as any; // Last week
       }) as any);
 
