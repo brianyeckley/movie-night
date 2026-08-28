@@ -101,7 +101,17 @@ The `docker-compose.yml` includes `containrrr/watchtower`, configured with `DOCK
 ### Deployment Steps
 
 1. **Configure Environment Variables**:
-   Create a `.env` file in the root of the project (if you haven't already). Make sure it includes your Cloudflare Tunnel Token and other necessary keys:
+   Create a `.env` file in the root of the project (if you haven't already) —
+   `cp .env.example .env` covers every variable with notes on each. Compose reads
+   this file on `docker compose up` to substitute the `${VARS}` in
+   `docker-compose.yml`, so it persists across restarts.
+
+   > **After adding or changing a variable, run `docker compose up -d`.**
+   > Watchtower clones the running container's existing environment when it pulls
+   > a new image, so it will not pick up a variable added since that container was
+   > last created.
+
+   Make sure it includes your Cloudflare Tunnel Token and other necessary keys:
    ```env
    # Host directory for persistent SQLite database storage (defaults to ./data if omitted)
    DATA_DIR="./data"
