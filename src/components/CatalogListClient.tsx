@@ -5,6 +5,7 @@ import { deleteMovieAction, deleteCategoryAction } from "@/app/actions";
 import TrailerButton from "@/components/TrailerButton";
 import EditMovieButton from "@/components/EditMovieButton";
 import { PlotModal, MoviePlotModalData } from "@/components/PlotModal";
+import { sortMoviesByTitle } from "@/lib/movie-sort";
 
 interface Genre {
   id: string;
@@ -162,13 +163,13 @@ export default function CatalogListClient({
               return true;
             });
 
-            return { ...sub, movies: filteredSubMovies };
+            return { ...sub, movies: sortMoviesByTitle(filteredSubMovies) };
           })
           .filter((sub) => sub.movies.length > 0);
 
         return {
           ...cat,
-          movies: filteredDirectMovies,
+          movies: sortMoviesByTitle(filteredDirectMovies),
           subcategories: filteredSubcategories,
         };
       })

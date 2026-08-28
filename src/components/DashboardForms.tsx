@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { sortMoviesByTitle } from "@/lib/movie-sort";
 import {
   completeWeekAction,
   completeWeekLegacyOverrideAction,
@@ -98,14 +99,14 @@ export async function MovieVotingForm({ week, currentUserId }: any) {
   const isLegacy = category?.name === "Legacy";
 
   // Movies in this category (exclude watched, unless it is Legacy)
-  const movies = await db.movie.findMany({
+  const rawMovies = await db.movie.findMany({
     where: {
       categoryId: week.selectedCategoryId,
       OR: isLegacy ? undefined : [{ watched: false }],
     },
     include: { genres: true },
-    orderBy: { title: "asc" },
   });
+  const movies = sortMoviesByTitle(rawMovies);
 
   // Subcategories in this category
   const subcategories = await db.category.findMany({
@@ -182,11 +183,11 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
       subcategories = [subcategory];
     }
     const tiedMovieIds = r2bTiedIds.filter((id) => id !== week.selectedSubcategoryId);
-    movies = await db.movie.findMany({
+    const rawTiedMovies = await db.movie.findMany({
       where: { id: { in: tiedMovieIds } },
       include: { genres: true },
-      orderBy: { title: "asc" },
     });
+    movies = sortMoviesByTitle(rawTiedMovies);
   } else {
     // Round 2b
     const r2Votes = await db.weekVote.findMany({
@@ -207,17 +208,17 @@ export async function SubcategoryVotingForm({ week, currentUserId }: any) {
         subcategories = [subcategory];
       }
       const tiedMovieIds = r2TiedIds.filter((id) => id !== week.selectedSubcategoryId);
-      movies = await db.movie.findMany({
+      const rawTiedMovies = await db.movie.findMany({
         where: { id: { in: tiedMovieIds } },
         include: { genres: true },
-        orderBy: { title: "asc" },
       });
+      movies = sortMoviesByTitle(rawTiedMovies);
     } else {
-      movies = await db.movie.findMany({
+      const rawSubMovies = await db.movie.findMany({
         where: { categoryId: week.selectedSubcategoryId, watched: false },
         include: { genres: true },
-        orderBy: { title: "asc" },
       });
+      movies = sortMoviesByTitle(rawSubMovies);
     }
   }
 
@@ -494,7 +495,7 @@ export function CompletedWeekView({ week, movie, currentUser }: any) {
 
 // 7. In Person: Round 1 In Person Voting
 export async function InPersonVotingRound({ week, currentUserId }: any) {
-  const movies = await db.movie.findMany({
+  const rawMovies = await db.movie.findMany({
     where: {
       watched: false,
       OR: [
@@ -504,8 +505,8 @@ export async function InPersonVotingRound({ week, currentUserId }: any) {
       ],
     },
     include: { genres: true },
-    orderBy: { title: "asc" },
   });
+  const movies = sortMoviesByTitle(rawMovies);
 
   const userVotes = await db.weekVote.findMany({
     where: { weekId: week.id, userId: currentUserId, round: "IN_PERSON_ROUND_1" },

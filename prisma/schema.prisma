@@ -35,7 +35,7 @@ model Category {
 
 model Genre {
   id        String   @id @default(uuid())
-  name      String   @unique // "Horror", "Sci-Fi", "Action", "Comedy", "Crime", "Schlock"
+  name      String   @unique // "Horror", "Sci-Fi", "Action", "Comedy", "Crime", "Schlock", "Martial Arts", "Fantasy"
   movies    Movie[]
   createdAt DateTime @default(now())
 }

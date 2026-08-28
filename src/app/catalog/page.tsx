@@ -3,6 +3,7 @@ import { getActiveUser, addCategoryAction, addSubcategoryAction } from "@/app/ac
 import AddMovieForm from "@/components/AddMovieForm";
 import Link from "next/link";
 import CatalogListClient from "@/components/CatalogListClient";
+import { sortMoviesByTitle } from "@/lib/movie-sort";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export default async function CatalogPage() {
   const currentUser = await getActiveUser();
 
   // Fetch all top-level categories, including their nested subcategories and direct movies
-  const categories = await db.category.findMany({
+  const rawCategories = await db.category.findMany({
     where: { parentId: null },
     include: {
       subcategories: {
@@ -19,7 +20,6 @@ export default async function CatalogPage() {
             include: {
               genres: true,
             },
-            orderBy: { title: "asc" },
           },
         },
         orderBy: { name: "asc" },
@@ -33,11 +33,19 @@ export default async function CatalogPage() {
         include: {
           genres: true,
         },
-        orderBy: { title: "asc" },
       },
     },
     orderBy: { name: "asc" },
   });
+
+  const categories = rawCategories.map((cat) => ({
+    ...cat,
+    movies: sortMoviesByTitle(cat.movies),
+    subcategories: cat.subcategories.map((sub) => ({
+      ...sub,
+      movies: sortMoviesByTitle(sub.movies),
+    })),
+  }));
 
   // Fetch all flat categories (both top-level and subcategories) for the dropdown list
   const flatCategories = await db.category.findMany({

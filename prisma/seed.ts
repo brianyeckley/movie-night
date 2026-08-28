@@ -75,7 +75,7 @@ async function main() {
   console.log(`Seeded Users: ${brian.name} (ADMIN), Stew (USER), Nick (USER)`);
 
   // 2. Seed Genres
-  const genresList = ["Horror", "Sci-Fi", "Action", "Comedy", "Crime", "Schlock"];
+  const genresList = ["Horror", "Sci-Fi", "Action", "Comedy", "Crime", "Schlock", "Martial Arts", "Fantasy"];
   const genres: Record<string, any> = {};
 
   for (const genreName of genresList) {

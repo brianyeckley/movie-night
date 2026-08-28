@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { sortMoviesByTitle } from "@/lib/movie-sort";
 
 // Helper: Get shortlist movies compiled from Round 2/2b voting ties
 export async function getShortlistMovies(weekId: string, selectedCategoryId: string, selectedSubcategoryId: string | null) {
@@ -69,10 +70,12 @@ export async function getShortlistMovies(weekId: string, selectedCategoryId: str
 
   const finalShortlistIds = Array.from(new Set([...candidateMovieIds, ...subMovieIds]));
 
-  return db.movie.findMany({
+  const movies = await db.movie.findMany({
     where: { id: { in: finalShortlistIds } },
     include: { genres: true, category: true },
   });
+
+  return sortMoviesByTitle(movies);
 }
 
 // Helper: Get final tiebreaker movies from Round 3 shortlist voting ties
@@ -91,10 +94,12 @@ export async function getFinalTiebreakerMovies(weekId: string) {
   const r3Max = Math.max(...Object.values(r3Counts), 0);
   const r3TiedIds = Object.keys(r3Counts).filter((id) => r3Counts[id] === r3Max);
 
-  return db.movie.findMany({
+  const movies = await db.movie.findMany({
     where: { id: { in: r3TiedIds } },
     include: { genres: true, category: true },
   });
+
+  return sortMoviesByTitle(movies);
 }
 
 // Helper: Get category tiebreaker categories from Round 1 category voting ties
@@ -134,11 +139,12 @@ export async function getInPersonTiebreakerMovies(weekId: string) {
 
   const candidateIds = Object.keys(counts).filter((id) => counts[id] >= 1);
 
-  return db.movie.findMany({
+  const movies = await db.movie.findMany({
     where: { id: { in: candidateIds } },
     include: { genres: true, category: true },
-    orderBy: { title: "asc" },
   });
+
+  return sortMoviesByTitle(movies);
 }
 
 // Helper: Get in-person tied movies with max votes in a given round
@@ -159,11 +165,12 @@ export async function getInPersonTiedMovies(weekId: string, roundCode: string) {
   const maxVal = Math.max(...Object.values(counts));
   const tiedIds = Object.keys(counts).filter((id) => counts[id] === maxVal);
 
-  return db.movie.findMany({
+  const movies = await db.movie.findMany({
     where: { id: { in: tiedIds } },
     include: { genres: true, category: true },
-    orderBy: { title: "asc" },
   });
+
+  return sortMoviesByTitle(movies);
 }
 
 

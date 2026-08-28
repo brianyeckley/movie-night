@@ -235,9 +235,11 @@ describe("Voting Data Compilation Helpers", () => {
       expect(db.movie.findMany).toHaveBeenCalledWith({
         where: { id: { in: ["movie-1", "movie-2"] } },
         include: { genres: true, category: true },
-        orderBy: { title: "asc" },
       });
       expect(result).toHaveLength(2);
+      // "Alien" ('A') should sort before "The Thing" ('Thing' -> 'T')
+      expect(result[0].title).toBe("Alien");
+      expect(result[1].title).toBe("The Thing");
     });
   });
 });
