@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { AlertTriangle } from "lucide-react";
 import { advanceWeekRoundAction } from "@/app/actions";
 
 interface Props {
@@ -40,7 +41,7 @@ export default function AdvanceRoundButton({ weekId, isGreen = false }: Props) {
       </button>
       {error && (
         <div className="alert-box alert-error alert-sm text-center font-semibold text-accent-color">
-          ⚠️ {error}
+          <AlertTriangle size="1em" className="inline-icon" /> {error}
         </div>
       )}
     </div>

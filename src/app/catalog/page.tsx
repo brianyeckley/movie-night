@@ -1,3 +1,4 @@
+import { AlertTriangle, BookOpen, Wrench } from "lucide-react";
 import { db } from "@/lib/db";
 import { getActiveUser, addCategoryAction, addSubcategoryAction } from "@/app/actions";
 import AddMovieForm from "@/components/AddMovieForm";
@@ -62,7 +63,7 @@ export default async function CatalogPage() {
         {/* Banner */}
         <div className="glass-panel no-hover p-xl mb-3xl">
           <h1 className="text-gradient text-8xl font-extrabold mb-sm tracking-tighter">
-            📚 Catalog Management
+            <BookOpen size="1em" className="inline-icon" /> Catalog Management
           </h1>
           <p className="text-secondary text-xl">
             Manage the movie list, group them into categories or subcategories, and tag their genres.
@@ -72,7 +73,7 @@ export default async function CatalogPage() {
         {!currentUser && (
           <div className="glass-panel no-hover p-lg text-center alert-error">
             <p className="text-accent-color font-semibold">
-              ⚠️ You must select a user profile in the header dropdown to view or edit the catalog.
+              <AlertTriangle size="1em" className="inline-icon" /> You must select a user profile in the header dropdown to view or edit the catalog.
             </p>
           </div>
         )}
@@ -99,7 +100,7 @@ export default async function CatalogPage() {
             <div className="catalog-sidebar">
               <input type="checkbox" id="catalog-sidebar-toggle" className="sidebar-toggle-checkbox" />
               <label htmlFor="catalog-sidebar-toggle" className="sidebar-toggle-label">
-                <span>🛠️ Manage Catalog</span>
+                <span><Wrench size="1em" className="inline-icon" /> Manage Catalog</span>
                 <span className="sidebar-chevron">▼</span>
               </label>
               <div className="sidebar-content">

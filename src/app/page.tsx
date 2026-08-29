@@ -1,3 +1,19 @@
+import {
+  Clapperboard,
+  Crown,
+  Popcorn,
+  Dices,
+  PartyPopper,
+  BarChart3,
+  Scale,
+  Trophy,
+  CheckCircle2,
+  CircleX,
+  ExternalLink,
+  Timer,
+  Users,
+  CassetteTape,
+} from "lucide-react";
 import { db } from "@/lib/db";
 import {
   getActiveUser,
@@ -20,6 +36,7 @@ import {
 } from "@/components/DashboardForms";
 import AdminStartWeekFormClient from "@/components/AdminStartWeekFormClient";
 import { ACTIVE_WEEK } from "@/lib/weeks";
+import { getRandomBgImage } from "@/lib/bg-images";
 import {
   approvedVotes,
   formatRound,
@@ -58,6 +75,7 @@ interface RoundResult {
 
 export default async function DashboardPage() {
   const currentUser = await getActiveUser();
+  const bgImage = getRandomBgImage();
 
   const activeWeek = await db.movieNightWeek.findFirst({
     where: ACTIVE_WEEK,
@@ -231,11 +249,23 @@ export default async function DashboardPage() {
     ? inPersonTiebreakerTieInfo.targets.find((t) => t.targetId === activeWeek.winningMovieId)?.name
     : null;
 
+  const showBgImage = Boolean(currentUser && !activeWeek && bgImage);
+
   return (
     <div className="py-xl">
       {activeWeek && activeWeek.status !== "COMPLETED" && (
         <AutoRefresh interval={5000} />
       )}
+
+      {showBgImage && bgImage && (
+        <div
+          className="random-bg-image"
+          style={{
+            backgroundImage: `linear-gradient(rgba(8, 12, 20, 0.6), rgba(8, 12, 20, 0.75)), url(${bgImage.url})`,
+          }}
+        />
+      )}
+
       <main className="container">
         {!currentUser ? (
           // ----------------------------------------
@@ -243,7 +273,7 @@ export default async function DashboardPage() {
           // ----------------------------------------
           <div className="glass-panel no-hover p-2xl text-center max-w-2xl mx-auto my-3xl">
             <h1 className="text-gradient text-8xl font-extrabold mb-lg">
-              🎬 Welcome to Movie Night
+              <Clapperboard size="1em" className="inline-icon" /> Welcome to Movie Night
             </h1>
             <p className="text-secondary mb-2xl text-xl">
               Please pick your profile in the header dropdown to enter the movie night dashboard, participate in voting, or manage the catalog.
@@ -255,7 +285,7 @@ export default async function DashboardPage() {
               <div className="flex-center gap-lg">
                 {users.map((u) => (
                   <span key={u.id} className="dashboard-user-badge">
-                    {u.name} {u.role === "ADMIN" && "👑"}
+                    {u.name} {u.role === "ADMIN" && <Crown size="1em" className="inline-icon" />}
                   </span>
                 ))}
               </div>
@@ -268,18 +298,26 @@ export default async function DashboardPage() {
           <div className="flex-col gap-3xl">
             
             {/* Active Week / Voting Dashboard */}
-            <div className="glass-panel no-hover dashboard-panel">
+            <div
+              className={`glass-panel no-hover dashboard-panel ${
+                !activeWeek ? `dashboard-panel-compact align-${bgImage?.panelAlign ?? "center"}` : ""
+              }`}
+            >
               {!activeWeek ? (
                 // ----------------------------------------
                 // NO ACTIVE WEEK STATE
                 // ----------------------------------------
-                <div className="text-center py-xl">
-                  <span className="text-9xl block mb-lg">🍿</span>
-                  <h2 className="text-5xl font-extrabold mb-sm">No Active Week</h2>
-                  <p className="text-secondary max-w-xl mx-auto mb-2xl">
-                    There is currently no movie night week in progress.
-                  </p>
-                  
+                <div className="text-center">
+                  <div className="no-active-week-banner mb-2xl">
+                    <span className="text-9xl"><Popcorn size="1em" strokeWidth={1} className="inline-icon" /></span>
+                    <div>
+                      <h2 className="text-3xl font-medium">No Active Week</h2>
+                      <p className="text-secondary">
+                        There is currently no movie night week in progress.
+                      </p>
+                    </div>
+                  </div>
+
                   {currentUser.role === "ADMIN" ? (
                     <div className="admin-start-week-card">
                       <h3 className="text-lg font-bold mb-md text-primary-var">
@@ -302,7 +340,7 @@ export default async function DashboardPage() {
                   <div className="dashboard-header-bar">
                     <div>
                       <h2 className="text-5xl font-extrabold">
-                        Week #{activeWeek.weekNumber} Voting {activeWeek.isInPerson && "🍿"}
+                        Week #{activeWeek.weekNumber} Voting {activeWeek.isInPerson && <Popcorn size="1em" className="inline-icon" />}
                       </h2>
                       {activeWeek.isInPerson ? (
                         <p className="text-secondary text-md mt-xs animate-slide-in">
@@ -325,7 +363,7 @@ export default async function DashboardPage() {
                   {/* Tiebreaker Alert Banner */}
                   {round1TiebreakerChosenName && (
                     <div className="tiebreaker-banner">
-                      <span className="text-xl">🎲</span>
+                      <span className="text-xl"><Dices size="1em" className="inline-icon" /></span>
                       <div>
                         <strong>Random Tiebreaker Draw occurred!</strong> Round 1b: Category Tiebreaker resulted in a tie. The category <strong className="text-accent-color font-bold">{round1TiebreakerChosenName}</strong> was randomly selected to resolve the tie.
                       </div>
@@ -334,7 +372,7 @@ export default async function DashboardPage() {
 
                   {inPersonTiebreakerChosenName && (
                     <div className="tiebreaker-banner">
-                      <span className="text-xl">🎲</span>
+                      <span className="text-xl"><Dices size="1em" className="inline-icon" /></span>
                       <div>
                         <strong>Random Tiebreaker Draw occurred!</strong> {inPersonTiebreakerTieInfo?.title} resulted in a tie. The movie <strong className="text-accent-color font-bold">{inPersonTiebreakerChosenName}</strong> was randomly selected to resolve the tie.
                       </div>
@@ -345,7 +383,7 @@ export default async function DashboardPage() {
                   {currentUser.role === "ADMIN" && (
                     <div className="admin-actions-bar">
                       <span className="text-md text-primary-var font-semibold">
-                        👑 Admin Actions ({currentUser.name}):
+                        <Crown size="1em" className="inline-icon" /> Admin Actions ({currentUser.name}):
                       </span>
                       <div className="flex-row gap-md flex-wrap">
                         {activeWeek.status !== "COMPLETED" && (
@@ -381,7 +419,7 @@ export default async function DashboardPage() {
                   {currentUser.role !== "ADMIN" && allVotesIn && activeWeek.status !== "COMPLETED" && (
                     <div className="voted-all-bar">
                       <span className="text-md text-primary-var font-semibold">
-                        🎉 Everyone has voted! Anyone can advance the round:
+                        <PartyPopper size="1em" className="inline-icon" /> Everyone has voted! Anyone can advance the round:
                       </span>
                       <AdvanceRoundButton weekId={activeWeek.id} isGreen />
                     </div>
@@ -440,7 +478,7 @@ export default async function DashboardPage() {
                       {completedRoundsData.length > 0 && (
                         <div className="prior-rounds-section flex-col gap-md">
                           <h3 className="text-xl font-bold text-primary-var flex-row items-center gap-sm px-xs">
-                            📊 Prior Round Results
+                            <BarChart3 size="1em" className="inline-icon" /> Prior Round Results
                           </h3>
                           <div className="flex-col gap-md">
                             {completedRoundsData.map((round) => (
@@ -457,14 +495,14 @@ export default async function DashboardPage() {
                                   <div className={`alert-box mb-md font-semibold flex-row items-center gap-xs ${round.chosenTargetId ? "alert-error" : "alert-success alert-sm"}`}>
                                     {round.chosenTargetId ? (
                                       <>
-                                        🎲 <strong>Tiebreaker:</strong> Random draw selected{" "}
+                                        <Dices size="1em" className="inline-icon" /> <strong>Tiebreaker:</strong> Random draw selected{" "}
                                         <strong className="text-accent-color">
                                           {round.targets.find((t) => t.targetId === round.chosenTargetId)?.name || "Option"}
                                         </strong>
                                       </>
                                     ) : (
                                       <>
-                                        ⚖️ <strong>Tie:</strong> Round tied! All tied options advanced to the next round.
+                                        <Scale size="1em" className="inline-icon" /> <strong>Tie:</strong> Round tied! All tied options advanced to the next round.
                                       </>
                                     )}
                                   </div>
@@ -504,7 +542,7 @@ export default async function DashboardPage() {
                                         <div className="flex-col gap-xxs">
                                           <span className={`font-semibold ${isChosenRandomly || isWinner ? "text-primary-var" : "text-secondary"}`}>
                                             {target.name}{" "}
-                                            {isChosenRandomly ? "🎲" : (isWinner && !round.isTie) ? "🏆" : ""}
+                                            {isChosenRandomly ? <Dices size="1em" className="inline-icon" /> : (isWinner && !round.isTie) ? <Trophy size="1em" className="inline-icon" /> : null}
                                           </span>
                                           <span className="text-sm-alt text-muted">
                                             Voters: {target.voters.join(", ")}
@@ -535,7 +573,15 @@ export default async function DashboardPage() {
                               <div key={u.id} className="flex-between p-sm border-b bg-white-05">
                                 <span className="font-semibold">{u.name}</span>
                                 <span className={`text-base ${hasVoted ? "text-success-color" : "text-accent-color"}`}>
-                                  {hasVoted ? "✅ Voted" : "❌ Waiting"}
+                                  {hasVoted ? (
+                                    <>
+                                      <CheckCircle2 size="1em" className="inline-icon" /> Voted
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CircleX size="1em" className="inline-icon" /> Waiting
+                                    </>
+                                  )}
                                 </span>
                               </div>
                             );
@@ -554,7 +600,9 @@ export default async function DashboardPage() {
 
             {/* Past Movie Nights Log */}
             <div className="glass-panel no-hover p-xl">
-              <h2 className="text-6xl font-extrabold mb-lg">🎬 Past Movie Nights</h2>
+              <h2 className="text-6xl font-extrabold mb-lg">
+                <Clapperboard size="1em" className="inline-icon" /> Past Movie Nights
+              </h2>
               {pastWeeks.length === 0 ? (
                 <p className="text-secondary italic">No movie nights have completed yet.</p>
               ) : (
@@ -585,7 +633,7 @@ export default async function DashboardPage() {
                         {wk.winner?.trailerUrl && <TrailerButton trailerUrl={wk.winner.trailerUrl} />}
                         {wk.winner?.imdbUrl && (
                           <a href={wk.winner.imdbUrl} target="_blank" rel="noopener noreferrer" className="text-sm-alt text-primary-color underline">
-                            IMDb Link ↗
+                            IMDb Link <ExternalLink size="1em" className="inline-icon" />
                           </a>
                         )}
                       </div>
@@ -593,14 +641,14 @@ export default async function DashboardPage() {
                         <div className="text-sm-alt text-secondary flex-col gap-xxs mt-xxs mb-xs">
                           {(wk.winner.director || wk.winner.runtime) && (
                             <div className="flex-row gap-xs items-center">
-                              {wk.winner.director && <span>🎬 {wk.winner.director}</span>}
+                              {wk.winner.director && <span><Clapperboard size="1em" className="inline-icon" /> {wk.winner.director}</span>}
                               {wk.winner.director && wk.winner.runtime && <span className="text-glass-border">•</span>}
-                              {wk.winner.runtime && <span>⏱️ {wk.winner.runtime}</span>}
+                              {wk.winner.runtime && <span><Timer size="1em" className="inline-icon" /> {wk.winner.runtime}</span>}
                             </div>
                           )}
                           {wk.winner.stars && (
                             <div style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-                              👥 {wk.winner.stars}
+                              <Users size="1em" className="inline-icon" /> {wk.winner.stars}
                             </div>
                           )}
                         </div>
@@ -617,12 +665,12 @@ export default async function DashboardPage() {
                       </div>
                       <div className="border-t pt-sm mt-sm flex-between text-sm-alt text-muted">
                         {wk.isInPerson ? (
-                          <span className="text-accent-color font-semibold">📼 In-Person Screening</span>
+                          <span className="text-accent-color font-semibold"><CassetteTape size="1em" className="inline-icon" /> In-Person Screening</span>
                         ) : (
                           <span>Theme: {wk.themeCategory?.name || "None"}</span>
                         )}
                         {wk.isRandomlyChosen && (
-                          <span className="text-accent-color font-semibold">🎲 Random Draw</span>
+                          <span className="text-accent-color font-semibold"><Dices size="1em" className="inline-icon" /> Random Draw</span>
                         )}
                       </div>
                     </div>
@@ -634,6 +682,14 @@ export default async function DashboardPage() {
           </div>
         )}
       </main>
+
+      {showBgImage && bgImage?.credit && (
+        <div className="bg-credit">
+          <b>{bgImage.credit.title}</b> ({bgImage.credit.year})
+          <br />
+          <i>watched: {bgImage.credit.watched}</i>
+        </div>
+      )}
     </div>
   );
 }

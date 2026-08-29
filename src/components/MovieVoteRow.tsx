@@ -1,5 +1,6 @@
 "use client";
 
+import { Clapperboard, ExternalLink, Popcorn, Star, Timer, Users } from "lucide-react";
 import TrailerButton from "@/components/TrailerButton";
 import type { MovieWithGenres } from "@/lib/types";
 
@@ -66,11 +67,11 @@ export default function MovieVoteRow({
                   onClick={() => onShowPlot(movie)}
                   className="btn-plot"
                 >
-                  🍿 Plot
+                  <Popcorn size="1em" className="inline-icon" /> Plot
                 </button>
               )}
               {movie.imdbRating && (
-                <span className="badge-rating">⭐ {movie.imdbRating}</span>
+                <span className="badge-rating"><Star size="1em" className="inline-icon" /> {movie.imdbRating}</span>
               )}
             </div>
 
@@ -80,19 +81,19 @@ export default function MovieVoteRow({
                   <div className="flex-row gap-sm items-center flex-wrap">
                     {movie.director && (
                       <span>
-                        🎬 <span className="text-muted">Dir:</span>{" "}
+                        <Clapperboard size="1em" className="inline-icon" /> <span className="text-muted">Dir:</span>{" "}
                         {movie.director}
                       </span>
                     )}
                     {movie.director && movie.runtime && (
                       <span className="text-glass-border">•</span>
                     )}
-                    {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+                    {movie.runtime && <span><Timer size="1em" className="inline-icon" /> {movie.runtime}</span>}
                   </div>
                 )}
                 {movie.stars && (
                   <div className="flex-row gap-xs items-baseline">
-                    <span className="text-muted flex-shrink-0">👥 Cast:</span>
+                    <span className="text-muted flex-shrink-0"><Users size="1em" className="inline-icon" /> Cast:</span>
                     <span className="text-secondary">{movie.stars}</span>
                   </div>
                 )}
@@ -127,7 +128,7 @@ export default function MovieVoteRow({
                 rel="noopener noreferrer"
                 className="text-sm text-primary-color underline"
               >
-                IMDb ↗
+                IMDb <ExternalLink size="1em" className="inline-icon" />
               </a>
             )}
           </div>

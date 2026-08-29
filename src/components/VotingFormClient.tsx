@@ -8,6 +8,7 @@ import {
   submitFinalVoteAction,
   submitCategoryTiebreakerVotesAction,
 } from "@/app/actions";
+import { FolderOpen } from "lucide-react";
 import Toast from "@/components/Toast";
 import { PlotModal } from "@/components/PlotModal";
 import MovieVoteRow from "@/components/MovieVoteRow";
@@ -100,7 +101,7 @@ function SubcategoryVoteRow({
         className="vote-checkbox"
       />
       <div className="flex-col">
-        <span className="font-bold text-lg">📂 {subcategory.name} (Subcategory)</span>
+        <span className="font-bold text-lg"><FolderOpen size="1em" className="inline-icon" /> {subcategory.name} (Subcategory)</span>
         <span className="text-sm-alt text-secondary">
           Triggers an additional voting round for movies in this subcategory if
           selected

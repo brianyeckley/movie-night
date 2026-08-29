@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { Star } from "lucide-react";
 
 export interface MoviePlotModalData {
   title: string;
@@ -63,7 +64,7 @@ export function PlotModal({ movie, onClose }: PlotModalProps) {
           <div className="flex-1 flex-col gap-xs">
             {movie.imdbRating && (
               <span className="text-sm font-semibold text-warning mb-xs block">
-                ⭐ {movie.imdbRating}/10
+                <Star size="1em" className="inline-icon" /> {movie.imdbRating}/10
               </span>
             )}
             {movie.plot ? (

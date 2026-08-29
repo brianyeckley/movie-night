@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { CheckCircle2 } from "lucide-react";
 
 interface ToastProps {
   message: string | null;
@@ -21,7 +22,7 @@ export default function Toast({ message, onClose, duration = 3000 }: ToastProps)
 
   return (
     <div className={`toast-container ${message ? "show" : ""}`}>
-      <span className="toast-icon">✅</span>
+      <span className="toast-icon"><CheckCircle2 size="1em" className="inline-icon" /></span>
       <span className="toast-message">{message}</span>
     </div>
   );

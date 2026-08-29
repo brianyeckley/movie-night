@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Trash2 } from "lucide-react";
 import { deleteCompletedWeekAction } from "@/app/actions";
 
 interface Props {
@@ -55,7 +56,7 @@ export default function DeletePastMovieNightButton({ weekId, weekNumber, movieTi
       title={`Delete "${movieTitle}" from Past Movie Nights`}
       className="delete-icon-btn"
     >
-      🗑️
+      <Trash2 size="1em" className="inline-icon" />
     </button>
   );
 }

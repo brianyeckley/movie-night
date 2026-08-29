@@ -1,3 +1,4 @@
+import { AlertTriangle, Crown, Popcorn, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { 
   getActiveUser, 
@@ -17,7 +18,7 @@ export default async function UserManagementPage() {
     return (
       <div className="container py-2xl text-center">
         <div className="glass-panel no-hover denied-card">
-          <span className="text-9xl">⚠️</span>
+          <span className="text-9xl"><AlertTriangle size="1em" className="inline-icon" /></span>
           <h1 className="text-6xl text-accent-color font-extrabold mt-lg mb-sm">
             Access Denied
           </h1>
@@ -45,7 +46,7 @@ export default async function UserManagementPage() {
           <div className="flex-between flex-wrap gap-lg">
             <div>
               <h1 className="text-gradient text-8xl font-extrabold mb-sm tracking-tighter">
-                👥 User Management
+                <Users size="1em" className="inline-icon" /> User Management
               </h1>
               <p className="text-secondary text-xl">
                 Approve new signups, manage user roles, and revoke account permissions.
@@ -91,7 +92,15 @@ export default async function UserManagementPage() {
                     {/* Role Badge */}
                     <td>
                       <span className={`badge ${user.role === "ADMIN" ? "badge-admin" : "badge-user"}`}>
-                        {user.role === "ADMIN" ? "👑 Admin" : "🍿 User"}
+                        {user.role === "ADMIN" ? (
+                          <>
+                            <Crown size="1em" className="inline-icon" /> Admin
+                          </>
+                        ) : (
+                          <>
+                            <Popcorn size="1em" className="inline-icon" /> User
+                          </>
+                        )}
                       </span>
                     </td>
 
