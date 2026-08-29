@@ -59,6 +59,9 @@ next-env.d.ts
 *.sln
 *.sw?
 
+# Claude Code local session config (machine-specific)
+.claude/
+
 /src/generated/prisma
 
 # Database backups (created by npm run db:backup)

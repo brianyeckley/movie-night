@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { Pencil } from "lucide-react";
 import { updateMovieAction } from "@/app/actions";
 
 interface EditMovieButtonProps {
@@ -93,7 +94,7 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
         onClick={openModal}
         className="btn-edit"
       >
-        ✏️ Edit
+        <Pencil size="1em" className="inline-icon" /> Edit
       </button>
 
       {isRendered && (
@@ -108,7 +109,7 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
           >
             {/* Header */}
             <div className="modal-header">
-              <span className="font-bold text-lg">✏️ Edit Movie Details</span>
+              <span className="font-bold text-lg"><Pencil size="1em" className="inline-icon" /> Edit Movie Details</span>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}

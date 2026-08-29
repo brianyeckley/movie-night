@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { AlertTriangle, Bot, PartyPopper } from "lucide-react";
 import { signupAction } from "@/app/actions/user";
 import Link from "next/link";
 
@@ -26,7 +27,7 @@ export default function SignupFormClient({ captchaQuestion, captchaToken }: Sign
 
         {state?.success ? (
           <div className="success-alert-card text-center flex-col gap-lg">
-            <div className="text-8xl">🎉</div>
+            <div className="text-8xl"><PartyPopper size="1em" className="inline-icon" /></div>
             <div>
               <strong className="text-success-color block mb-xs text-lg">
                 Registration Successful!
@@ -41,7 +42,7 @@ export default function SignupFormClient({ captchaQuestion, captchaToken }: Sign
           <>
             {state?.error && (
               <div className="alert-box alert-error">
-                ⚠️ {state.error}
+                <AlertTriangle size="1em" className="inline-icon" /> {state.error}
               </div>
             )}
 
@@ -93,7 +94,7 @@ export default function SignupFormClient({ captchaQuestion, captchaToken }: Sign
 
               <div className="captcha-box">
                 <label htmlFor="captchaAnswer" className="form-label-bold text-primary-var flex-row items-center gap-xs">
-                  🤖 Bot Protection: <span className="text-primary-color text-md font-bold">{captchaQuestion}</span>
+                  <Bot size="1em" className="inline-icon" /> Bot Protection: <span className="text-primary-color text-md font-bold">{captchaQuestion}</span>
                 </label>
                 <input
                   id="captchaAnswer"

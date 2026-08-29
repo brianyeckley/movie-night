@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { AlertTriangle, CheckCircle2, Settings } from "lucide-react";
 import { changePasswordAction } from "@/app/actions/user";
 import Link from "next/link";
 
@@ -22,7 +23,7 @@ export default function SettingsPage() {
         {/* Banner */}
         <div className="glass-panel no-hover p-lg mb-2xl text-center">
           <h1 className="text-gradient text-6xl font-extrabold mb-xs tracking-tight">
-            ⚙️ Profile Settings
+            <Settings size="1em" className="inline-icon" /> Profile Settings
           </h1>
           <p className="text-secondary text-md">
             Manage your password and security credentials
@@ -37,13 +38,13 @@ export default function SettingsPage() {
 
           {state?.error && (
             <div className="alert-box alert-error mb-xl">
-              ⚠️ {state.error}
+              <AlertTriangle size="1em" className="inline-icon" /> {state.error}
             </div>
           )}
 
           {state?.success && (
             <div className="alert-box alert-success mb-xl">
-              ✅ Password updated successfully!
+              <CheckCircle2 size="1em" className="inline-icon" /> Password updated successfully!
             </div>
           )}
 

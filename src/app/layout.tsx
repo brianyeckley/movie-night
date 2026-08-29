@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Special_Gothic, Special_Gothic_Expanded_One, Geist_Mono } from "next/font/google";
 import { getActiveUser } from "@/app/actions/user";
 import Header from "@/components/Header";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const specialGothic = Special_Gothic({
+  variable: "--font-special-gothic",
   subsets: ["latin"],
+  weight: "variable",
+});
+
+const specialGothicExpandedOne = Special_Gothic_Expanded_One({
+  variable: "--font-special-gothic-expanded",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 const geistMono = Geist_Mono({
@@ -49,7 +56,7 @@ export default async function RootLayout({
   const currentUser = await getActiveUser();
 
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${specialGothic.variable} ${specialGothicExpandedOne.variable} ${geistMono.variable}`}>
       <body>
         <Header currentUser={currentUser} />
         <div className="flex-1 flex-col">{children}</div>

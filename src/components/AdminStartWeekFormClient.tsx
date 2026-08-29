@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Clapperboard, Info, Popcorn } from "lucide-react";
 import { createWeekAction } from "@/app/actions/week";
 
 interface ThemeCategory {
@@ -62,7 +63,7 @@ export default function AdminStartWeekFormClient({
               disabled={isPending}
               onChange={() => setIsInPerson(false)}
             />
-            <span className="mode-option-icon">🎬</span>
+            <span className="mode-option-icon"><Clapperboard size="1em" strokeWidth={1} className="inline-icon" /></span>
             <div className="flex-col gap-xxs">
               <span className="font-bold text-md text-primary-var">Standard Week</span>
               <span className="text-xs text-secondary">
@@ -85,7 +86,7 @@ export default function AdminStartWeekFormClient({
               disabled={isPending}
               onChange={() => setIsInPerson(true)}
             />
-            <span className="mode-option-icon">🍿</span>
+            <span className="mode-option-icon"><Popcorn size="1em" strokeWidth={1} className="inline-icon" /></span>
             <div className="flex-col gap-xxs">
               <span className="font-bold text-md text-primary-var">In Person Night</span>
               <span className="text-xs text-secondary">
@@ -131,7 +132,7 @@ export default function AdminStartWeekFormClient({
         </div>
       ) : (
         <div className="text-sm text-secondary italic mb-sm p-sm glass-panel text-center animate-slide-in" style={{ opacity: 0.9, backgroundColor: "var(--accent-light)", borderColor: "rgba(244, 63, 94, 0.2)" }}>
-          ℹ️ The Theme will default to <strong>&quot;In Person Physical Media&quot;</strong> and the Category Selection round will be skipped.
+          <Info size="1em" className="inline-icon" /> The Theme will default to <strong>&quot;In Person Physical Media&quot;</strong> and the Category Selection round will be skipped.
         </div>
       )}
 

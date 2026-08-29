@@ -25,7 +25,7 @@
   --error: #ef4444;
 
   /* Typography */
-  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-special-gothic), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 
   /* Shadows */
@@ -40,6 +40,10 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-full: 9999px;
+
+  /* Spacing (used by var()-based gap/padding, e.g. .mode-picker) */
+  --space-sm: 8px;
+  --space-md: 16px;
 
   /* Animation Timings */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -108,6 +112,10 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+
+fieldset {
+  border: none;
 }
 
 html {
@@ -237,6 +245,13 @@ a {
 
 .nav-link:hover {
   color: var(--primary) !important;
+}
+
+/* Inline icon utility (lucide-react icons swapped in for emoji) */
+.inline-icon {
+  display: inline-block;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
 }
 
 /* Custom Collapsible Category Styling */
@@ -499,6 +514,44 @@ details.movie-row-details {
 @media (max-width: 768px) {
   .dashboard-panel {
     padding: 16px !important;
+  }
+}
+
+/* No-active-week state: shrink the panel to its content instead of the
+   full container width, and allow it to sit left/center/right. */
+.dashboard-panel-compact {
+  width: fit-content;
+  max-width: 465px;
+  align-self: center;
+}
+.dashboard-panel-compact.align-left {
+  align-self: flex-start;
+}
+.dashboard-panel-compact.align-right {
+  align-self: flex-end;
+}
+@media (max-width: 768px) {
+  .dashboard-panel-compact {
+    width: 100%;
+    align-self: stretch;
+  }
+}
+
+/* No-active-week icon + heading banner: icon in its own column, heading
+   stacked over the subheading in the other. */
+.no-active-week-banner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 32px;
+  background-color: rgba(30, 41, 59, 0.4);
+  border-radius: var(--radius-md);
+  text-align: left;
+}
+@media (max-width: 768px) {
+  .no-active-week-banner {
+    flex-direction: column;
+    text-align: center;
   }
 }
 
@@ -830,17 +883,55 @@ details.movie-row-details {
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 16px 0;
+  padding: 8px 0;
 }
 .site-logo {
-  font-size: 1.5rem;
-  font-weight: 800;
+  --logo-glow-blur: 12px;
+  font-family: var(--font-special-gothic-expanded), var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 500;
   letter-spacing: -0.03em;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+  color: #ffffff;
 }
+
+.site-logo.site-logo-lg {
+  --logo-glow-blur: 20px;
+  font-size: 2.2rem;
+}
+
+.site-logo::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #8b00ff 0%, #ff1f6d 50%, #00FFFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: blur(var(--logo-glow-blur));
+  z-index: -1;
+  pointer-events: none;
+}
+
+.site-logo::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #8b00ff 0%, #ff1f6d 50%, #00FFFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: blur(var(--logo-glow-blur));
+  z-index: -1;
+  pointer-events: none;
+}
+
 .desktop-nav-link {
   font-size: 0.95rem;
   font-weight: 500;
@@ -858,6 +949,83 @@ details.movie-row-details {
   padding: 6px 12px;
   font-size: 0.85rem;
   cursor: pointer;
+}
+
+/* Desktop account menu (nav icon + name trigger, Settings/Log Out dropdown) */
+.account-menu {
+  position: relative;
+}
+
+.account-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.account-menu-trigger:hover,
+.account-menu-trigger[aria-expanded="true"] {
+  background: var(--glass-hover);
+  border-color: var(--text-secondary);
+}
+
+.account-menu-chevron {
+  transition: transform var(--transition-fast);
+}
+
+.account-menu-trigger[aria-expanded="true"] .account-menu-chevron {
+  transform: rotate(180deg);
+}
+
+.account-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: var(--bg-secondary);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  z-index: 110;
+  animation: slideDown 0.15s ease-out;
+}
+
+.account-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.account-menu-item:hover {
+  background: var(--glass-hover);
+  color: var(--primary);
 }
 .mobile-hamburger-btn {
   background: none;
@@ -1280,6 +1448,47 @@ details.movie-row-details {
   justify-content: center;
   min-height: 75vh;
   padding: 24px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-wrapper.align-left {
+  justify-content: flex-start;
+}
+
+.page-wrapper.align-right {
+  justify-content: flex-end;
+}
+
+/* Random background image (login, no-active-week dashboard) + its fixed credit overlay */
+.random-bg-image {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.bg-credit {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 50;
+  max-width: 260px;
+  padding: 8px 14px;
+  background: rgba(8, 12, 20, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.bg-credit b {
+  color: var(--text-primary);
 }
 
 /* Signup / Login Form Helpers */
@@ -2315,7 +2524,7 @@ details.movie-row-details {
 
 .mode-option {
   flex: 1;
-  min-width: 200px;
+  min-width: 150px;
   display: flex;
   flex-direction: column;
   align-items: center;

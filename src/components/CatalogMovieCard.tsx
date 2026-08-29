@@ -1,5 +1,6 @@
 "use client";
 
+import { Clapperboard, ExternalLink, Popcorn, Star, Timer, Users } from "lucide-react";
 import TrailerButton from "@/components/TrailerButton";
 import EditMovieButton from "@/components/EditMovieButton";
 import type { MovieWithGenres } from "@/lib/types";
@@ -46,7 +47,7 @@ export default function CatalogMovieCard({
         </div>
         <div className="movie-card-badges-inline">
           {movie.imdbRating && (
-            <span className="badge-rating">⭐ {movie.imdbRating}</span>
+            <span className="badge-rating"><Star size="1em" className="inline-icon" /> {movie.imdbRating}</span>
           )}
           {movie.watched && <span className="badge-watched">Watched</span>}
         </div>
@@ -58,18 +59,18 @@ export default function CatalogMovieCard({
             <div className="flex-row gap-sm items-center flex-wrap">
               {movie.director && (
                 <span>
-                  🎬 <span className="text-muted">Dir:</span> {movie.director}
+                  <Clapperboard size="1em" className="inline-icon" /> <span className="text-muted">Dir:</span> {movie.director}
                 </span>
               )}
               {movie.director && movie.runtime && (
                 <span className="text-glass-border">•</span>
               )}
-              {movie.runtime && <span>⏱️ {movie.runtime}</span>}
+              {movie.runtime && <span><Timer size="1em" className="inline-icon" /> {movie.runtime}</span>}
             </div>
           )}
           {movie.stars && (
             <div className="flex-row gap-xs items-baseline text-xs text-secondary mt-xxs">
-              <span className="text-muted flex-shrink-0">👥 Cast:</span>
+              <span className="text-muted flex-shrink-0"><Users size="1em" className="inline-icon" /> Cast:</span>
               <span className="text-secondary">{movie.stars}</span>
             </div>
           )}
@@ -101,7 +102,7 @@ export default function CatalogMovieCard({
               onClick={() => onShowPlot(movie)}
               className="btn btn-secondary btn-sm"
             >
-              🍿 Plot
+              <Popcorn size="1em" className="inline-icon" /> Plot
             </button>
           )}
           {movie.trailerUrl && <TrailerButton trailerUrl={movie.trailerUrl} />}
@@ -112,7 +113,7 @@ export default function CatalogMovieCard({
               rel="noopener noreferrer"
               className="btn btn-secondary btn-sm"
             >
-              IMDb ↗
+              IMDb <ExternalLink size="1em" className="inline-icon" />
             </a>
           )}
           {/* Keyed so a different movie gets a freshly seeded form rather

@@ -1,3 +1,4 @@
+import { Clapperboard, Crown, Dices, ExternalLink, Star, Timer, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { sortMoviesByTitle } from "@/lib/movie-sort";
 import {
@@ -393,7 +394,7 @@ export function CompletedWeekView({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-sm text-primary-color font-semibold text-md underline"
           >
-            View IMDb Page ↗
+            View IMDb Page <ExternalLink size="1em" className="inline-icon" />
           </a>
         )}
       </div>
@@ -422,10 +423,10 @@ export function CompletedWeekView({
               </p>
             )}
             <div className="text-sm text-secondary flex-col gap-sm mt-xs">
-              {movie.imdbRating && <span>⭐ <strong className="text-primary-var">IMDb Rating:</strong> <span className="text-warning-color font-semibold">{movie.imdbRating}/10</span></span>}
-              {movie.director && <span>🎬 <strong className="text-primary-var">Director:</strong> {movie.director}</span>}
-              {movie.stars && <span>👥 <strong className="text-primary-var">Cast:</strong> {movie.stars}</span>}
-              {movie.runtime && <span>⏱️ <strong className="text-primary-var">Runtime:</strong> {movie.runtime}</span>}
+              {movie.imdbRating && <span><Star size="1em" className="inline-icon" /> <strong className="text-primary-var">IMDb Rating:</strong> <span className="text-warning-color font-semibold">{movie.imdbRating}/10</span></span>}
+              {movie.director && <span><Clapperboard size="1em" className="inline-icon" /> <strong className="text-primary-var">Director:</strong> {movie.director}</span>}
+              {movie.stars && <span><Users size="1em" className="inline-icon" /> <strong className="text-primary-var">Cast:</strong> {movie.stars}</span>}
+              {movie.runtime && <span><Timer size="1em" className="inline-icon" /> <strong className="text-primary-var">Runtime:</strong> {movie.runtime}</span>}
             </div>
           </div>
         </div>
@@ -433,7 +434,7 @@ export function CompletedWeekView({
 
       {week.isRandomlyChosen && (
         <div className="random-chosen-badge">
-          🎲 Chosen by random tiebreaker draw!
+          <Dices size="1em" className="inline-icon" /> Chosen by random tiebreaker draw!
         </div>
       )}
 
@@ -452,7 +453,7 @@ export function CompletedWeekView({
       {currentUser.role === "ADMIN" && (
         <div className="admin-actions-bar max-w-xl mx-auto text-left flex-col gap-md">
           <h3 className="text-lg font-bold mb-xs text-primary-var">
-            👑 Admin: Close out Movie Night Week
+            <Crown size="1em" className="inline-icon" /> Admin: Close out Movie Night Week
           </h3>
           <p className="text-sm text-secondary mb-md">
             Ready to finalize the week? Choose an action below. This will mark the movie as watched and archive the week&apos;s history.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import { Clapperboard, ChevronRight, FolderOpen, Search } from "lucide-react";
 import { deleteMovieAction, deleteCategoryAction } from "@/app/actions";
 import { PlotModal } from "@/components/PlotModal";
 import CatalogMovieCard from "@/components/CatalogMovieCard";
@@ -130,7 +131,7 @@ export default function CatalogListClient({
         <input type="checkbox" id="catalog-search-toggle" className="search-toggle-checkbox" />
         <label htmlFor="catalog-search-toggle" className="search-toggle-label">
           <span>
-            🔍 Search & Filter Catalog{" "}
+            <Search size="1em" className="inline-icon" /> Search & Filter Catalog{" "}
             {hasActiveFilters && (
               <span className="text-xs text-warning-color font-normal ml-xs">
                 (Active)
@@ -141,7 +142,7 @@ export default function CatalogListClient({
         </label>
         <div className="search-toggle-content">
           <div className="search-input-wrapper">
-            <span className="search-input-icon">🔍</span>
+            <span className="search-input-icon"><Search size="1em" className="inline-icon" /></span>
             <input
               type="text"
               placeholder="Search by title, plot, director, or cast..."
@@ -226,7 +227,7 @@ export default function CatalogListClient({
       {/* Catalog Render List */}
       {filteredCategories.length === 0 ? (
         <div className="glass-panel no-hover p-xl no-movies-found">
-          <span className="no-movies-found-icon">🔍</span>
+          <span className="no-movies-found-icon"><Search size="1em" className="inline-icon" /></span>
           <h3 className="text-xl font-bold">No Movies Found</h3>
           <p className="text-secondary text-md">
             We couldn&apos;t find any movies in the catalog matching your current search parameters.
@@ -254,7 +255,7 @@ export default function CatalogListClient({
                 {/* Top level Category Header Bar */}
                 <summary className="category-summary">
                   <div className="category-title">
-                    <span className="chevron-icon">▶</span>
+                    <span className="chevron-icon"><ChevronRight size="1em" className="inline-icon" /></span>
                     <span>{cat.name}</span>
                     {cat.isThemed && <span className="badge-theme">Theme</span>}
                   </div>
@@ -295,8 +296,8 @@ export default function CatalogListClient({
                         >
                           <summary className="subcategory-summary">
                             <div className="subcategory-details-title">
-                              <span className="chevron-icon">▶</span>
-                              <span>📂 {sub.name}</span>
+                              <span className="chevron-icon"><ChevronRight size="1em" className="inline-icon" /></span>
+                              <span><FolderOpen size="1em" className="inline-icon" /> {sub.name}</span>
                               <span className="category-count-badge">
                                 {sub.movies.length} {sub.movies.length === 1 ? "movie" : "movies"}
                                 {hasActiveFilters && ` (${sub.movies.length} matches)`}
@@ -346,7 +347,7 @@ export default function CatalogListClient({
                     <div>
                       {cat.subcategories.length > 0 && (
                         <h5 className="text-xs font-bold text-muted uppercase tracking-widest mb-sm px-xs">
-                          🎬 Direct Movies ({cat.movies.length})
+                          <Clapperboard size="1em" className="inline-icon" /> Direct Movies ({cat.movies.length})
                         </h5>
                       )}
                       <div className="flex-col gap-sm-plus">

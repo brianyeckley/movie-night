@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Clapperboard, Popcorn } from "lucide-react";
 
 interface TrailerButtonProps {
   trailerUrl: string | null | undefined;
@@ -62,7 +63,7 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
         className={`btn btn-secondary btn-trailer ${className || ""}`}
         style={style}
       >
-        <span>🍿</span> Trailer
+        <span><Popcorn size="1em" className="inline-icon" /></span> Trailer
       </a>
     );
   }
@@ -76,7 +77,7 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
         className={`btn btn-secondary btn-trailer ${className || ""}`}
         style={style}
       >
-        <span>🍿</span> Trailer
+        <span><Popcorn size="1em" className="inline-icon" /></span> Trailer
       </button>
 
       {isRendered && (
@@ -91,7 +92,7 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
           >
             {/* Header */}
             <div className="modal-header">
-              <span className="font-bold text-lg">🎬 Play Trailer</span>
+              <span className="font-bold text-lg"><Clapperboard size="1em" className="inline-icon" /> Play Trailer</span>
               <button
                 onClick={() => setIsOpen(false)}
                 className="modal-close-btn"

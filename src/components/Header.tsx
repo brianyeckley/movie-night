@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { ChevronDown, Crown, LogOut, Popcorn, Settings } from "lucide-react";
 import { logoutAction } from "@/app/actions/user";
 
 interface HeaderProps {
@@ -15,6 +16,21 @@ interface HeaderProps {
 
 export default function Header({ currentUser }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [accountMenuOpen]);
 
   return (
     <header className="site-header">
@@ -22,8 +38,8 @@ export default function Header({ currentUser }: HeaderProps) {
         {/* Left Side: Logo & Desktop Nav */}
         <div className="flex-row items-center gap-2xl">
           <Link href="/" onClick={() => setIsOpen(false)}>
-            <span className="text-gradient site-logo">
-              🎬 Movie Night
+            <span className="site-logo" data-text="MOVIE NIGHT">
+              MOVIE NIGHT
             </span>
           </Link>
  
@@ -58,23 +74,45 @@ export default function Header({ currentUser }: HeaderProps) {
           <>
             {/* Desktop User Navigation */}
             <div className="desktop-user">
-              <span className="text-base text-secondary font-medium">
-                Watching as: <strong className="text-primary-var">{currentUser.name} {currentUser.role === "ADMIN" ? "👑" : "🍿"}</strong>
-              </span>
-              <Link
-                href="/settings"
-                className="desktop-nav-link nav-link"
-              >
-                ⚙️ Settings
-              </Link>
-              <form action={logoutAction} className="inline">
+              <div className="account-menu" ref={accountMenuRef}>
                 <button
-                  type="submit"
-                  className="btn btn-secondary btn-sm"
+                  type="button"
+                  onClick={() => setAccountMenuOpen((open) => !open)}
+                  className="account-menu-trigger"
+                  aria-haspopup="menu"
+                  aria-expanded={accountMenuOpen}
                 >
-                  Log Out
+                  {currentUser.role === "ADMIN" ? (
+                    <Crown size="1em" className="inline-icon" />
+                  ) : (
+                    <Popcorn size="1em" className="inline-icon" />
+                  )}
+                  {currentUser.name}
+                  <ChevronDown size="1em" className="inline-icon account-menu-chevron" />
                 </button>
-              </form>
+
+                {accountMenuOpen && (
+                  <div className="account-menu-dropdown" role="menu">
+                    <Link
+                      href="/settings"
+                      className="account-menu-item"
+                      role="menuitem"
+                      onClick={() => setAccountMenuOpen(false)}
+                    >
+                      <Settings size="1em" className="inline-icon" /> Settings
+                    </Link>
+                    <form action={logoutAction} className="w-full">
+                      <button
+                        type="submit"
+                        className="account-menu-item"
+                        role="menuitem"
+                      >
+                        <LogOut size="1em" className="inline-icon" /> Log Out
+                      </button>
+                    </form>
+                  </div>
+                )}
+              </div>
             </div>
  
             {/* Mobile Hamburger Toggle Button */}
@@ -89,7 +127,7 @@ export default function Header({ currentUser }: HeaderProps) {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -142,13 +180,13 @@ export default function Header({ currentUser }: HeaderProps) {
                 onClick={() => setIsOpen(false)}
                 className="mobile-nav-link"
               >
-                ⚙️ Settings
+                <Settings size="1em" className="inline-icon" /> Settings
               </Link>
             </nav>
  
             <div className="flex-col gap-md mt-sm">
               <span className="text-base text-secondary font-medium">
-                Watching as: <strong className="text-primary-var">{currentUser.name} {currentUser.role === "ADMIN" ? "👑" : "🍿"}</strong>
+                Watching as: <strong className="text-primary-var">{currentUser.name} {currentUser.role === "ADMIN" ? <Crown size="1em" className="inline-icon" /> : <Popcorn size="1em" className="inline-icon" />}</strong>
               </span>
               <form action={logoutAction} className="w-full">
                 <button
