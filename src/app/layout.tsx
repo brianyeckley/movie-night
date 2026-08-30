@@ -8,12 +8,16 @@ const specialGothic = Special_Gothic({
   variable: "--font-special-gothic",
   subsets: ["latin"],
   weight: "variable",
+  adjustFontFallback: false,
+  fallback: ["sans-serif"],
 });
 
 const specialGothicExpandedOne = Special_Gothic_Expanded_One({
   variable: "--font-special-gothic-expanded",
   subsets: ["latin"],
   weight: "400",
+  adjustFontFallback: false,
+  fallback: ["sans-serif"],
 });
 
 const geistMono = Geist_Mono({
