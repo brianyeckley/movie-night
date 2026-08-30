@@ -70,7 +70,7 @@ const MOVIES = [movie("m1", "Alien"), movie("m2", "Brazil"), movie("m3", "Cube")
 beforeEach(() => vi.clearAllMocks());
 
 describe("Round 2 - movie voting", () => {
-  it("submits the chosen movies", async () => {
+  it("submits the chosen movies once the 2-vote allotment is filled", async () => {
     render(
       <MovieVotingFormClient
         weekId="week-1"
@@ -80,11 +80,21 @@ describe("Round 2 - movie voting", () => {
       />
     );
 
+    const submit = screen.getByRole("button", { name: /Cast Votes/ }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
+
     await userEvent.click(screen.getByRole("checkbox", { name: /Alien/ }));
-    await userEvent.click(screen.getByRole("button", { name: /Cast Votes/ }));
+    expect(submit.textContent).toBe("Cast Votes (1 more)");
+    expect(submit.disabled).toBe(true);
+
+    await userEvent.click(screen.getByRole("checkbox", { name: /Brazil/ }));
+    expect(submit.textContent).toBe("Cast Votes");
+    expect(submit.disabled).toBe(false);
+
+    await userEvent.click(submit);
 
     await waitFor(() =>
-      expect(submitMovieVotesAction).toHaveBeenCalledWith("week-1", ["m1"])
+      expect(submitMovieVotesAction).toHaveBeenCalledWith("week-1", ["m1", "m2"])
     );
   });
 
@@ -115,11 +125,14 @@ describe("Round 2 - movie voting", () => {
       />
     );
 
+    // Only 2 options exist in total, so the round's 2-vote cap reduces to
+    // "select everything available" rather than staying stuck unreachable.
     await userEvent.click(screen.getByRole("checkbox", { name: /Van Damme/ }));
+    await userEvent.click(screen.getByRole("checkbox", { name: /Alien/ }));
     await userEvent.click(screen.getByRole("button", { name: /Cast Votes/ }));
 
     await waitFor(() =>
-      expect(submitMovieVotesAction).toHaveBeenCalledWith("week-1", ["sub-1"])
+      expect(submitMovieVotesAction).toHaveBeenCalledWith("week-1", ["sub-1", "m1"])
     );
   });
 });
@@ -231,7 +244,7 @@ describe("Round 1b - category tiebreaker", () => {
 });
 
 describe("In-person rounds", () => {
-  it("allows up to three picks in Round 1", async () => {
+  it("requires all three Round 1 picks before the vote can be cast", async () => {
     render(
       <InPersonVotingForm
         weekId="week-1"
@@ -241,14 +254,21 @@ describe("In-person rounds", () => {
       />
     );
 
+    const submit = screen.getByRole("button", {
+      name: /Cast In Person Votes/,
+    }) as HTMLButtonElement;
+
     await userEvent.click(screen.getByRole("checkbox", { name: /Alien/ }));
     await userEvent.click(screen.getByRole("checkbox", { name: /Cube/ }));
-    await userEvent.click(
-      screen.getByRole("button", { name: /Cast In Person Votes/ })
-    );
+    expect(submit.textContent).toBe("Cast In Person Votes (1 more)");
+    expect(submit.disabled).toBe(true);
+
+    await userEvent.click(screen.getByRole("checkbox", { name: /Brazil/ }));
+    expect(submit.disabled).toBe(false);
+    await userEvent.click(submit);
 
     await waitFor(() =>
-      expect(submitInPersonVotesAction).toHaveBeenCalledWith("week-1", ["m1", "m3"])
+      expect(submitInPersonVotesAction).toHaveBeenCalledWith("week-1", ["m1", "m3", "m2"])
     );
   });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Clapperboard, Popcorn } from "lucide-react";
 
 interface TrailerButtonProps {
@@ -80,7 +81,7 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
         <span><Popcorn size="1em" className="inline-icon" /></span> Trailer
       </button>
 
-      {isRendered && (
+      {isRendered && createPortal(
         <div
           onClick={() => setIsOpen(false)}
           className={`modal-overlay ${isOpen ? "open" : ""}`}
@@ -113,7 +114,8 @@ export default function TrailerButton({ trailerUrl, style, className }: TrailerB
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

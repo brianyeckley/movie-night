@@ -1847,6 +1847,22 @@ details.movie-row-details {
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+/* Keeps a voting round's submit button reachable without scrolling past a
+   long movie/category list -- sticks to the viewport bottom while the form
+   is in view, then scrolls away normally once the form itself scrolls past. */
+.vote-submit-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px 0;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--glass-border);
+}
 .movie-row-card.checked {
   border-color: var(--primary) !important;
   background-color: var(--primary-light) !important;

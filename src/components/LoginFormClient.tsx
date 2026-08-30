@@ -3,7 +3,6 @@
 import { useActionState } from "react";
 import { AlertTriangle, Calendar } from "lucide-react";
 import { loginAction } from "@/app/actions/user";
-import Link from "next/link";
 import type { BgImage } from "@/lib/bg-images";
 
 interface LoginFormClientProps {
@@ -79,7 +78,7 @@ export default function LoginFormClient({ bgImage }: LoginFormClientProps) {
                 name="rememberMe"
                 className="checkbox-input"
               />
-              Keep me logged in (Remember Me)
+              Remember Me
             </label>
 
             <button
@@ -91,12 +90,12 @@ export default function LoginFormClient({ bgImage }: LoginFormClientProps) {
             </button>
           </form>
 
-          <div className="form-footer">
+        {/*   <div className="form-footer">
             New user?{" "}
             <Link href="/signup" className="text-primary-color font-semibold underline nav-link">
               Create an account
             </Link>
-          </div>
+          </div> */}
         </div>
       </div>
 

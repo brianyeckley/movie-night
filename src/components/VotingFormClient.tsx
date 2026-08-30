@@ -130,6 +130,10 @@ export function CategoryVotingFormClient({
     maxVotes: 1,
   });
 
+  const required = Math.min(1, categories.length);
+  const remaining = Math.max(0, required - vote.selectedIds.length);
+  const baseLabel = initialVoteId ? "Update Category Vote" : "Cast Category Vote";
+
   return (
     <form
       onSubmit={vote.handleSubmit({
@@ -151,19 +155,20 @@ export function CategoryVotingFormClient({
         />
       ))}
 
-      {vote.error && <div className="vote-error mt-xs">{vote.error}</div>}
-
-      <button
-        type="submit"
-        disabled={vote.isPending}
-        className="btn btn-primary mt-md"
-      >
-        {vote.isPending
-          ? "Submitting Vote..."
-          : initialVoteId
-          ? "Update Category Vote"
-          : "Cast Category Vote"}
-      </button>
+      <div className="vote-submit-bar">
+        {vote.error && <div className="vote-error">{vote.error}</div>}
+        <button
+          type="submit"
+          disabled={vote.isPending || remaining > 0}
+          className="btn btn-primary"
+        >
+          {vote.isPending
+            ? "Submitting Vote..."
+            : remaining > 0
+            ? `${baseLabel} (${remaining} more)`
+            : baseLabel}
+        </button>
+      </div>
       <Toast message={vote.toastMsg} onClose={vote.clearToast} />
     </form>
   );
@@ -186,6 +191,10 @@ export function MovieVotingFormClient({
   initialVotes,
 }: MovieVotingFormClientProps) {
   const vote = useVoteSelection({ initialVotes, maxVotes: 2 });
+
+  const required = Math.min(2, subcategories.length + movies.length);
+  const remaining = Math.max(0, required - vote.selectedIds.length);
+  const baseLabel = vote.hasExistingVotes ? "Update Votes" : "Cast Votes";
 
   return (
     <form
@@ -220,19 +229,20 @@ export function MovieVotingFormClient({
         />
       ))}
 
-      {vote.error && <div className="vote-error mt-xs">{vote.error}</div>}
-
-      <button
-        type="submit"
-        disabled={vote.isPending}
-        className="btn btn-primary mt-sm"
-      >
-        {vote.isPending
-          ? "Submitting Votes..."
-          : vote.hasExistingVotes
-          ? "Update Votes"
-          : "Cast Votes"}
-      </button>
+      <div className="vote-submit-bar">
+        {vote.error && <div className="vote-error">{vote.error}</div>}
+        <button
+          type="submit"
+          disabled={vote.isPending || remaining > 0}
+          className="btn btn-primary"
+        >
+          {vote.isPending
+            ? "Submitting Votes..."
+            : remaining > 0
+            ? `${baseLabel} (${remaining} more)`
+            : baseLabel}
+        </button>
+      </div>
       <Toast message={vote.toastMsg} onClose={vote.clearToast} />
       <PlotModal movie={vote.plotMovie} onClose={() => vote.setPlotMovie(null)} />
     </form>
@@ -263,11 +273,16 @@ export function SubcategoryVotingFormClient({
 }: SubcategoryVotingFormClientProps) {
   const vote = useVoteSelection({ initialVotes, maxVotes });
 
+  const required = Math.min(maxVotes, subcategories.length + movies.length);
+  const remaining = Math.max(0, required - vote.selectedIds.length);
+  const baseLabel = `${vote.hasExistingVotes ? "Update" : "Cast"} ${
+    isTie ? "Tiebreaker" : "Subcategory"
+  } Votes`;
   const buttonLabel = vote.isPending
     ? "Submitting Votes..."
-    : `${vote.hasExistingVotes ? "Update" : "Cast"} ${
-        isTie ? "Tiebreaker" : "Subcategory"
-      } Votes`;
+    : remaining > 0
+    ? `${baseLabel} (${remaining} more)`
+    : baseLabel;
 
   return (
     <form
@@ -306,15 +321,16 @@ export function SubcategoryVotingFormClient({
         />
       ))}
 
-      {vote.error && <div className="vote-error mt-xs">{vote.error}</div>}
-
-      <button
-        type="submit"
-        disabled={vote.isPending}
-        className="btn btn-primary mt-sm"
-      >
-        {buttonLabel}
-      </button>
+      <div className="vote-submit-bar">
+        {vote.error && <div className="vote-error">{vote.error}</div>}
+        <button
+          type="submit"
+          disabled={vote.isPending || remaining > 0}
+          className="btn btn-primary"
+        >
+          {buttonLabel}
+        </button>
+      </div>
       <Toast message={vote.toastMsg} onClose={vote.clearToast} />
       <PlotModal movie={vote.plotMovie} onClose={() => vote.setPlotMovie(null)} />
     </form>
@@ -339,6 +355,10 @@ export function ShortlistVotingFormClient({
 }: ShortlistVotingFormClientProps) {
   const vote = useVoteSelection({ initialVotes, maxVotes });
 
+  const required = Math.min(maxVotes, movies.length);
+  const remaining = Math.max(0, required - vote.selectedIds.length);
+  const baseLabel = vote.hasExistingVotes ? "Update Shortlist Votes" : "Cast Shortlist Votes";
+
   return (
     <form
       onSubmit={vote.handleSubmit({
@@ -362,19 +382,20 @@ export function ShortlistVotingFormClient({
         />
       ))}
 
-      {vote.error && <div className="vote-error mt-xs">{vote.error}</div>}
-
-      <button
-        type="submit"
-        disabled={vote.isPending}
-        className="btn btn-primary mt-sm"
-      >
-        {vote.isPending
-          ? "Submitting Votes..."
-          : vote.hasExistingVotes
-          ? "Update Shortlist Votes"
-          : "Cast Shortlist Votes"}
-      </button>
+      <div className="vote-submit-bar">
+        {vote.error && <div className="vote-error">{vote.error}</div>}
+        <button
+          type="submit"
+          disabled={vote.isPending || remaining > 0}
+          className="btn btn-primary"
+        >
+          {vote.isPending
+            ? "Submitting Votes..."
+            : remaining > 0
+            ? `${baseLabel} (${remaining} more)`
+            : baseLabel}
+        </button>
+      </div>
       <Toast message={vote.toastMsg} onClose={vote.clearToast} />
       <PlotModal movie={vote.plotMovie} onClose={() => vote.setPlotMovie(null)} />
     </form>
@@ -400,6 +421,10 @@ export function FinalVotingFormClient({
     maxVotes: 1,
   });
 
+  const required = Math.min(1, movies.length);
+  const remaining = Math.max(0, required - vote.selectedIds.length);
+  const baseLabel = initialVoteId ? "Update Final Vote" : "Cast Final Vote";
+
   return (
     <form
       onSubmit={vote.handleSubmit({
@@ -422,19 +447,20 @@ export function FinalVotingFormClient({
         />
       ))}
 
-      {vote.error && <div className="vote-error mt-xs">{vote.error}</div>}
-
-      <button
-        type="submit"
-        disabled={vote.isPending}
-        className="btn btn-primary mt-md"
-      >
-        {vote.isPending
-          ? "Submitting Vote..."
-          : initialVoteId
-          ? "Update Final Vote"
-          : "Cast Final Vote"}
-      </button>
+      <div className="vote-submit-bar">
+        {vote.error && <div className="vote-error">{vote.error}</div>}
+        <button
+          type="submit"
+          disabled={vote.isPending || remaining > 0}
+          className="btn btn-primary"
+        >
+          {vote.isPending
+            ? "Submitting Vote..."
+            : remaining > 0
+            ? `${baseLabel} (${remaining} more)`
+            : baseLabel}
+        </button>
+      </div>
       <Toast message={vote.toastMsg} onClose={vote.clearToast} />
       <PlotModal movie={vote.plotMovie} onClose={() => vote.setPlotMovie(null)} />
     </form>
@@ -457,6 +483,10 @@ export function CategoryTiebreakerVotingFormClient({
 }: CategoryTiebreakerVotingFormClientProps) {
   const vote = useVoteSelection({ initialVotes, maxVotes: 2 });
 
+  const required = Math.min(2, categories.length);
+  const remaining = Math.max(0, required - vote.selectedIds.length);
+  const baseLabel = vote.hasExistingVotes ? "Update Tiebreaker Votes" : "Cast Tiebreaker Votes";
+
   return (
     <form
       onSubmit={vote.handleSubmit({
@@ -478,19 +508,20 @@ export function CategoryTiebreakerVotingFormClient({
         />
       ))}
 
-      {vote.error && <div className="vote-error mt-xs">{vote.error}</div>}
-
-      <button
-        type="submit"
-        disabled={vote.isPending}
-        className="btn btn-primary mt-sm"
-      >
-        {vote.isPending
-          ? "Submitting Votes..."
-          : vote.hasExistingVotes
-          ? "Update Tiebreaker Votes"
-          : "Cast Tiebreaker Votes"}
-      </button>
+      <div className="vote-submit-bar">
+        {vote.error && <div className="vote-error">{vote.error}</div>}
+        <button
+          type="submit"
+          disabled={vote.isPending || remaining > 0}
+          className="btn btn-primary"
+        >
+          {vote.isPending
+            ? "Submitting Votes..."
+            : remaining > 0
+            ? `${baseLabel} (${remaining} more)`
+            : baseLabel}
+        </button>
+      </div>
       <Toast message={vote.toastMsg} onClose={vote.clearToast} />
     </form>
   );
