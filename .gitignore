@@ -44,10 +44,12 @@ next-env.d.ts
 /*.db-journal
 /*.db-shm
 /*.db-wal
+/*.db.bak
 /prisma/*.db
 /prisma/*.db-journal
 /prisma/*.db-shm
 /prisma/*.db-wal
+/prisma/*.db.bak
 
 # Editor configuration files
 .vscode/*
