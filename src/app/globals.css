@@ -3,9 +3,9 @@
   /* Colors */
   --bg-primary: #080c14;
   --bg-secondary: #0f172a;
-  --bg-tertiary: #1e293b;
-  --glass-bg: rgba(15, 23, 42, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --bg-tertiary: #1e293b; 
+  --glass-bg: rgba(0, 0, 0, 0.3);
+  --glass-border: rgba(255, 255, 255, 0.04);
   --glass-hover: rgba(255, 255, 255, 0.12);
 
   --text-primary: #f8fafc;
@@ -362,6 +362,101 @@ details.movie-row-details {
   line-height: 1.5;
 }
 
+/* Past Movie Nights: poster tile grid + its detail modal */
+.past-week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.past-week-tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-tertiary);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.past-week-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.past-week-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.past-week-tile-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.past-week-tile-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(8, 12, 20, 0.75);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+.past-week-modal-card {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  gap: 20px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.2);
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.past-week-modal-poster {
+  width: 180px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  object-fit: cover;
+}
+
+@media (max-width: 640px) {
+  .past-week-modal-card {
+    flex-direction: column;
+  }
+
+  .past-week-modal-poster {
+    width: 100%;
+    max-width: 220px;
+    margin: 0 auto;
+  }
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(20px);
@@ -543,7 +638,7 @@ details.movie-row-details {
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 24px 32px;
+  padding: 16px 24px;
   background-color: rgba(30, 41, 59, 0.4);
   border-radius: var(--radius-md);
   text-align: left;

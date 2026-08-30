@@ -8,9 +8,11 @@ interface Props {
   weekId: string;
   weekNumber: number;
   movieTitle: string;
+  /** Called after the week is successfully deleted, e.g. to close a modal showing it. */
+  onDeleted?: () => void;
 }
 
-export default function DeletePastMovieNightButton({ weekId, weekNumber, movieTitle }: Props) {
+export default function DeletePastMovieNightButton({ weekId, weekNumber, movieTitle, onDeleted }: Props) {
   const [confirming, setConfirming] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -18,6 +20,7 @@ export default function DeletePastMovieNightButton({ weekId, weekNumber, movieTi
     startTransition(async () => {
       try {
         await deleteCompletedWeekAction(weekId);
+        onDeleted?.();
       } catch (err) {
         console.error("Failed to delete past movie night:", err);
         alert("Failed to delete. Please try again.");

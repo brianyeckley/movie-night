@@ -1,4 +1,4 @@
-import { AlertTriangle, Crown, Popcorn, Users } from "lucide-react";
+import { AlertTriangle, Crown, Popcorn } from "lucide-react";
 import { db } from "@/lib/db";
 import { 
   getActiveUser, 
@@ -45,16 +45,14 @@ export default async function UserManagementPage() {
         <div className="glass-panel no-hover p-xl mb-3xl">
           <div className="flex-between flex-wrap gap-lg">
             <div>
-              <h1 className="text-gradient text-8xl font-extrabold mb-sm tracking-tighter">
-                <Users size="1em" className="inline-icon" /> User Management
+              <h1 className="text-5xl font-semibold mb-xs tracking-tighter">
+                User Management
               </h1>
               <p className="text-secondary text-xl">
                 Approve new signups, manage user roles, and revoke account permissions.
               </p>
             </div>
-            <Link href="/" className="btn btn-secondary">
-              ← Back to Dashboard
-            </Link>
+
           </div>
         </div>
 
@@ -112,7 +110,7 @@ export default async function UserManagementPage() {
                     </td>
 
                     {/* Action Controls */}
-                    <td className="text-right">
+                    <td className="text-left">
                       <div className="inline-flex items-center gap-md">
                         
                         {/* Approval Toggle (disabled for self) */}
