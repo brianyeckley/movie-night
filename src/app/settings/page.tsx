@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { AlertTriangle, CheckCircle2, Settings } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { changePasswordAction } from "@/app/actions/user";
 import Link from "next/link";
 
@@ -21,9 +21,9 @@ export default function SettingsPage() {
       <main className="container max-w-xl">
         
         {/* Banner */}
-        <div className="glass-panel no-hover p-lg mb-2xl text-center">
-          <h1 className="text-gradient text-6xl font-extrabold mb-xs tracking-tight">
-            <Settings size="1em" className="inline-icon" /> Profile Settings
+        <div className="glass-panel no-hover p-lg mb-2xl text-left">
+          <h1 className="text-5xl font-semibold mb-xs tracking-tight">
+            Profile Settings
           </h1>
           <p className="text-secondary text-md">
             Manage your password and security credentials

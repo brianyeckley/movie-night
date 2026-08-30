@@ -1,26 +1,261 @@
 {
+  "cliffhanger 1.jpg": {
+    "title": "Cliffhanger",
+    "year": 1993,
+    "watched": "7/23/2026"
+  },
+  "cliffhanger 2.jpg": {
+    "title": "Cliffhanger",
+    "year": 1993,
+    "watched": "7/23/2026"
+  },
+  "cliffhanger 3.jpg": {
+    "title": "Cliffhanger",
+    "year": 1993,
+    "watched": "7/23/2026"
+  },
+  "cliffhanger 4.jpg": {
+    "title": "Cliffhanger",
+    "year": 1993,
+    "watched": "7/23/2026"
+  },
+  "hamlet 2 1.jpg": {
+    "title": "Hamlet 2",
+    "year": 2008,
+    "watched": "6/19/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "hamlet 2 2.jpg": {
+    "title": "Hamlet 2",
+    "year": 2008,
+    "watched": "6/19/2026",
+    "panelAlign": "center",
+    "bgPosition": "center center"
+  },
+  "hamlet 2 3.jpg": {
+    "title": "Hamlet 2",
+    "year": 2008,
+    "watched": "6/19/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "hamlet 2 4.jpg": {
+    "title": "Hamlet 2",
+    "year": 2008,
+    "watched": "6/19/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
   "in the mouth of madness 1.jpg": {
     "title": "In the Mouth of Madness",
     "year": 1994,
     "watched": "8/27/2026",
-    "panelAlign": "right"
+    "panelAlign": "right",
+    "bgPosition": "center center"
   },
   "in the mouth of madness 2.jpg": {
     "title": "In the Mouth of Madness",
     "year": 1994,
     "watched": "8/27/2026",
-    "panelAlign": "left"
+    "panelAlign": "left",
+    "bgPosition": "center right"
   },
   "in the mouth of madness 3.jpg": {
     "title": "In the Mouth of Madness",
     "year": 1994,
     "watched": "8/27/2026",
-    "panelAlign": "left"
+    "panelAlign": "left",
+    "bgPosition": "center center"
   },
   "in the mouth of madness 4.jpg": {
     "title": "In the Mouth of Madness",
     "year": 1994,
     "watched": "8/27/2026",
-    "panelAlign": "right"
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "lost highway 1.jpg": {
+    "title": "Lost Highway",
+    "year": 1997,
+    "watched": "TBD",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "lost highway 2.jpg": {
+    "title": "Lost Highway",
+    "year": 1997,
+    "watched": "TBD",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "lost highway 3.jpg": {
+    "title": "Lost Highway",
+    "year": 1997,
+    "watched": "TBD",
+    "panelAlign": "left",
+    "bgPosition": "center left"
+  },
+  "lost highway 4.jpg": {
+    "title": "Lost Highway",
+    "year": 1997,
+    "watched": "TBD",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "mulholland drive 1.jpg": {
+    "title": "Mulholland Drive",
+    "year": 2001,
+    "watched": "6/12/2026",
+    "panelAlign": "right",
+    "bgPosition": "center left"
+  },
+    "mulholland drive 2.jpg": {
+    "title": "Mulholland Drive",
+    "year": 2001,
+    "watched": "6/12/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+    "mulholland drive 3.jpg": {
+    "title": "Mulholland Drive",
+    "year": 2001,
+    "watched": "6/12/2026",
+    "panelAlign": "center",
+    "bgPosition": "center center"
+  },
+    "mulholland drive 4.jpg": {
+    "title": "Mulholland Drive",
+    "year": 2001,
+    "watched": "6/12/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "nacho libre 1.jpg": {
+    "title": "Nacho Libre",
+    "year": 2006,
+    "watched": "7/10/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "nacho libre 2.jpg": {
+    "title": "Nacho Libre",
+    "year": 2006,
+    "watched": "7/10/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "nacho libre 3.jpg": {
+    "title": "Nacho Libre",
+    "year": 2006,
+    "watched": "7/10/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "nacho libre 4.jpg": {
+    "title": "Nacho Libre",
+    "year": 2006,
+    "watched": "7/10/2026",
+    "panelAlign": "center",
+    "bgPosition": "center center"
+  },
+  "o brother 1.jpg": {
+    "title": "O Brother, Where Art Thou?",
+    "year": 2000,
+    "watched": "7/19/2026",
+    "panelAlign": "left",
+    "bgPosition": "center left"
+    
+  },
+  "o brother 2.jpg": {
+    "title": "O Brother, Where Art Thou?",
+    "year": 2000,
+    "watched": "7/19/2026",
+    "panelAlign": "right",
+    "bgPosition": "center right"
+  },
+  "o brother 3.jpg": {
+    "title": "O Brother, Where Art Thou?",
+    "year": 2000,
+    "watched": "7/19/2026",
+    "panelAlign": "right",
+    "bgPosition": "center right"
+  },
+  "o brother 4.jpg": {
+    "title": "O Brother, Where Art Thou?",
+    "year": 2000,
+    "watched": "7/19/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "quick change 1.jpg": {
+    "title": "Quick Change",
+    "year": 1990,
+    "watched": "8/14/2026",
+    "panelAlign": "center",
+    "bgPosition": "center center"
+  },
+  "quick change 2.jpg": {
+    "title": "Quick Change",
+    "year": 1990,
+    "watched": "8/14/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "quick change 3.jpg": {
+    "title": "Quick Change",
+    "year": 1990,
+    "watched": "8/14/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "quick change 4.jpg": {
+    "title": "Quick Change",
+    "year": 1990,
+    "watched": "8/14/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "streets of fire 1.jpg": {
+    "title": "Streets of Fire",
+    "year": 1984,
+    "watched": "6/26/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "streets of fire 2.jpg": {
+    "title": "Streets of Fire",
+    "year": 1984,
+    "watched": "6/26/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "streets of fire 3.jpg": {
+    "title": "Streets of Fire",
+    "year": 1984,
+    "watched": "6/26/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "streets of fire 4.jpg": {
+    "title": "Streets of Fire",
+    "year": 1984,
+    "watched": "6/26/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
+  },
+  "super troopers 1.jpg": {
+    "title": "Super Troopers",
+    "year": 2001,
+    "watched": "8/1/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "super troopers 2.jpg": {
+    "title": "Super Troopers",
+    "year": 2001,
+    "watched": "8/1/2026",
+    "panelAlign": "left",
+    "bgPosition": "center right"
   }
 }

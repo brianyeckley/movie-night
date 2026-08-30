@@ -1561,7 +1561,6 @@ details.movie-row-details {
   position: fixed;
   inset: 0;
   background-size: cover;
-  background-position: center;
   animation: fadeIn 0.4s ease-out;
 }
 

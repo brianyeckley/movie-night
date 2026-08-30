@@ -4,6 +4,7 @@ import path from "path";
 const BG_DIR = path.join(process.cwd(), "public/bg");
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const DEFAULT_PANEL_ALIGN: PanelAlign = "right";
+const DEFAULT_BG_POSITION = "center center";
 
 export type PanelAlign = "left" | "center" | "right";
 
@@ -18,6 +19,8 @@ export interface BgImageCredit {
 interface BgImageEntry extends BgImageCredit {
   /** Which side of the page the login panel sits on over this image. */
   panelAlign?: PanelAlign;
+  /** CSS `background-position` value, e.g. "center center" or "top left". */
+  bgPosition?: string;
 }
 
 export interface BgImage {
@@ -25,6 +28,8 @@ export interface BgImage {
   url: string;
   credit: BgImageCredit | null;
   panelAlign: PanelAlign;
+  /** CSS `background-position` value for this image. */
+  bgPosition: string;
 }
 
 function loadEntries(): Record<string, BgImageEntry> {
@@ -59,5 +64,6 @@ export function getRandomBgImage(): BgImage | null {
     url: `/bg/${encodeURIComponent(filename)}`,
     credit: entry ? { title: entry.title, year: entry.year, watched: entry.watched } : null,
     panelAlign: entry?.panelAlign ?? DEFAULT_PANEL_ALIGN,
+    bgPosition: entry?.bgPosition ?? DEFAULT_BG_POSITION,
   };
 }
