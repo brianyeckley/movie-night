@@ -1,4 +1,5 @@
 import {
+  Calendar,
   Clapperboard,
   Crown,
   Popcorn,
@@ -41,6 +42,7 @@ import {
   ROUND_ORDER,
   type RoundCode,
 } from "@/lib/rounds";
+
 
 export const dynamic = "force-dynamic";
 
@@ -256,7 +258,8 @@ export default async function DashboardPage() {
         <div
           className="random-bg-image"
           style={{
-            backgroundImage: `linear-gradient(rgba(8, 12, 20, 0.6), rgba(8, 12, 20, 0.75)), url(${bgImage.url})`,
+            backgroundImage: `linear-gradient(rgba(8, 12, 20, 0.3), rgba(8, 12, 20, 0.45)), url(${bgImage.url})`,
+            backgroundPosition: bgImage.bgPosition,
           }}
         />
       )}
@@ -604,7 +607,7 @@ export default async function DashboardPage() {
         <div className="bg-credit">
           <b>{bgImage.credit.title}</b> ({bgImage.credit.year})
           <br />
-          <i>watched: {bgImage.credit.watched}</i>
+          <Calendar size="1em" className="inline-icon" /> {bgImage.credit.watched}
         </div>
       )}
     </div>

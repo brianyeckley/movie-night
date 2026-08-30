@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Calendar } from "lucide-react";
 import { loginAction } from "@/app/actions/user";
 import Link from "next/link";
 import type { BgImage } from "@/lib/bg-images";
@@ -20,7 +20,8 @@ export default function LoginFormClient({ bgImage }: LoginFormClientProps) {
         <div
           className="random-bg-image"
           style={{
-            backgroundImage: `linear-gradient(rgba(8, 12, 20, 0.6), rgba(8, 12, 20, 0.75)), url(${bgImage.url})`,
+            backgroundImage: `linear-gradient(rgba(8, 12, 20, 0.3), rgba(8, 12, 20, 0.45)), url(${bgImage.url})`,
+            backgroundPosition: bgImage.bgPosition,
           }}
         />
       )}
@@ -103,7 +104,7 @@ export default function LoginFormClient({ bgImage }: LoginFormClientProps) {
         <div className="bg-credit">
           <b>{bgImage.credit.title}</b> ({bgImage.credit.year})
           <br />
-          <i>watched: {bgImage.credit.watched}</i>
+          <Calendar size="1em" className="inline-icon" /> {bgImage.credit.watched}
         </div>
       )}
     </>
