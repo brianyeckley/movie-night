@@ -22,6 +22,10 @@ export default function InPersonVotingForm({
 }: InPersonVotingFormProps) {
   const vote = useVoteSelection({ initialVotes, maxVotes });
 
+  const required = Math.min(maxVotes, movies.length);
+  const remaining = Math.max(0, required - vote.selectedIds.length);
+  const baseLabel = vote.isSingle ? "Cast Tiebreaker Vote" : "Cast In Person Votes";
+
   return (
     <form
       onSubmit={vote.handleSubmit({
@@ -48,19 +52,20 @@ export default function InPersonVotingForm({
         />
       ))}
 
-      {vote.error && <div className="vote-error mt-xs">{vote.error}</div>}
-
-      <button
-        type="submit"
-        disabled={vote.isPending}
-        className="btn btn-primary mt-sm"
-      >
-        {vote.isPending
-          ? "Submitting Vote..."
-          : vote.isSingle
-          ? "Cast Tiebreaker Vote"
-          : "Cast In Person Votes"}
-      </button>
+      <div className="vote-submit-bar">
+        {vote.error && <div className="vote-error">{vote.error}</div>}
+        <button
+          type="submit"
+          disabled={vote.isPending || remaining > 0}
+          className="btn btn-primary"
+        >
+          {vote.isPending
+            ? "Submitting Vote..."
+            : remaining > 0
+            ? `${baseLabel} (${remaining} more)`
+            : baseLabel}
+        </button>
+      </div>
       <Toast message={vote.toastMsg} onClose={vote.clearToast} />
       <PlotModal movie={vote.plotMovie} onClose={() => vote.setPlotMovie(null)} />
     </form>

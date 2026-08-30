@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { Pencil } from "lucide-react";
 import { updateMovieAction } from "@/app/actions";
 
@@ -97,7 +98,7 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
         <Pencil size="1em" className="inline-icon" /> Edit
       </button>
 
-      {isRendered && (
+      {isRendered && createPortal(
         <div
           onClick={() => setIsOpen(false)}
           className={`modal-overlay ${isOpen ? "open" : ""}`}
@@ -270,7 +271,8 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
