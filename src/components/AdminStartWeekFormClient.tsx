@@ -45,7 +45,7 @@ export default function AdminStartWeekFormClient({
   return (
     <form onSubmit={handleSubmit} className="flex-col gap-md text-left">
       <fieldset className="flex-col gap-xs mb-sm">
-        <legend className="form-label mode-picker-label">
+        <legend className="form-label mode-picker-label mb-md">
           Select Movie Night Mode
         </legend>
         <div className="mode-picker">

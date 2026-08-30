@@ -1,4 +1,4 @@
-import { AlertTriangle, BookOpen, Wrench } from "lucide-react";
+import { AlertTriangle, Wrench } from "lucide-react";
 import { db } from "@/lib/db";
 import { getActiveUser, addCategoryAction, addSubcategoryAction } from "@/app/actions";
 import AddMovieForm from "@/components/AddMovieForm";
@@ -62,8 +62,8 @@ export default async function CatalogPage() {
       <main className="container">
         {/* Banner */}
         <div className="glass-panel no-hover p-xl mb-3xl">
-          <h1 className="text-gradient text-8xl font-extrabold mb-sm tracking-tighter">
-            <BookOpen size="1em" className="inline-icon" /> Catalog Management
+          <h1 className="text-5xl font-semibold mb-xs tracking-tighter">
+            Catalog Management
           </h1>
           <p className="text-secondary text-xl">
             Manage the movie list, group them into categories or subcategories, and tag their genres.

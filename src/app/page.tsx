@@ -9,10 +9,6 @@ import {
   Trophy,
   CheckCircle2,
   CircleX,
-  ExternalLink,
-  Timer,
-  Users,
-  CassetteTape,
 } from "lucide-react";
 import { db } from "@/lib/db";
 import {
@@ -20,10 +16,9 @@ import {
   deleteWeekAction,
   resetRoundAction,
 } from "@/app/actions";
-import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
 import AdvanceRoundButton from "@/components/AdvanceRoundButton";
 import AutoRefresh from "@/components/AutoRefresh";
-import TrailerButton from "@/components/TrailerButton";
+import PastMovieNights from "@/components/PastMovieNights";
 import {
   CategoryVotingForm,
   CategoryTiebreakerVotingForm,
@@ -308,10 +303,10 @@ export default async function DashboardPage() {
                 // NO ACTIVE WEEK STATE
                 // ----------------------------------------
                 <div className="text-center">
-                  <div className="no-active-week-banner mb-2xl">
-                    <span className="text-9xl"><Popcorn size="1em" strokeWidth={1} className="inline-icon" /></span>
+                  <div className="no-active-week-banner mb-lg">
+                    <span className="text-8xl"><Popcorn size="1em" strokeWidth={1} className="inline-icon" /></span>
                     <div>
-                      <h2 className="text-3xl font-medium">No Active Week</h2>
+                      <h2 className="text-2xl font-semibold">No Active Week</h2>
                       <p className="text-secondary">
                         There is currently no movie night week in progress.
                       </p>
@@ -599,85 +594,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Past Movie Nights Log */}
-            <div className="glass-panel no-hover p-xl">
-              <h2 className="text-6xl font-extrabold mb-lg">
-                <Clapperboard size="1em" className="inline-icon" /> Past Movie Nights
-              </h2>
-              {pastWeeks.length === 0 ? (
-                <p className="text-secondary italic">No movie nights have completed yet.</p>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
-                  {pastWeeks.map((wk) => (
-                    <div key={wk.id} className="glass-panel p-lg flex-col gap-sm bg-white-05">
-                      <div className="flex-between">
-                        <div className="flex-row items-center gap-xs">
-                          <span className="text-sm-alt text-primary-color font-bold">
-                            WEEK #{wk.weekNumber}
-                          </span>
-                          {currentUser?.role === "ADMIN" && (
-                            <DeletePastMovieNightButton
-                              weekId={wk.id}
-                              weekNumber={wk.weekNumber}
-                              movieTitle={wk.winner?.title || "Unknown Movie"}
-                            />
-                          )}
-                        </div>
-                        <span className="text-sm-alt text-muted">
-                          {wk.closedAt ? new Date(wk.closedAt).toLocaleDateString() : ""}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold">
-                        {wk.winner?.title || "Unknown Movie"}{wk.winner?.year ? ` (${wk.winner.year})` : ""}
-                      </h3>
-                      <div className="flex-row gap-sm items-center mt-xxs">
-                        {wk.winner?.trailerUrl && <TrailerButton trailerUrl={wk.winner.trailerUrl} />}
-                        {wk.winner?.imdbUrl && (
-                          <a href={wk.winner.imdbUrl} target="_blank" rel="noopener noreferrer" className="text-sm-alt text-primary-color underline">
-                            IMDb Link <ExternalLink size="1em" className="inline-icon" />
-                          </a>
-                        )}
-                      </div>
-                      {wk.winner && (wk.winner.director || wk.winner.runtime || wk.winner.stars) && (
-                        <div className="text-sm-alt text-secondary flex-col gap-xxs mt-xxs mb-xs">
-                          {(wk.winner.director || wk.winner.runtime) && (
-                            <div className="flex-row gap-xs items-center">
-                              {wk.winner.director && <span><Clapperboard size="1em" className="inline-icon" /> {wk.winner.director}</span>}
-                              {wk.winner.director && wk.winner.runtime && <span className="text-glass-border">•</span>}
-                              {wk.winner.runtime && <span><Timer size="1em" className="inline-icon" /> {wk.winner.runtime}</span>}
-                            </div>
-                          )}
-                          {wk.winner.stars && (
-                            <div style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-                              <Users size="1em" className="inline-icon" /> {wk.winner.stars}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <div className="flex-row gap-xs flex-wrap mt-xs">
-                        {wk.winner?.physical4K && <span className="badge-media badge-media-4k">4K</span>}
-                        {wk.winner?.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
-                        {wk.winner?.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
-                        {wk.winner?.genres.map((g) => (
-                          <span key={g.id} className="badge-genre">
-                            {g.name}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="border-t pt-sm mt-sm flex-between text-sm-alt text-muted">
-                        {wk.isInPerson ? (
-                          <span className="text-accent-color font-semibold"><CassetteTape size="1em" className="inline-icon" /> In-Person Screening</span>
-                        ) : (
-                          <span>Theme: {wk.themeCategory?.name || "None"}</span>
-                        )}
-                        {wk.isRandomlyChosen && (
-                          <span className="text-accent-color font-semibold"><Dices size="1em" className="inline-icon" /> Random Draw</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <PastMovieNights pastWeeks={pastWeeks} isAdmin={currentUser?.role === "ADMIN"} />
 
           </div>
         )}

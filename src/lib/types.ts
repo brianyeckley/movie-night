@@ -41,6 +41,13 @@ export type ActiveWeek = Prisma.MovieNightWeekGetPayload<{
   };
 }>;
 
+/** A closed week plus its resolved winning movie, as rendered in "Past Movie Nights". */
+export type PastWeek = Prisma.MovieNightWeekGetPayload<{
+  include: { themeCategory: true };
+}> & {
+  winner: MovieWithGenresAndCategory | null;
+};
+
 /**
  * Props shared by every per-round container component in `DashboardForms`.
  *
