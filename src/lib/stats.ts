@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import type { MovieWithGenresAndCategory } from "@/lib/types";
+import { ROUND_ORDER, type RoundCode } from "@/lib/rounds";
+
 
 export interface UserTastemakerStats {
   user: { id: string; name: string; username: string; role: string };
@@ -224,55 +226,76 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
 
     const winningMovie = movieById.get(winningId);
 
-    // Initial movie selection votes
-    const initialVotes = week.votes.filter(
-      (v) => v.user.isApproved && INITIAL_MOVIE_ROUNDS.has(v.round)
+    // Find all approved votes for the winning movie in this week
+    const winningVotes = week.votes.filter(
+      (v) => v.user.isApproved && v.targetId === winningId
     );
 
-    // Voters in initial round
-    const participatedUserIds = new Set(initialVotes.map((v) => v.userId));
-    participatedUserIds.forEach((uid) => {
-      const entry = tastemakerMap.get(uid);
-      if (entry) entry.weeksParticipated += 1;
-    });
+    if (winningVotes.length > 0) {
+      // Find the chronologically earliest round in this week where winningMovieId received votes
+      const distinctWinningRounds = Array.from(
+        new Set(winningVotes.map((v) => v.round as RoundCode))
+      ).sort(
+        (a, b) => ROUND_ORDER.indexOf(a) - ROUND_ORDER.indexOf(b)
+      );
 
-    // Winning picks in initial round
-    const winningPickVotes = initialVotes.filter((v) => v.targetId === winningId);
-    const winningUserIds = new Set(winningPickVotes.map((v) => v.userId));
+      const earliestWinningRound = distinctWinningRounds[0];
 
-    winningUserIds.forEach((uid) => {
-      const entry = tastemakerMap.get(uid);
-      if (entry && winningMovie) {
-        entry.totalWins += 1;
-        entry.winningMovies.push({
-          weekNumber: week.weekNumber,
-          movie: winningMovie,
-        });
-      }
-    });
+      // Find all approved votes cast in that earliest nomination round
+      const earliestRoundAllVotes = week.votes.filter(
+        (v) => v.user.isApproved && v.round === earliestWinningRound
+      );
 
-    // Calculate solo picks for Film Snob in initial movie round
-    const votesByTarget: Record<string, string[]> = {};
-    initialVotes.forEach((v) => {
-      if (!votesByTarget[v.targetId]) votesByTarget[v.targetId] = [];
-      votesByTarget[v.targetId].push(v.userId);
-    });
+      // Voters who participated in that earliest nomination round
+      const participatedUserIds = new Set(
+        earliestRoundAllVotes.map((v) => v.userId)
+      );
+      participatedUserIds.forEach((uid) => {
+        const entry = tastemakerMap.get(uid);
+        if (entry) entry.weeksParticipated += 1;
+      });
 
-    Object.entries(votesByTarget).forEach(([targetId, voterIds]) => {
-      if (voterIds.length === 1) {
-        const soloUserId = voterIds[0];
-        const snobEntry = filmSnobMap.get(soloUserId);
-        const m = movieById.get(targetId);
-        if (snobEntry && m) {
-          snobEntry.soloPickCount += 1;
-          snobEntry.soloMovies.push({
-            title: m.title,
-            year: m.year,
+      // Winning nominations in this earliest round only
+      const earliestWinningVoters = new Set(
+        winningVotes
+          .filter((v) => v.round === earliestWinningRound)
+          .map((v) => v.userId)
+      );
+
+      earliestWinningVoters.forEach((uid) => {
+        const entry = tastemakerMap.get(uid);
+        if (entry && winningMovie) {
+          entry.totalWins += 1;
+          entry.winningMovies.push({
             weekNumber: week.weekNumber,
+            movie: winningMovie,
           });
         }
-      }
-    });
+      });
+
+      // Calculate solo picks for Film Snob in this earliest nomination round
+      const votesByTarget: Record<string, string[]> = {};
+      earliestRoundAllVotes.forEach((v) => {
+        if (!votesByTarget[v.targetId]) votesByTarget[v.targetId] = [];
+        votesByTarget[v.targetId].push(v.userId);
+      });
+
+      Object.entries(votesByTarget).forEach(([targetId, voterIds]) => {
+        if (voterIds.length === 1) {
+          const soloUserId = voterIds[0];
+          const snobEntry = filmSnobMap.get(soloUserId);
+          const m = movieById.get(targetId);
+          if (snobEntry && m) {
+            snobEntry.soloPickCount += 1;
+            snobEntry.soloMovies.push({
+              title: m.title,
+              year: m.year,
+              weekNumber: week.weekNumber,
+            });
+          }
+        }
+      });
+    }
 
     // Determine latest final round
     const roundsInWeek = Array.from(
