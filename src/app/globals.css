@@ -3159,24 +3159,27 @@ details.movie-row-details {
 .user-flairs-container {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .user-flair-badge {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 22px;
   height: 22px;
   border-radius: var(--radius-full);
-  cursor: help;
+  cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   border: 1px solid transparent;
 }
 
-.user-flair-badge:hover {
+.user-flair-badge:hover,
+.user-flair-badge:focus-visible {
   transform: scale(1.15);
+  outline: none;
 }
 
 .flair-gold {
@@ -3186,7 +3189,7 @@ details.movie-row-details {
 }
 
 .flair-gold:hover {
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
 }
 
 .flair-indigo {
@@ -3196,7 +3199,7 @@ details.movie-row-details {
 }
 
 .flair-indigo:hover {
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
 }
 
 .flair-rose {
@@ -3206,7 +3209,7 @@ details.movie-row-details {
 }
 
 .flair-rose:hover {
-  box-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
 }
 
 .flair-emerald {
@@ -3216,7 +3219,65 @@ details.movie-row-details {
 }
 
 .flair-emerald:hover {
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
+
+/* Instant Custom Tooltip */
+.user-flair-tooltip {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #0f172a;
+  background: var(--bg-secondary);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+.user-flair-tooltip strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.user-flair-tooltip span {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  margin-top: 1px;
+}
+
+.user-flair-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--bg-secondary) transparent transparent transparent;
+}
+
+.user-flair-badge:hover .user-flair-tooltip,
+.user-flair-badge:focus-visible .user-flair-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
 
 

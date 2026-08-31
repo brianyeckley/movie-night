@@ -9,18 +9,24 @@ export default function UserFlairBadges({ flairs }: UserFlairBadgesProps) {
   if (!flairs || flairs.length === 0) return null;
 
   return (
-    <span className="user-flairs-container" inline-flex="true">
+    <span className="user-flairs-container">
       {flairs.map((flair) => (
         <span
           key={flair.id}
           className={`user-flair-badge flair-${flair.type}`}
-          title={flair.description}
-          aria-label={flair.description}
+          tabIndex={0}
+          role="img"
+          aria-label={`${flair.label}: ${flair.description}`}
         >
           {flair.id === "tastemaker-1" && <Crown size={13} className="inline-icon" />}
           {flair.id === "kingmaker" && <Target size={13} className="inline-icon" />}
           {flair.id === "film-snob" && <Glasses size={13} className="inline-icon" />}
           {flair.id === "duo" && <Users size={13} className="inline-icon" />}
+
+          <span className="user-flair-tooltip" role="tooltip">
+            <strong>{flair.label}</strong>
+            <span>{flair.description}</span>
+          </span>
         </span>
       ))}
     </span>
