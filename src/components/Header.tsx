@@ -57,6 +57,12 @@ export default function Header({ currentUser }: HeaderProps) {
               >
                 Catalog
               </Link>
+              <Link
+                href="/stats"
+                className="desktop-nav-link nav-link"
+              >
+                Leaderboard
+              </Link>
               {currentUser.role === "ADMIN" && (
                 <Link
                   href="/admin/users"
@@ -165,6 +171,13 @@ export default function Header({ currentUser }: HeaderProps) {
                 className="mobile-nav-link"
               >
                 Catalog
+              </Link>
+              <Link
+                href="/stats"
+                onClick={() => setIsOpen(false)}
+                className="mobile-nav-link"
+              >
+                Leaderboard
               </Link>
               {currentUser.role === "ADMIN" && (
                 <Link
