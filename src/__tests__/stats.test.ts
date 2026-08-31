@@ -31,4 +31,60 @@ describe("stats helpers", () => {
       expect(formatWatchTime(135)).toBe("2h 15m");
     });
   });
+
+  describe("getUserFlairsMap", () => {
+    it("correctly maps flairs to qualifying users", async () => {
+      const { getUserFlairsMap } = await import("@/lib/stats");
+      const mockData = {
+        tastemakers: [
+          {
+            user: { id: "u1", name: "Brian", username: "brian", role: "ADMIN" },
+            totalWins: 5,
+            weeksParticipated: 10,
+            winRate: 50,
+            winningMovies: [],
+          },
+        ],
+        kingmaker: {
+          user: { id: "u2", name: "Stew", username: "stew" },
+          correctFinalVotes: 4,
+          totalFinalRounds: 5,
+          accuracy: 80,
+        },
+        kingmakersList: [],
+        filmSnob: {
+          user: { id: "u3", name: "Nick", username: "nick" },
+          soloPickCount: 6,
+          soloMovies: [],
+        },
+        filmSnobsList: [],
+        dynamicDuo: {
+          userA: { id: "u1", name: "Brian" },
+          userB: { id: "u2", name: "Stew" },
+          agreementScore: 85,
+          sharedVotesCount: 12,
+          sharedRoundsCount: 8,
+        },
+        globalStats: {
+          totalWeeks: 10,
+          totalWatchTimeMinutes: 1200,
+          formattedWatchTime: "20h",
+          averageRating: 7.5,
+          topGenre: { name: "Horror", count: 4 },
+          longestMovie: null,
+          shortestMovie: null,
+          highestRatedMovie: null,
+          physicalMedia: { fourK: 2, bluRay: 5, dvd: 1, digitalOnly: 2 },
+        },
+      };
+
+      const flairsMap = getUserFlairsMap(mockData);
+      expect(flairsMap["u1"].some((f) => f.id === "tastemaker-1")).toBe(true);
+      expect(flairsMap["u1"].some((f) => f.id === "duo")).toBe(true);
+      expect(flairsMap["u2"].some((f) => f.id === "kingmaker")).toBe(true);
+      expect(flairsMap["u2"].some((f) => f.id === "duo")).toBe(true);
+      expect(flairsMap["u3"].some((f) => f.id === "film-snob")).toBe(true);
+    });
+  });
 });
+

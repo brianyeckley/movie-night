@@ -3155,3 +3155,72 @@ details.movie-row-details {
   color: var(--text-secondary);
 }
 
+/* User Flair Badges */
+.user-flairs-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.user-flair-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  cursor: help;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.user-flair-badge:hover {
+  transform: translateY(-1px);
+}
+
+.flair-gold {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.flair-gold:hover {
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.flair-indigo {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.flair-indigo:hover {
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.flair-rose {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+.flair-rose:hover {
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+}
+
+.flair-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.flair-emerald:hover {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+

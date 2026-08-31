@@ -488,3 +488,81 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
     globalStats,
   };
 }
+
+export interface UserFlair {
+  id: "tastemaker-1" | "kingmaker" | "film-snob" | "duo";
+  label: string;
+  type: "gold" | "indigo" | "rose" | "emerald";
+  description: string;
+}
+
+export function getUserFlairsMap(
+  leaderboardData: LeaderboardData
+): Record<string, UserFlair[]> {
+  const flairsByUser: Record<string, UserFlair[]> = {};
+
+  const addFlair = (userId: string, flair: UserFlair) => {
+    if (!flairsByUser[userId]) flairsByUser[userId] = [];
+    flairsByUser[userId].push(flair);
+  };
+
+  // 1. #1 Tastemaker
+  if (
+    leaderboardData.tastemakers.length > 0 &&
+    leaderboardData.tastemakers[0].totalWins > 0
+  ) {
+    const topTastemaker = leaderboardData.tastemakers[0];
+    addFlair(topTastemaker.user.id, {
+      id: "tastemaker-1",
+      label: "Tastemaker",
+      type: "gold",
+      description: `#1 Tastemaker (${topTastemaker.totalWins} winning nominations)`,
+    });
+  }
+
+  // 2. The Kingmaker
+  if (
+    leaderboardData.kingmaker &&
+    leaderboardData.kingmaker.correctFinalVotes > 0
+  ) {
+    addFlair(leaderboardData.kingmaker.user.id, {
+      id: "kingmaker",
+      label: "Kingmaker",
+      type: "indigo",
+      description: `The Kingmaker (${leaderboardData.kingmaker.accuracy}% final round accuracy)`,
+    });
+  }
+
+  // 3. Film Snob
+  if (
+    leaderboardData.filmSnob &&
+    leaderboardData.filmSnob.soloPickCount > 0
+  ) {
+    addFlair(leaderboardData.filmSnob.user.id, {
+      id: "film-snob",
+      label: "Film Snob",
+      type: "rose",
+      description: `Film Snob (${leaderboardData.filmSnob.soloPickCount} solo movie picks)`,
+    });
+  }
+
+  // 4. Dynamic Duo
+  if (leaderboardData.dynamicDuo) {
+    const duo = leaderboardData.dynamicDuo;
+    addFlair(duo.userA.id, {
+      id: "duo",
+      label: "Duo",
+      type: "emerald",
+      description: `Dynamic Duo with ${duo.userB.name} (${duo.agreementScore}% voting harmony)`,
+    });
+    addFlair(duo.userB.id, {
+      id: "duo",
+      label: "Duo",
+      type: "emerald",
+      description: `Dynamic Duo with ${duo.userA.name} (${duo.agreementScore}% voting harmony)`,
+    });
+  }
+
+  return flairsByUser;
+}
+

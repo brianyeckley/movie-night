@@ -42,6 +42,9 @@ import {
   ROUND_ORDER,
   type RoundCode,
 } from "@/lib/rounds";
+import { getLeaderboardStats, getUserFlairsMap } from "@/lib/stats";
+import UserFlairBadges from "@/components/UserFlairBadges";
+
 
 
 export const dynamic = "force-dynamic";
@@ -247,6 +250,10 @@ export default async function DashboardPage() {
     : null;
 
   const showBgImage = Boolean(currentUser && !activeWeek && bgImage);
+
+  // Compute flair badges from leaderboard stats
+  const leaderboardStats = await getLeaderboardStats();
+  const userFlairsMap = getUserFlairsMap(leaderboardStats);
 
   const latestVoteAt = activeWeek?.votes.reduce(
     (max, v) => Math.max(max, new Date(v.createdAt).getTime()),
@@ -584,9 +591,13 @@ export default async function DashboardPage() {
                         <div className="flex-col gap-md">
                           {users.map((u) => {
                             const hasVoted = roundVotedUserIds.includes(u.id);
+                            const userFlairs = userFlairsMap[u.id];
                             return (
-                              <div key={u.id} className="flex-between p-sm border-b bg-white-05">
-                                <span className="font-semibold">{u.name}</span>
+                              <div key={u.id} className="flex-between p-sm border-b bg-white-05 items-center">
+                                <div className="flex-row items-center gap-xs flex-wrap">
+                                  <span className="font-semibold">{u.name}</span>
+                                  <UserFlairBadges flairs={userFlairs} />
+                                </div>
                                 <span className={`text-base ${hasVoted ? "text-success-color" : "text-accent-color"}`}>
                                   {hasVoted ? (
                                     <>
