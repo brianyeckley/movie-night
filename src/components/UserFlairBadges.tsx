@@ -15,12 +15,12 @@ export default function UserFlairBadges({ flairs }: UserFlairBadgesProps) {
           key={flair.id}
           className={`user-flair-badge flair-${flair.type}`}
           title={flair.description}
+          aria-label={flair.description}
         >
-          {flair.id === "tastemaker-1" && <Crown size={12} className="inline-icon" />}
-          {flair.id === "kingmaker" && <Target size={12} className="inline-icon" />}
-          {flair.id === "film-snob" && <Glasses size={12} className="inline-icon" />}
-          {flair.id === "duo" && <Users size={12} className="inline-icon" />}
-          <span>{flair.label}</span>
+          {flair.id === "tastemaker-1" && <Crown size={13} className="inline-icon" />}
+          {flair.id === "kingmaker" && <Target size={13} className="inline-icon" />}
+          {flair.id === "film-snob" && <Glasses size={13} className="inline-icon" />}
+          {flair.id === "duo" && <Users size={13} className="inline-icon" />}
         </span>
       ))}
     </span>

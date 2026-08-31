@@ -3166,21 +3166,17 @@ details.movie-row-details {
 .user-flair-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
   border-radius: var(--radius-full);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  line-height: 1.2;
   cursor: help;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   border: 1px solid transparent;
 }
 
 .user-flair-badge:hover {
-  transform: translateY(-1px);
+  transform: scale(1.15);
 }
 
 .flair-gold {
