@@ -248,10 +248,27 @@ export default async function DashboardPage() {
 
   const showBgImage = Boolean(currentUser && !activeWeek && bgImage);
 
+  const latestVoteAt = activeWeek?.votes.reduce(
+    (max, v) => Math.max(max, new Date(v.createdAt).getTime()),
+    0
+  ) ?? 0;
+  const initialSignature = activeWeek
+    ? [
+        activeWeek.id,
+        activeWeek.status,
+        activeWeek.votes.length,
+        latestVoteAt,
+        activeWeek.selectedCategoryId ?? "",
+        activeWeek.selectedSubcategoryId ?? "",
+        activeWeek.winningMovieId ?? "",
+        activeWeek.isRandomlyChosen ? "1" : "0",
+      ].join(":")
+    : undefined;
+
   return (
     <div className="py-xl">
       {activeWeek && activeWeek.status !== "COMPLETED" && (
-        <AutoRefresh interval={5000} />
+        <AutoRefresh interval={5000} initialSignature={initialSignature} />
       )}
 
       {showBgImage && bgImage && (
