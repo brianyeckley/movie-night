@@ -1,18 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
   Trophy,
   Crown,
   Medal,
-  Sparkles,
   Glasses,
   Users,
   Target,
   Clock,
   Star,
-  Film,
   Disc,
   Popcorn,
   ChevronDown,
@@ -47,7 +44,6 @@ export default function LeaderboardView({ data }: LeaderboardViewProps) {
   } = data;
 
   const top3 = tastemakers.slice(0, 3);
-  const remainingTastemakers = tastemakers.slice(3);
 
   return (
     <div className="leaderboard-container flex-col gap-3xl">
