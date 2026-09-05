@@ -31,9 +31,7 @@ export default function LoginFormClient({ bgImage }: LoginFormClientProps) {
             <span className="site-logo site-logo-lg mb-sm" data-text="MOVIE NIGHT">
               MOVIE NIGHT
             </span>
-            <p className="text-secondary text-md">
-              Sign in to start voting and tracking movies
-            </p>
+
           </div>
 
           {state?.error && (
