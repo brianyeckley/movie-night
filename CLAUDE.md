@@ -22,7 +22,9 @@ This file provides system context, build/test commands, and architectural workfl
 ### Prisma & Database Actions
 *   **Generate Prisma Client**: `npx prisma generate` (runs automatically on `npm install`)
 *   **Apply DB Migrations**: `npx prisma migrate dev`
-*   **Seed Database**: `npx prisma db seed`
+*   **Seed Database**: `npx prisma db seed` (create-only: existing users are
+    never modified, so this is safe to re-run. Needs `ADMIN_PASSWORD` /
+    `STEW_PASSWORD` / `NICK_PASSWORD` only when creating accounts.)
 *   **Open Prisma Studio**: `npx prisma studio`
 *   **Backfill IMDb Metadata**: `npx tsx prisma/backfill-metadata.ts`
 

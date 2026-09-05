@@ -11,68 +11,84 @@ const adapter = new PrismaBetterSqlite3({
 });
 const prisma = new PrismaClient({ adapter });
 
+/**
+ * Create a user if they do not exist, and otherwise leave them completely alone.
+ *
+ * Seeding must never touch an account that already exists. This used to upsert
+ * with `update: { passwordHash, role, isApproved }`, so re-running the seed —
+ * a command the docs list as routine — reset everyone's password, re-promoted
+ * the admin and re-approved all three, silently undoing anything done through
+ * the admin screen.
+ *
+ * The password is only read when a user actually has to be created, and there
+ * is no fallback: a missing variable stops the seed rather than quietly
+ * creating an account with a guessable password on a publicly reachable app.
+ */
+async function ensureUser(opts: {
+  username: string;
+  name: string;
+  role: "ADMIN" | "USER";
+  passwordEnvVar: string;
+}) {
+  const existing = await prisma.user.findUnique({
+    where: { username: opts.username },
+  });
+
+  if (existing) {
+    console.log(`  - ${opts.username}: already exists, left untouched`);
+    return existing;
+  }
+
+  const password = process.env[opts.passwordEnvVar];
+  if (!password) {
+    throw new Error(
+      `Cannot create user "${opts.username}": ${opts.passwordEnvVar} is not set. ` +
+        `Set it in your .env (see .env.example) and run the seed again.`
+    );
+  }
+
+  const created = await prisma.user.create({
+    data: {
+      username: opts.username,
+      name: opts.name,
+      passwordHash: bcrypt.hashSync(password, 10),
+      role: opts.role,
+      isApproved: true,
+    },
+  });
+  console.log(`  - ${opts.username}: created (${opts.role})`);
+  return created;
+}
+
 async function main() {
   console.log("Seeding database...");
 
-  // Load user credentials from environment or fallbacks
   const adminUsername = (process.env.ADMIN_USERNAME || "Brian").toLowerCase().trim();
-  const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
-  const stewPassword = process.env.STEW_PASSWORD || "stew";
-  const nickPassword = process.env.NICK_PASSWORD || "nick";
 
-  // Hash passwords
-  const adminHash = bcrypt.hashSync(adminPassword, 10);
-  const stewHash = bcrypt.hashSync(stewPassword, 10);
-  const nickHash = bcrypt.hashSync(nickPassword, 10);
-
-  // 1. Seed Users
-  const brian = await prisma.user.upsert({
-    where: { username: adminUsername },
-    update: {
-      passwordHash: adminHash,
-      role: "ADMIN",
-      isApproved: true,
-    },
-    create: {
-      username: adminUsername,
-      name: process.env.ADMIN_USERNAME || "Brian",
-      passwordHash: adminHash,
-      role: "ADMIN",
-      isApproved: true,
-    },
+  // 1. Seed Users - existing accounts are never modified.
+  console.log("Users:");
+  const brian = await ensureUser({
+    username: adminUsername,
+    name: process.env.ADMIN_USERNAME || "Brian",
+    role: "ADMIN",
+    passwordEnvVar: "ADMIN_PASSWORD",
+  });
+  await ensureUser({
+    username: "stew",
+    name: "Stew",
+    role: "USER",
+    passwordEnvVar: "STEW_PASSWORD",
+  });
+  await ensureUser({
+    username: "nick",
+    name: "Nick",
+    role: "USER",
+    passwordEnvVar: "NICK_PASSWORD",
   });
 
-  await prisma.user.upsert({
-    where: { username: "stew" },
-    update: {
-      passwordHash: stewHash,
-      isApproved: true,
-    },
-    create: {
-      username: "stew",
-      name: "Stew",
-      passwordHash: stewHash,
-      role: "USER",
-      isApproved: true,
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { username: "nick" },
-    update: {
-      passwordHash: nickHash,
-      isApproved: true,
-    },
-    create: {
-      username: "nick",
-      name: "Nick",
-      passwordHash: nickHash,
-      role: "USER",
-      isApproved: true,
-    },
-  });
-
-  console.log(`Seeded Users: ${brian.name} (ADMIN), Stew (USER), Nick (USER)`);
+  // Report the roles actually in the database, not the ones seeding would have
+  // set - an existing account may since have been demoted on purpose.
+  console.log(`Seeded Users: ${brian.name} (${brian.role})`);
 
   // 2. Seed Genres
   const genresList = ["Horror", "Sci-Fi", "Action", "Comedy", "Crime", "Schlock", "Martial Arts", "Fantasy"];
