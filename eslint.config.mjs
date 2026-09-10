@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "coverage/**",
     "next-env.d.ts",
 
     // Generated Prisma client - not ours to lint.
@@ -21,6 +22,13 @@ const eslintConfig = defineConfig([
     "scripts/*.js",
     "prisma.config.js",
   ]),
+  {
+    // The app loads movie posters from arbitrary external URLs (OMDB, IMDb, etc.)
+    // without Next image optimization proxying, so <img> is intentional.
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
   {
     // Test doubles stand in for Prisma results and are deliberately partial,
     // so `as any` on a mock is the point rather than a lapse.

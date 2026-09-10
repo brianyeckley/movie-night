@@ -114,12 +114,6 @@ export function formatWatchTime(totalMinutes: number): string {
   return `${hours}h ${mins}m`;
 }
 
-const INITIAL_MOVIE_ROUNDS = new Set([
-  "ROUND_2_MOVIE",
-  "ROUND_2_SUB_MOVIE",
-  "IN_PERSON_ROUND_1",
-]);
-
 const NOMINATION_ROUNDS = new Set([
   "ROUND_2_MOVIE",
   "IN_PERSON_ROUND_1",

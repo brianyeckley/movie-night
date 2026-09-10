@@ -27,6 +27,12 @@ interface PastWeekModalProps {
 
 export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
   const [showVotingHistory, setShowVotingHistory] = useState(false);
+  const [prevWeekId, setPrevWeekId] = useState(week?.id);
+
+  if (week?.id !== prevWeekId) {
+    setPrevWeekId(week?.id);
+    setShowVotingHistory(false);
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -35,11 +41,6 @@ export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
-
-  // Reset expanded state when week changes
-  useEffect(() => {
-    setShowVotingHistory(false);
-  }, [week?.id]);
 
   // No "mounted" guard needed: `week` is null until a tile is clicked, so the
   // server render returns here and never reaches `document.body`.
