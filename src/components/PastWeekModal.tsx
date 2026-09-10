@@ -52,112 +52,115 @@ export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
   return createPortal(
     <div className="plot-modal-overlay" onClick={onClose}>
       <div className="past-week-modal-card" onClick={(e) => e.stopPropagation()}>
-        {winner?.posterUrl && (
-          <img
-            src={winner.posterUrl}
-            alt={`${winner.title} Poster`}
-            className="past-week-modal-poster"
-          />
-        )}
-
-        <div className="flex-col gap-sm flex-1 min-w-0">
-          <div className="flex-between items-start gap-sm">
-            <div className="flex-row items-center gap-xs">
-              <span className="text-sm-alt text-primary-color font-bold">
-                WEEK #{week.weekNumber}
-              </span>
-              {isAdmin && (
-                <DeletePastMovieNightButton
-                  weekId={week.id}
-                  weekNumber={week.weekNumber}
-                  movieTitle={winner?.title || "Unknown Movie"}
-                  onDeleted={onClose}
-                />
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="plot-modal-close-btn"
-              aria-label="Close week details"
-            >
-              ✕
-            </button>
-          </div>
-
-          <span className="text-sm-alt text-muted">
-            {week.closedAt ? new Date(week.closedAt).toLocaleDateString() : ""}
-          </span>
-
-          <h3 className="text-xl font-bold">
-            {winner?.title || "Unknown Movie"}{winner?.year ? ` (${winner.year})` : ""}
-          </h3>
-
-          <div className="flex-row gap-sm items-center">
-            {winner?.trailerUrl && <TrailerButton trailerUrl={winner.trailerUrl} />}
-            {winner?.imdbUrl && (
-              <a href={winner.imdbUrl} target="_blank" rel="noopener noreferrer" className="text-sm-alt text-primary-color underline">
-                IMDb Link <ExternalLink size="1em" className="inline-icon" />
-              </a>
-            )}
-          </div>
-
-          {winner && (winner.director || winner.runtime || winner.stars) && (
-            <div className="text-sm-alt text-secondary flex-col gap-xxs">
-              {(winner.director || winner.runtime) && (
-                <div className="flex-row gap-xs items-center">
-                  {winner.director && <span><Clapperboard size="1em" className="inline-icon" /> {winner.director}</span>}
-                  {winner.director && winner.runtime && <span className="text-glass-border">•</span>}
-                  {winner.runtime && <span><Timer size="1em" className="inline-icon" /> {winner.runtime}</span>}
-                </div>
-              )}
-              {winner.stars && (
-                <div>
-                  <Users size="1em" className="inline-icon" /> {winner.stars}
-                </div>
-              )}
-            </div>
+        <div className="past-week-modal-top">
+          {winner?.posterUrl && (
+            <img
+              src={winner.posterUrl}
+              alt={`${winner.title} Poster`}
+              className="past-week-modal-poster"
+            />
           )}
 
-          <div className="flex-row gap-xs flex-wrap">
-            {winner?.physical4K && <span className="badge-media badge-media-4k">4K</span>}
-            {winner?.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
-            {winner?.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
-            {winner?.genres.map((g) => (
-              <span key={g.id} className="badge-genre">
-                {g.name}
-              </span>
-            ))}
-          </div>
-
-          <div className="border-t pt-sm mt-sm flex-between text-sm-alt text-muted flex-wrap gap-xs">
-            {week.isInPerson ? (
-              <span className="text-accent-color font-semibold"><CassetteTape size="1em" className="inline-icon" /> In-Person Screening</span>
-            ) : (
-              <span>Theme: {week.themeCategory?.name || "None"}</span>
-            )}
-            {week.isRandomlyChosen && (
-              <span className="text-accent-color font-semibold"><Dices size="1em" className="inline-icon" /> Random Draw</span>
-            )}
-          </div>
-
-          {/* Collapsible Voting History */}
-          {votingHistory.length > 0 && (
-            <div className="border-t pt-sm mt-xs flex-col gap-sm">
+          <div className="flex-col gap-sm flex-1 min-w-0">
+            <div className="flex-between items-start gap-sm">
+              <div className="flex-row items-center gap-xs">
+                <span className="text-sm-alt text-primary-color font-bold">
+                  WEEK #{week.weekNumber}
+                </span>
+                {isAdmin && (
+                  <DeletePastMovieNightButton
+                    weekId={week.id}
+                    weekNumber={week.weekNumber}
+                    movieTitle={winner?.title || "Unknown Movie"}
+                    onDeleted={onClose}
+                  />
+                )}
+              </div>
               <button
                 type="button"
-                className="btn btn-secondary text-xs flex-between items-center w-full py-xs px-sm"
-                onClick={() => setShowVotingHistory((prev) => !prev)}
-                aria-expanded={showVotingHistory}
+                onClick={onClose}
+                className="plot-modal-close-btn"
+                aria-label="Close week details"
               >
-                <span className="flex-row items-center gap-xs font-semibold">
-                  <BarChart3 size={15} className="inline-icon text-primary-var" />
-                  Voting History ({votingHistory.length} {votingHistory.length === 1 ? "Round" : "Rounds"})
-                </span>
-                {showVotingHistory ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                ✕
               </button>
+            </div>
 
-              {showVotingHistory && (
+            <span className="text-sm-alt text-muted">
+              {week.closedAt ? new Date(week.closedAt).toLocaleDateString() : ""}
+            </span>
+
+            <h3 className="text-xl font-bold">
+              {winner?.title || "Unknown Movie"}{winner?.year ? ` (${winner.year})` : ""}
+            </h3>
+
+            <div className="flex-row gap-sm items-center">
+              {winner?.trailerUrl && <TrailerButton trailerUrl={winner.trailerUrl} />}
+              {winner?.imdbUrl && (
+                <a href={winner.imdbUrl} target="_blank" rel="noopener noreferrer" className="text-sm-alt text-primary-color underline">
+                  IMDb Link <ExternalLink size="1em" className="inline-icon" />
+                </a>
+              )}
+            </div>
+
+            {winner && (winner.director || winner.runtime || winner.stars) && (
+              <div className="text-sm-alt text-secondary flex-col gap-xxs">
+                {(winner.director || winner.runtime) && (
+                  <div className="flex-row gap-xs items-center">
+                    {winner.director && <span><Clapperboard size="1em" className="inline-icon" /> {winner.director}</span>}
+                    {winner.director && winner.runtime && <span className="text-glass-border">•</span>}
+                    {winner.runtime && <span><Timer size="1em" className="inline-icon" /> {winner.runtime}</span>}
+                  </div>
+                )}
+                {winner.stars && (
+                  <div>
+                    <Users size="1em" className="inline-icon" /> {winner.stars}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex-row gap-xs flex-wrap">
+              {winner?.physical4K && <span className="badge-media badge-media-4k">4K</span>}
+              {winner?.physicalBluRay && <span className="badge-media badge-media-bluray">Blu-ray</span>}
+              {winner?.physicalDvd && <span className="badge-media badge-media-dvd">DVD</span>}
+              {winner?.genres.map((g) => (
+                <span key={g.id} className="badge-genre">
+                  {g.name}
+                </span>
+              ))}
+            </div>
+
+            <div className="border-t pt-sm mt-sm flex-between text-sm-alt text-muted flex-wrap gap-xs">
+              {week.isInPerson ? (
+                <span className="text-accent-color font-semibold"><CassetteTape size="1em" className="inline-icon" /> In-Person Screening</span>
+              ) : (
+                <span>Theme: {week.themeCategory?.name || "None"}</span>
+              )}
+              {week.isRandomlyChosen && (
+                <span className="text-accent-color font-semibold"><Dices size="1em" className="inline-icon" /> Random Draw</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Collapsible Voting History (Full Width) */}
+        {votingHistory.length > 0 && (
+          <div className="border-t pt-sm mt-xs flex-col gap-sm w-full">
+            <button
+              type="button"
+              className="btn btn-secondary text-xs flex-between items-center w-full py-xs px-sm"
+              onClick={() => setShowVotingHistory((prev) => !prev)}
+              aria-expanded={showVotingHistory}
+            >
+              <span className="flex-row items-center gap-xs font-semibold">
+                <BarChart3 size={15} className="inline-icon text-primary-var" />
+                Voting History ({votingHistory.length} {votingHistory.length === 1 ? "Round" : "Rounds"})
+              </span>
+              {showVotingHistory ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            </button>
+
+            {showVotingHistory && (
                 <div className="past-week-history-container flex-col gap-sm">
                   {votingHistory.map((round) => (
                     <div key={round.roundCode} className="past-week-round-card">
@@ -223,7 +226,6 @@ export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
               )}
             </div>
           )}
-        </div>
       </div>
     </div>,
     document.body

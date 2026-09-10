@@ -422,18 +422,26 @@ details.movie-row-details {
 
 .past-week-modal-card {
   width: 100%;
-  max-width: 680px;
+  max-width: 740px;
   display: flex;
-  gap: 20px;
+  flex-direction: column;
+  gap: 16px;
   background-color: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.2);
   max-height: 85vh;
   overflow-y: auto;
   animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.past-week-modal-top {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  align-items: flex-start;
 }
 
 .past-week-modal-poster {
@@ -480,7 +488,7 @@ details.movie-row-details {
 }
 
 @media (max-width: 640px) {
-  .past-week-modal-card {
+  .past-week-modal-top {
     flex-direction: column;
   }
 
