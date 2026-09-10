@@ -250,7 +250,32 @@ export async function deleteCompletedWeekAction(weekId: string) {
 
   // Cascade: votes are deleted automatically via Prisma schema onDelete:Cascade
   await db.movieNightWeek.delete({ where: { id: weekId } });
+
+  // Re-sequence remaining weeks so week numbers remain sequential without gaps
+  const remainingWeeks = await db.movieNightWeek.findMany({
+    orderBy: { createdAt: "asc" },
+  });
+
+  const needsResequence = remainingWeeks.some((w, idx) => w.weekNumber !== idx + 1);
+  if (needsResequence) {
+    await db.$transaction(async (tx) => {
+      for (let i = 0; i < remainingWeeks.length; i++) {
+        await tx.movieNightWeek.update({
+          where: { id: remainingWeeks[i].id },
+          data: { weekNumber: -(i + 1) },
+        });
+      }
+      for (let i = 0; i < remainingWeeks.length; i++) {
+        await tx.movieNightWeek.update({
+          where: { id: remainingWeeks[i].id },
+          data: { weekNumber: i + 1 },
+        });
+      }
+    });
+  }
+
   revalidatePath("/");
+  revalidatePath("/stats");
 }
 
 // 11b. Keep/Remove Legacy Movie prompt action (for movies that were already in Legacy)
