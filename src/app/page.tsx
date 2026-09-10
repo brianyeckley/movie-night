@@ -44,8 +44,7 @@ import {
 } from "@/lib/rounds";
 import { getLeaderboardStats, getUserFlairsMap } from "@/lib/stats";
 import UserFlairBadges from "@/components/UserFlairBadges";
-
-
+import type { RoundResult, RoundTarget, PastWeek } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -54,22 +53,73 @@ function isInPersonRound(status: string) {
   return status in IN_PERSON_ROUNDS;
 }
 
-/** One option within a closed round's results. */
-interface RoundTarget {
-  targetId: string;
-  name: string;
-  count: number;
-  voters: string[];
-}
+/** Parses round results for a week, resolving target names, ties, and tiebreakers. */
+function parseWeekRounds(
+  week: {
+    selectedCategoryId?: string | null;
+    selectedSubcategoryId?: string | null;
+    winningMovieId?: string | null;
+    isRandomlyChosen?: boolean;
+    votes: { round: string; targetId: string; user: { name: string; isApproved: boolean } }[];
+  },
+  targetLookup: Record<string, string>,
+  excludeActiveRoundCode?: string
+): RoundResult[] {
+  const approved = approvedVotes(week.votes);
+  const votesByRound: Record<string, typeof approved> = {};
 
-/** A closed round, as shown under "Prior Round Results". */
-interface RoundResult {
-  roundCode: string;
-  title: string;
-  targets: RoundTarget[];
-  isTie: boolean;
-  /** Set when a random draw resolved this round's tie. */
-  chosenTargetId: string | null;
+  approved.forEach((v) => {
+    if (excludeActiveRoundCode && v.round === excludeActiveRoundCode) return;
+    if (!votesByRound[v.round]) {
+      votesByRound[v.round] = [];
+    }
+    votesByRound[v.round].push(v);
+  });
+
+  return Object.entries(votesByRound).map(([roundCode, roundVotes]) => {
+    const targetCounts: Record<string, RoundTarget> = {};
+
+    roundVotes.forEach((v) => {
+      if (!targetCounts[v.targetId]) {
+        targetCounts[v.targetId] = {
+          targetId: v.targetId,
+          name: targetLookup[v.targetId] || "Unknown Option",
+          count: 0,
+          voters: [],
+        };
+      }
+      targetCounts[v.targetId].count += 1;
+      targetCounts[v.targetId].voters.push(v.user.name);
+    });
+
+    const sortedTargets = Object.values(targetCounts).sort((a, b) => b.count - a.count);
+    const isTie = sortedTargets.length > 1 && sortedTargets[0].count === sortedTargets[1].count;
+
+    let chosenTargetId: string | null = null;
+    if (isTie) {
+      if (roundCode === "ROUND_1_CATEGORY_TIEBREAKER") {
+        chosenTargetId = week.selectedCategoryId ?? null;
+      } else if (roundCode === "ROUND_2C_SUB_MOVIE" && week.isRandomlyChosen) {
+        chosenTargetId = week.selectedSubcategoryId || week.winningMovieId || null;
+      } else if (
+        (roundCode === "ROUND_4_TIEBREAKER" ||
+          roundCode === "IN_PERSON_ROUND_1B" ||
+          roundCode === "IN_PERSON_ROUND_2" ||
+          roundCode === "IN_PERSON_ROUND_3") &&
+        week.isRandomlyChosen
+      ) {
+        chosenTargetId = week.winningMovieId ?? null;
+      }
+    }
+
+    return {
+      roundCode,
+      title: formatRound(roundCode),
+      targets: sortedTargets,
+      isTie,
+      chosenTargetId,
+    };
+  });
 }
 
 
@@ -110,6 +160,7 @@ export default async function DashboardPage() {
     where: { NOT: { closedAt: null } },
     include: {
       themeCategory: true,
+      votes: { include: { user: true } },
     },
     orderBy: { weekNumber: "desc" },
   });
@@ -125,12 +176,42 @@ export default async function DashboardPage() {
   });
   const pastWinnersById = new Map(pastWinners.map((m) => [m.id, m]));
 
-  const pastWeeks = closedWeeks.map((wk) => ({
-    ...wk,
-    winner: wk.winningMovieId
-      ? pastWinnersById.get(wk.winningMovieId) ?? null
-      : null,
-  }));
+  // Gather all target IDs across active and past weeks to resolve names in one batch
+  const allTargetIds = Array.from(
+    new Set([
+      ...(activeWeek ? activeWeek.votes.map((v) => v.targetId) : []),
+      ...closedWeeks.flatMap((wk) => wk.votes.map((v) => v.targetId)),
+    ])
+  );
+
+  const [votedCategories, votedMovies] = await Promise.all([
+    db.category.findMany({ where: { id: { in: allTargetIds } } }),
+    db.movie.findMany({ where: { id: { in: allTargetIds } } }),
+  ]);
+
+  const targetLookup: Record<string, string> = {};
+  votedCategories.forEach((c) => {
+    targetLookup[c.id] = c.name;
+  });
+  votedMovies.forEach((m) => {
+    targetLookup[m.id] = m.title + (m.year ? ` (${m.year})` : "");
+  });
+
+  const pastWeeks: PastWeek[] = closedWeeks.map((wk) => {
+    const history = parseWeekRounds(wk, targetLookup);
+    history.sort(
+      (a, b) =>
+        ROUND_ORDER.indexOf(a.roundCode as RoundCode) -
+        ROUND_ORDER.indexOf(b.roundCode as RoundCode)
+    );
+    return {
+      ...wk,
+      winner: wk.winningMovieId
+        ? pastWinnersById.get(wk.winningMovieId) ?? null
+        : null,
+      votingHistory: history,
+    };
+  });
 
   // Compute round status details
   let roundTitle = "";
@@ -148,83 +229,7 @@ export default async function DashboardPage() {
       .filter((v) => v.round === activeRoundCode)
       .map((v) => v.userId);
 
-    // Resolve display names for votes
-    const targetIds = Array.from(new Set(approvedActiveVotes.map((v) => v.targetId)));
-
-    const votedCategories = await db.category.findMany({
-      where: { id: { in: targetIds } },
-    });
-
-    const votedMovies = await db.movie.findMany({
-      where: { id: { in: targetIds } },
-    });
-
-    const targetLookup: Record<string, string> = {};
-    votedCategories.forEach((c) => {
-      targetLookup[c.id] = c.name;
-    });
-    votedMovies.forEach((m) => {
-      targetLookup[m.id] = m.title + (m.year ? ` (${m.year})` : "");
-    });
-
-    const votesByRound: Record<string, typeof approvedActiveVotes> = {};
-    approvedActiveVotes.forEach((v) => {
-      if (v.round !== activeRoundCode) {
-        if (!votesByRound[v.round]) {
-          votesByRound[v.round] = [];
-        }
-        votesByRound[v.round].push(v);
-      }
-    });
-
-    const parsedRounds = Object.entries(votesByRound).map(([roundCode, roundVotes]) => {
-      const targetCounts: Record<string, RoundTarget> = {};
-      
-      roundVotes.forEach((v) => {
-        if (!targetCounts[v.targetId]) {
-          targetCounts[v.targetId] = {
-            targetId: v.targetId,
-            name: targetLookup[v.targetId] || "Unknown Option",
-            count: 0,
-            voters: [],
-          };
-        }
-        targetCounts[v.targetId].count += 1;
-        targetCounts[v.targetId].voters.push(v.user.name);
-      });
-
-      const sortedTargets = Object.values(targetCounts).sort((a, b) => b.count - a.count);
-
-      // Check if there was a tie in this round
-      const isTie = sortedTargets.length > 1 && sortedTargets[0].count === sortedTargets[1].count;
-
-      // Identify which target was chosen by a random tiebreaker draw
-      let chosenTargetId: string | null = null;
-      if (isTie) {
-        if (roundCode === "ROUND_1_CATEGORY_TIEBREAKER") {
-          chosenTargetId = activeWeek.selectedCategoryId;
-        } else if (roundCode === "ROUND_2C_SUB_MOVIE" && activeWeek.isRandomlyChosen) {
-          chosenTargetId = activeWeek.selectedSubcategoryId || activeWeek.winningMovieId;
-        } else if (
-          (roundCode === "ROUND_4_TIEBREAKER" || 
-           roundCode === "IN_PERSON_ROUND_1B" || 
-           roundCode === "IN_PERSON_ROUND_2" || 
-           roundCode === "IN_PERSON_ROUND_3") &&
-          activeWeek.isRandomlyChosen
-        ) {
-          chosenTargetId = activeWeek.winningMovieId;
-        }
-      }
-
-      return {
-        roundCode,
-        title: formatRound(roundCode),
-        targets: sortedTargets,
-        isTie,
-        chosenTargetId,
-      };
-    });
-
+    const parsedRounds = parseWeekRounds(activeWeek, targetLookup, activeRoundCode);
     // Newest round first
     parsedRounds.sort(
       (a, b) =>

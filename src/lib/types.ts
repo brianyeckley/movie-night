@@ -41,11 +41,30 @@ export type ActiveWeek = Prisma.MovieNightWeekGetPayload<{
   };
 }>;
 
-/** A closed week plus its resolved winning movie, as rendered in "Past Movie Nights". */
+/** One option within a round's results. */
+export interface RoundTarget {
+  targetId: string;
+  name: string;
+  count: number;
+  voters: string[];
+}
+
+/** A completed or past round's results. */
+export interface RoundResult {
+  roundCode: string;
+  title: string;
+  targets: RoundTarget[];
+  isTie: boolean;
+  /** Set when a random draw resolved this round's tie. */
+  chosenTargetId: string | null;
+}
+
+/** A closed week plus its resolved winning movie and voting history, as rendered in "Past Movie Nights". */
 export type PastWeek = Prisma.MovieNightWeekGetPayload<{
   include: { themeCategory: true };
 }> & {
   winner: MovieWithGenresAndCategory | null;
+  votingHistory?: RoundResult[];
 };
 
 /**
