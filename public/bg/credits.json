@@ -292,5 +292,33 @@
     "watched": "9/3/2026",
     "panelAlign": "left",
     "bgPosition": "center center"
+  },
+  "robot jox 1.webp": {
+    "title": "Robot Jox",
+    "year": 1989,
+    "watched": "9/10/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "robot jox 2.webp": {
+    "title": "Robot Jox",
+    "year": 1989,
+    "watched": "9/10/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "robot jox 3.webp": {
+    "title": "Robot Jox",
+    "year": 1989,
+    "watched": "9/10/2026",
+    "panelAlign": "left",
+    "bgPosition": "center center"
+  },
+  "robot jox 4.webp": {
+    "title": "Robot Jox",
+    "year": 1989,
+    "watched": "9/10/2026",
+    "panelAlign": "right",
+    "bgPosition": "center center"
   }
 }
