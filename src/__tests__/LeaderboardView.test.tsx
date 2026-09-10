@@ -85,11 +85,11 @@ const mockLeaderboardData: LeaderboardData = {
         genres: [{ id: "g-1", name: "Comedy", createdAt: new Date() }],
         createdAt: new Date(),
       },
-      nominationCount: 3,
+      nominationCount: 2,
       weeksNominatedCount: 2,
       weeks: [
         { weekNumber: 5, nominators: ["Nick"] },
-        { weekNumber: 8, nominators: ["Brian", "Nick"] },
+        { weekNumber: 8, nominators: ["Nick"] },
       ],
       totalVotesCount: 5,
     },
@@ -110,7 +110,7 @@ describe("LeaderboardView", () => {
 
     // Check nomination counts
     expect(screen.getByText("4 nominations")).toBeDefined();
-    expect(screen.getByText("3 nominations")).toBeDefined();
+    expect(screen.getByText("2 nominations")).toBeDefined();
 
     // Check weeks counts
     expect(screen.getByText("4 wks")).toBeDefined();

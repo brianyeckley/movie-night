@@ -120,6 +120,11 @@ const INITIAL_MOVIE_ROUNDS = new Set([
   "IN_PERSON_ROUND_1",
 ]);
 
+const NOMINATION_ROUNDS = new Set([
+  "ROUND_2_MOVIE",
+  "IN_PERSON_ROUND_1",
+]);
+
 const FINAL_ROUND_PRIORITY = [
   "IN_PERSON_ROUND_3",
   "IN_PERSON_ROUND_2",
@@ -159,9 +164,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
   const allVotedMovieIds = Array.from(
     new Set(
       closedWeeks.flatMap((w) =>
-        w.votes
-          .filter((v) => INITIAL_MOVIE_ROUNDS.has(v.round))
-          .map((v) => v.targetId)
+        w.votes.map((v) => v.targetId)
       )
     )
   );
@@ -549,7 +552,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
       const entry = nonWinnerMap.get(v.targetId)!;
       entry.totalVotesCount += 1;
 
-      if (INITIAL_MOVIE_ROUNDS.has(v.round)) {
+      if (NOMINATION_ROUNDS.has(v.round)) {
         if (!entry.weeksMap.has(week.weekNumber)) {
           entry.weeksMap.set(week.weekNumber, new Set<string>());
         }
