@@ -3088,6 +3088,224 @@ details.movie-row-details {
   color: var(--text-muted);
 }
 
+/* Most Nominated Non-Winning Movies Chart */
+.non-winners-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.non-winner-row {
+  border-bottom: 1px solid var(--glass-border);
+  transition: background-color var(--transition-fast);
+}
+
+.non-winner-row:last-child {
+  border-bottom: none;
+}
+
+.non-winner-row:hover {
+  background-color: var(--glass-hover);
+}
+
+.non-winner-main {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.non-winner-movie-col {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.non-winner-poster-wrapper {
+  width: 44px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.non-winner-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.non-winner-poster-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.non-winner-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.non-winner-title {
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.non-winner-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.non-winner-category-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+}
+
+.non-winner-genre-tag {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+}
+
+.non-winner-chart-col {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 340px;
+  justify-content: flex-end;
+}
+
+.non-winner-bar-track {
+  flex: 1;
+  min-width: 140px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.non-winner-bar-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.2);
+}
+
+.non-winner-bar-rank-1 {
+  background: linear-gradient(90deg, #f59e0b 0%, #ec4899 100%);
+}
+
+.non-winner-bar-rank-2 {
+  background: linear-gradient(90deg, #94a3b8 0%, #6366f1 100%);
+}
+
+.non-winner-bar-rank-3 {
+  background: linear-gradient(90deg, #d97706 0%, #8b5cf6 100%);
+}
+
+.non-winner-bar-rank-other {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.85) 0%, rgba(236, 72, 153, 0.85) 100%);
+}
+
+.non-winner-bar-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.non-winner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.non-winner-weeks-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.non-winner-drawer {
+  background: rgba(0, 0, 0, 0.25);
+  border-top: 1px solid var(--glass-border);
+  padding: 16px 20px;
+  animation: slideDown 0.2s ease-out;
+}
+
+.non-winner-drawer-header {
+  margin-bottom: 10px;
+}
+
+.non-winner-weeks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.non-winner-week-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 640px) {
+  .non-winner-chart-col {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .non-winner-bar-track {
+    min-width: 100px;
+  }
+  .non-winner-title {
+    max-width: 180px;
+  }
+}
+
 /* Vault Records Grid */
 .vault-records-grid {
   display: grid;

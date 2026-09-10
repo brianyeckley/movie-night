@@ -56,6 +56,19 @@ export interface GlobalMovieStats {
   };
 }
 
+export interface NominatedNonWinnerWeek {
+  weekNumber: number;
+  nominators: string[];
+}
+
+export interface NominatedNonWinner {
+  movie: MovieWithGenresAndCategory;
+  nominationCount: number;
+  weeksNominatedCount: number;
+  weeks: NominatedNonWinnerWeek[];
+  totalVotesCount: number;
+}
+
 export interface LeaderboardData {
   tastemakers: UserTastemakerStats[];
   kingmaker: KingmakerStats | null;
@@ -64,6 +77,7 @@ export interface LeaderboardData {
   filmSnobsList: FilmSnobStats[];
   dynamicDuo: DynamicDuoStats | null;
   globalStats: GlobalMovieStats;
+  mostNominatedNonWinners: NominatedNonWinner[];
 }
 
 export function parseRuntimeMinutes(runtimeStr?: string | null): number {
@@ -501,6 +515,83 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
     physicalMedia,
   };
 
+  // 6. Most Nominated Non-Winning Movies
+  const allWeeksWithWinner = await db.movieNightWeek.findMany({
+    where: { winningMovieId: { not: null } },
+    select: { winningMovieId: true },
+  });
+  const allWinnerIdSet = new Set<string>();
+  allWeeksWithWinner.forEach((w) => {
+    if (w.winningMovieId) allWinnerIdSet.add(w.winningMovieId);
+  });
+
+  const nonWinnerMap = new Map<
+    string,
+    {
+      weeksMap: Map<number, Set<string>>;
+      totalVotesCount: number;
+    }
+  >();
+
+  closedWeeks.forEach((week) => {
+    week.votes.forEach((v) => {
+      if (!v.user.isApproved) return;
+      if (allWinnerIdSet.has(v.targetId)) return;
+      if (!movieById.has(v.targetId)) return;
+
+      if (!nonWinnerMap.has(v.targetId)) {
+        nonWinnerMap.set(v.targetId, {
+          weeksMap: new Map<number, Set<string>>(),
+          totalVotesCount: 0,
+        });
+      }
+
+      const entry = nonWinnerMap.get(v.targetId)!;
+      entry.totalVotesCount += 1;
+
+      if (INITIAL_MOVIE_ROUNDS.has(v.round)) {
+        if (!entry.weeksMap.has(week.weekNumber)) {
+          entry.weeksMap.set(week.weekNumber, new Set<string>());
+        }
+        entry.weeksMap.get(week.weekNumber)!.add(v.user.name);
+      }
+    });
+  });
+
+  const mostNominatedNonWinners: NominatedNonWinner[] = Array.from(nonWinnerMap.entries())
+    .map(([movieId, info]) => {
+      const movie = movieById.get(movieId)!;
+      const sortedWeeks = Array.from(info.weeksMap.entries())
+        .map(([weekNumber, nominatorsSet]) => ({
+          weekNumber,
+          nominators: Array.from(nominatorsSet).sort(),
+        }))
+        .sort((a, b) => a.weekNumber - b.weekNumber);
+
+      const nominationCount = sortedWeeks.reduce(
+        (sum, w) => sum + w.nominators.length,
+        0
+      );
+
+      return {
+        movie,
+        nominationCount,
+        weeksNominatedCount: sortedWeeks.length,
+        weeks: sortedWeeks,
+        totalVotesCount: info.totalVotesCount,
+      };
+    })
+    .filter((entry) => entry.nominationCount > 0)
+    .sort((a, b) => {
+      if (b.nominationCount !== a.nominationCount) {
+        return b.nominationCount - a.nominationCount;
+      }
+      if (b.weeksNominatedCount !== a.weeksNominatedCount) {
+        return b.weeksNominatedCount - a.weeksNominatedCount;
+      }
+      return a.movie.title.localeCompare(b.movie.title);
+    });
+
   return {
     tastemakers,
     kingmaker,
@@ -509,6 +600,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
     filmSnobsList,
     dynamicDuo: bestDuo,
     globalStats,
+    mostNominatedNonWinners,
   };
 }
 

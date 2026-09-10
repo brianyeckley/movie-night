@@ -76,6 +76,7 @@ describe("stats helpers", () => {
           highestRatedMovie: null,
           physicalMedia: { fourK: 2, bluRay: 5, dvd: 1, digitalOnly: 2 },
         },
+        mostNominatedNonWinners: [],
       };
 
       const flairsMap = getUserFlairsMap(mockData);
@@ -84,6 +85,48 @@ describe("stats helpers", () => {
       expect(flairsMap["u2"].some((f) => f.id === "kingmaker")).toBe(true);
       expect(flairsMap["u2"].some((f) => f.id === "duo")).toBe(true);
       expect(flairsMap["u3"].some((f) => f.id === "film-snob")).toBe(true);
+    });
+  });
+
+  describe("mostNominatedNonWinners contract", () => {
+    it("sorts contenders by nominationCount desc then weeksNominatedCount desc", () => {
+      const contenders = [
+        {
+          movie: { id: "m1", title: "Movie B", year: 2000, category: null, genres: [] },
+          nominationCount: 3,
+          weeksNominatedCount: 2,
+          weeks: [{ weekNumber: 1, nominators: ["Alice"] }],
+          totalVotesCount: 4,
+        },
+        {
+          movie: { id: "m2", title: "Movie A", year: 2005, category: null, genres: [] },
+          nominationCount: 5,
+          weeksNominatedCount: 4,
+          weeks: [{ weekNumber: 2, nominators: ["Bob"] }],
+          totalVotesCount: 6,
+        },
+        {
+          movie: { id: "m3", title: "Movie C", year: 2010, category: null, genres: [] },
+          nominationCount: 3,
+          weeksNominatedCount: 3,
+          weeks: [{ weekNumber: 3, nominators: ["Charlie"] }],
+          totalVotesCount: 5,
+        },
+      ];
+
+      const sorted = [...contenders].sort((a, b) => {
+        if (b.nominationCount !== a.nominationCount) {
+          return b.nominationCount - a.nominationCount;
+        }
+        if (b.weeksNominatedCount !== a.weeksNominatedCount) {
+          return b.weeksNominatedCount - a.weeksNominatedCount;
+        }
+        return a.movie.title.localeCompare(b.movie.title);
+      });
+
+      expect(sorted[0].movie.title).toBe("Movie A"); // 5 noms
+      expect(sorted[1].movie.title).toBe("Movie C"); // 3 noms, 3 weeks
+      expect(sorted[2].movie.title).toBe("Movie B"); // 3 noms, 2 weeks
     });
   });
 });

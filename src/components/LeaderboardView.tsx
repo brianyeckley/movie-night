@@ -17,8 +17,12 @@ import {
   Clapperboard,
   Flame,
   Award,
+  HeartCrack,
+  Film,
+  Info,
 } from "lucide-react";
 import type { LeaderboardData } from "@/lib/stats";
+import { PlotModal, type MoviePlotModalData } from "@/components/PlotModal";
 
 interface LeaderboardViewProps {
   data: LeaderboardData;
@@ -27,11 +31,21 @@ interface LeaderboardViewProps {
 export default function LeaderboardView({ data }: LeaderboardViewProps) {
   const [expandedUserIds, setExpandedUserIds] = useState<Record<string, boolean>>({});
   const [showFilmSnobMovies, setShowFilmSnobMovies] = useState(false);
+  const [expandedNonWinnerMovieIds, setExpandedNonWinnerMovieIds] = useState<Record<string, boolean>>({});
+  const [showAllNonWinners, setShowAllNonWinners] = useState(false);
+  const [selectedPlotMovie, setSelectedPlotMovie] = useState<MoviePlotModalData | null>(null);
 
   const toggleExpandUser = (userId: string) => {
     setExpandedUserIds((prev) => ({
       ...prev,
       [userId]: !prev[userId],
+    }));
+  };
+
+  const toggleExpandNonWinner = (movieId: string) => {
+    setExpandedNonWinnerMovieIds((prev) => ({
+      ...prev,
+      [movieId]: !prev[movieId],
     }));
   };
 
@@ -41,6 +55,7 @@ export default function LeaderboardView({ data }: LeaderboardViewProps) {
     filmSnob,
     dynamicDuo,
     globalStats,
+    mostNominatedNonWinners = [],
   } = data;
 
   const top3 = tastemakers.slice(0, 3);
@@ -412,7 +427,214 @@ export default function LeaderboardView({ data }: LeaderboardViewProps) {
         </div>
       </div>
 
-      {/* 4. The Movie Vault / Trivia Records */}
+      {/* 4. Most Nominated Non-Winning Movies Chart */}
+      <div className="flex-col gap-lg">
+        <div className="flex-between items-center flex-wrap gap-sm">
+          <div>
+            <h2 className="text-3xl font-bold flex-row items-center gap-sm">
+              <HeartCrack className="text-accent inline-icon" size={24} />
+              Most Nominated Non-Winners
+            </h2>
+            <p className="text-secondary text-base">
+              The uncrowned contenders with the most nominations in selection rounds that have never won.
+            </p>
+          </div>
+          {mostNominatedNonWinners.length > 0 && (
+            <span className="text-secondary text-sm">
+              {mostNominatedNonWinners.length} contender{mostNominatedNonWinners.length === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
+
+        {mostNominatedNonWinners.length === 0 ? (
+          <div className="glass-panel no-hover p-xl text-center text-secondary">
+            No non-winning nominated movies recorded yet.
+          </div>
+        ) : (
+          <div className="glass-panel no-hover overflow-hidden">
+            <div className="p-lg border-b border-glass flex-between items-center">
+              <h3 className="text-xl font-bold flex-row items-center gap-sm">
+                <Film size={18} className="text-secondary" />
+                Uncrowned Contenders Standings
+              </h3>
+              <span className="text-secondary text-sm">
+                Ranked by nominations
+              </span>
+            </div>
+
+            <div className="non-winners-list">
+              {(showAllNonWinners
+                ? mostNominatedNonWinners
+                : mostNominatedNonWinners.slice(0, 10)
+              ).map((entry, index) => {
+                const rank = index + 1;
+                const maxNominations = Math.max(
+                  ...mostNominatedNonWinners.map((m) => m.nominationCount),
+                  1
+                );
+                const barWidth = Math.max(
+                  16,
+                  Math.round((entry.nominationCount / maxNominations) * 100)
+                );
+                const isExpanded = expandedNonWinnerMovieIds[entry.movie.id];
+
+                return (
+                  <div key={entry.movie.id} className="non-winner-row">
+                    <div className="non-winner-main">
+                      {/* Left: Rank, Poster & Movie Info */}
+                      <div className="non-winner-movie-col">
+                        <span className={`rank-indicator rank-${rank <= 3 ? rank : "other"}`}>
+                          {rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`}
+                        </span>
+
+                        <div className="non-winner-poster-wrapper">
+                          {entry.movie.posterUrl ? (
+                            <img
+                              src={entry.movie.posterUrl}
+                              alt={`${entry.movie.title} poster`}
+                              className="non-winner-poster"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="non-winner-poster-placeholder">
+                              <Film size={18} className="text-muted" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="non-winner-details">
+                          <div className="flex-row items-center gap-xs flex-wrap">
+                            <span className="font-bold text-base non-winner-title">
+                              {entry.movie.title}
+                            </span>
+                            {entry.movie.year && (
+                              <span className="text-secondary text-xs">
+                                ({entry.movie.year})
+                              </span>
+                            )}
+                            {entry.movie.imdbRating && (
+                              <span className="imdb-chip text-xs">
+                                ★ {entry.movie.imdbRating}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="non-winner-meta">
+                            {entry.movie.category && (
+                              <span className="non-winner-category-tag">
+                                {entry.movie.category.name}
+                              </span>
+                            )}
+                            {entry.movie.genres.slice(0, 2).map((g) => (
+                              <span key={g.id} className="non-winner-genre-tag">
+                                {g.name}
+                              </span>
+                            ))}
+                            {entry.movie.runtime && (
+                              <span className="text-xs text-muted">
+                                {entry.movie.runtime}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Chart Bar & Actions */}
+                      <div className="non-winner-chart-col">
+                        <div className="non-winner-bar-track">
+                          <div
+                            className={`non-winner-bar-fill non-winner-bar-rank-${rank <= 3 ? rank : "other"}`}
+                            style={{ width: `${barWidth}%` }}
+                          >
+                            <span className="non-winner-bar-label">
+                              {entry.nominationCount} {entry.nominationCount === 1 ? "nomination" : "nominations"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="non-winner-actions">
+                          <span className="non-winner-weeks-badge">
+                            {entry.weeksNominatedCount} {entry.weeksNominatedCount === 1 ? "wk" : "wks"}
+                          </span>
+
+                          <button
+                            type="button"
+                            className="btn btn-secondary text-xs py-xs px-sm"
+                            onClick={() => toggleExpandNonWinner(entry.movie.id)}
+                            aria-expanded={isExpanded}
+                          >
+                            {isExpanded ? (
+                              <>
+                                Hide <ChevronUp size={14} />
+                              </>
+                            ) : (
+                              <>
+                                Details <ChevronDown size={14} />
+                              </>
+                            )}
+                          </button>
+
+                          {entry.movie.plot && (
+                            <button
+                              type="button"
+                              className="btn btn-ghost text-xs p-xs"
+                              onClick={() => setSelectedPlotMovie(entry.movie)}
+                              title="View plot synopsis"
+                              aria-label={`View plot for ${entry.movie.title}`}
+                            >
+                              <Info size={16} className="text-secondary" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Expanded Breakdown Drawer */}
+                    {isExpanded && (
+                      <div className="non-winner-drawer">
+                        <div className="non-winner-drawer-header">
+                          <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
+                            Nominated by users {entry.nominationCount} {entry.nominationCount === 1 ? "time" : "times"} across {entry.weeks.length} {entry.weeks.length === 1 ? "week" : "weeks"} · {entry.totalVotesCount} total votes across all rounds
+                          </span>
+                        </div>
+                        <div className="non-winner-weeks-grid">
+                          {entry.weeks.map((w) => (
+                            <div key={w.weekNumber} className="non-winner-week-card">
+                              <span className="week-badge">Week #{w.weekNumber}</span>
+                              <div className="text-xs text-secondary mt-xs">
+                                Nominators:{" "}
+                                <span className="text-primary-var font-semibold">
+                                  {w.nominators.join(", ")}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {mostNominatedNonWinners.length > 10 && (
+              <div className="p-md text-center border-t border-glass">
+                <button
+                  type="button"
+                  className="btn btn-secondary text-sm"
+                  onClick={() => setShowAllNonWinners((prev) => !prev)}
+                >
+                  {showAllNonWinners
+                    ? "Show Top 10 Contenders"
+                    : `Show All ${mostNominatedNonWinners.length} Contenders`}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 5. The Movie Vault / Trivia Records */}
       <div className="flex-col gap-lg">
         <h2 className="text-3xl font-bold flex-row items-center gap-sm">
           <Clapperboard className="text-accent inline-icon" size={24} />
@@ -469,6 +691,11 @@ export default function LeaderboardView({ data }: LeaderboardViewProps) {
           </div>
         </div>
       </div>
+
+      <PlotModal
+        movie={selectedPlotMovie}
+        onClose={() => setSelectedPlotMovie(null)}
+      />
     </div>
   );
 }
