@@ -13,7 +13,7 @@ datasource db {
 model User {
   id           String     @id @default(uuid())
   username     String     @unique // "brian", "stew", "nick"
-  name         String             // "Brian", "Stew", "Nick"
+  name         String // "Brian", "Stew", "Nick"
   passwordHash String     @default("")
   role         String     @default("USER") // "ADMIN" or "USER"
   isApproved   Boolean    @default(false)
@@ -41,25 +41,37 @@ model Genre {
 }
 
 model Movie {
-  id             String   @id @default(uuid())
-  title          String
-  imdbUrl        String?
-  trailerUrl     String?
-  year           Int?
-  director       String?
-  stars          String?
-  runtime        String?
-  plot           String?
-  posterUrl      String?
-  imdbRating     String?
-  watched        Boolean  @default(false)
-  physical4K     Boolean  @default(false)
-  physicalBluRay Boolean  @default(false)
-  physicalDvd    Boolean  @default(false)
-  categoryId     String
-  category       Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  genres         Genre[]
-  createdAt      DateTime @default(now())
+  id               String                 @id @default(uuid())
+  title            String
+  imdbUrl          String?
+  trailerUrl       String?
+  year             Int?
+  director         String?
+  stars            String?
+  runtime          String?
+  plot             String?
+  posterUrl        String?
+  imdbRating       String?
+  watched          Boolean                @default(false)
+  physical4K       Boolean                @default(false)
+  physicalBluRay   Boolean                @default(false)
+  physicalDvd      Boolean                @default(false)
+  categoryId       String
+  category         Category               @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  genres           Genre[]
+  backgroundImages MovieBackgroundImage[]
+  createdAt        DateTime               @default(now())
+}
+
+model MovieBackgroundImage {
+  id         String   @id @default(uuid())
+  movieId    String
+  movie      Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  // Server-generated on upload (a fresh UUID), never the original filename.
+  filename   String
+  panelAlign String   @default("right")
+  bgPosition String   @default("center center")
+  createdAt  DateTime @default(now())
 }
 
 model MovieNightWeek {
@@ -70,9 +82,9 @@ model MovieNightWeek {
   status                String     @default("CATEGORY_VOTING")
   themeCategoryId       String?
   themeCategory         Category?  @relation("ThemeCategory", fields: [themeCategoryId], references: [id])
-  selectedCategoryId    String?    // Winning category from Round 1
-  selectedSubcategoryId String?    // Winning subcategory from Round 2 (if applicable)
-  winningMovieId        String?    // Final winner
+  selectedCategoryId    String? // Winning category from Round 1
+  selectedSubcategoryId String? // Winning subcategory from Round 2 (if applicable)
+  winningMovieId        String? // Final winner
   isRandomlyChosen      Boolean    @default(false)
   isInPerson            Boolean    @default(false)
   createdAt             DateTime   @default(now())
@@ -81,21 +93,21 @@ model MovieNightWeek {
 }
 
 model WeekVote {
-  id         String         @id @default(uuid())
-  weekId     String
-  week       MovieNightWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  userId     String
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String         @id @default(uuid())
+  weekId    String
+  week      MovieNightWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   // Round codes are defined by the RoundCode union in src/lib/rounds.ts.
-  round      String
-  targetId   String         // Can represent Category ID, Subcategory ID, or Movie ID
-  createdAt  DateTime       @default(now())
+  round     String
+  targetId  String // Can represent Category ID, Subcategory ID, or Movie ID
+  createdAt DateTime       @default(now())
 
+  // A user cannot cast the same vote twice in a round. Per-round limits are
+  // still enforced in the actions; this is the backstop against double submits.
+  @@unique([weekId, userId, round, targetId])
   // Every read filters on the week plus the round, and tallying additionally
   // groups by user, so both shapes are indexed rather than table-scanned.
   @@index([weekId, round])
   @@index([weekId, userId, round])
-  // A user cannot cast the same vote twice in a round. Per-round limits are
-  // still enforced in the actions; this is the backstop against double submits.
-  @@unique([weekId, userId, round, targetId])
 }

@@ -1,10 +1,14 @@
 "use server";
 
+import sharp from "sharp";
 import { db } from "@/lib/db";
 import type { Prisma } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireAdmin, requireUser } from "@/lib/auth";
 import { fetchMovieMetadata } from "@/lib/imdb";
+import { saveBgImage, deleteBgImageFile } from "@/lib/bg-storage";
+
+const MAX_BG_IMAGE_UPLOAD_BYTES = 15 * 1024 * 1024;
 
 // 12. Catalog Management: Add Category
 export async function addCategoryAction(name: string, isThemed: boolean = false) {
@@ -129,7 +133,15 @@ export async function deleteMovieAction(movieId: string) {
   await requireAdmin("remove movies from the catalog");
   await assertNotAPastWinner([movieId]);
 
-  await db.movie.delete({ where: { id: movieId } });
+  const movie = await db.movie.delete({
+    where: { id: movieId },
+    include: { backgroundImages: true },
+  });
+  // The DB rows cascade automatically; the files on disk don't.
+  for (const image of movie.backgroundImages) {
+    deleteBgImageFile(image.filename);
+  }
+
   revalidatePath("/catalog");
   revalidatePath("/");
 }
@@ -240,4 +252,57 @@ export async function updateMovieAction(
   revalidatePath("/catalog");
   revalidatePath("/");
   return updatedMovie;
+}
+
+// 18. Catalog Management: Add Movie Background Image
+export async function addMovieBackgroundImageAction(movieId: string, file: File) {
+  await requireUser();
+
+  if (!file.type.startsWith("image/")) {
+    throw new Error("That file isn't an image.");
+  }
+  if (file.size > MAX_BG_IMAGE_UPLOAD_BYTES) {
+    throw new Error("Image is too large (15MB max).");
+  }
+
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  const webpBuffer = await sharp(inputBuffer).webp({ quality: 90 }).toBuffer();
+  const filename = saveBgImage(webpBuffer);
+
+  const image = await db.movieBackgroundImage.create({
+    data: { movieId, filename },
+  });
+
+  revalidatePath("/catalog");
+  revalidatePath("/");
+  return image;
+}
+
+// 19. Catalog Management: Update Movie Background Image Position
+export async function updateMovieBackgroundImageAction(
+  imageId: string,
+  panelAlign: string,
+  bgPosition: string
+) {
+  await requireUser();
+
+  const image = await db.movieBackgroundImage.update({
+    where: { id: imageId },
+    data: { panelAlign, bgPosition },
+  });
+
+  revalidatePath("/catalog");
+  revalidatePath("/");
+  return image;
+}
+
+// 20. Catalog Management: Delete Movie Background Image
+export async function deleteMovieBackgroundImageAction(imageId: string) {
+  await requireUser();
+
+  const image = await db.movieBackgroundImage.delete({ where: { id: imageId } });
+  deleteBgImageFile(image.filename);
+
+  revalidatePath("/catalog");
+  revalidatePath("/");
 }

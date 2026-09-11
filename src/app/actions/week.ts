@@ -322,3 +322,43 @@ export async function completeWeekLegacyOverrideAction(weekId: string, keepInLeg
 
   revalidatePath("/");
 }
+
+// 12. Manually log a movie as watched outside the normal voting flow
+export async function markMovieWatchedManuallyAction(
+  movieId: string,
+  watchedDate: string,
+  isInPerson: boolean
+) {
+  const currentUser = await getActiveUser();
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    throw new Error("Unauthorized: Only Admin can manually mark a movie watched.");
+  }
+
+  const movie = await db.movie.findUnique({ where: { id: movieId } });
+  if (!movie) throw new Error("Movie not found.");
+
+  const lastWeek = await db.movieNightWeek.findFirst({
+    orderBy: { weekNumber: "desc" },
+  });
+  const nextWeekNumber = lastWeek ? lastWeek.weekNumber + 1 : 1;
+
+  // No category voting or votes happened, so this week is created already
+  // complete -- closedAt is set at 22:00 UTC on the given day, the same
+  // convention the rest of the app uses so the date reads correctly
+  // regardless of the viewer's timezone.
+  await db.movieNightWeek.create({
+    data: {
+      weekNumber: nextWeekNumber,
+      status: "COMPLETED",
+      winningMovieId: movieId,
+      isInPerson,
+      closedAt: new Date(`${watchedDate}T22:00:00Z`),
+    },
+  });
+
+  await db.movie.update({ where: { id: movieId }, data: { watched: true } });
+
+  revalidatePath("/");
+  revalidatePath("/catalog");
+  revalidatePath("/stats");
+}

@@ -27,6 +27,16 @@ This file provides system context, build/test commands, and architectural workfl
     `STEW_PASSWORD` / `NICK_PASSWORD` only when creating accounts.)
 *   **Open Prisma Studio**: `npx prisma studio`
 *   **Backfill IMDb Metadata**: `npx tsx prisma/backfill-metadata.ts`
+*   **Backfill Background Images**: `npx tsx prisma/backfill-bg-images.ts` -- moves
+    `public/bg/*.webp` + `credits.json` into `MovieBackgroundImage` rows, matched
+    to a catalog movie by title. Runs automatically on every container boot
+    (`docker-entrypoint.sh`) after migrations, so new legacy images (or a movie
+    that finally gets a catalog row) pick this up on the next deploy with no
+    manual step. Safe to re-run: it skips movies that already have background
+    images, and leaves movies with no catalog row on the legacy `public/bg`
+    path untouched. Only delete the migrated files from `public/bg` once
+    you've confirmed a deploy has actually run this against production data --
+    they're the only copy until then.
 
 ### Docker & Deployment Commands
 *   **Start Docker Stack**: `docker compose up -d` (starts web app from GHCR on port 4000, Watchtower auto-updater, and cloudflared tunnel)
