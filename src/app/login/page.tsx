@@ -3,8 +3,8 @@ import { getRandomBgImage } from "@/lib/bg-images";
 
 export const dynamic = "force-dynamic";
 
-export default function LoginPage() {
-  const bgImage = getRandomBgImage();
+export default async function LoginPage() {
+  const bgImage = await getRandomBgImage();
 
   return <LoginFormClient bgImage={bgImage} />;
 }

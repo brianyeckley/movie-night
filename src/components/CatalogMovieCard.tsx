@@ -3,10 +3,10 @@
 import { Clapperboard, ExternalLink, Popcorn, Star, Timer, Users } from "lucide-react";
 import TrailerButton from "@/components/TrailerButton";
 import EditMovieButton from "@/components/EditMovieButton";
-import type { MovieWithGenres } from "@/lib/types";
+import type { MovieWithGenres, MovieWithGenresAndBackgrounds } from "@/lib/types";
 
 interface CatalogMovieCardProps {
-  movie: MovieWithGenres;
+  movie: MovieWithGenresAndBackgrounds;
   /** Flat category list for the edit dialog's parent dropdown. */
   categories: { id: string; name: string; parentId: string | null }[];
   genres: { id: string; name: string }[];

@@ -19,6 +19,7 @@ export default async function CatalogPage() {
           movies: {
             include: {
               genres: true,
+              backgroundImages: true,
             },
           },
         },
@@ -32,6 +33,7 @@ export default async function CatalogPage() {
         },
         include: {
           genres: true,
+          backgroundImages: true,
         },
       },
     },

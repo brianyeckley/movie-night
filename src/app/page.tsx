@@ -125,7 +125,7 @@ function parseWeekRounds(
 
 export default async function DashboardPage() {
   const currentUser = await getActiveUser();
-  const bgImage = getRandomBgImage();
+  const bgImage = await getRandomBgImage();
 
   const activeWeek = await db.movieNightWeek.findFirst({
     where: ACTIVE_WEEK,

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { db } from "@/lib/db";
 
 const BG_DIR = path.join(process.cwd(), "public/bg");
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
@@ -11,20 +12,17 @@ export type PanelAlign = "left" | "center" | "right";
 export interface BgImageCredit {
   title: string;
   year: number;
-  /** Formatted MM/DD/YYYY, or "TBD" until filled in. */
+  /** Formatted MM/DD/YYYY, or "TBD" until the movie has a watched date. */
   watched: string;
 }
 
-/** The raw shape of one entry in `credits.json`. */
+/** The raw shape of one entry in the legacy `credits.json`. */
 interface BgImageEntry extends BgImageCredit {
-  /** Which side of the page the login panel sits on over this image. */
   panelAlign?: PanelAlign;
-  /** CSS `background-position` value, e.g. "center center" or "top left". */
   bgPosition?: string;
 }
 
 export interface BgImage {
-  /** Public URL, e.g. "/bg/some%20file.jpg". */
   url: string;
   credit: BgImageCredit | null;
   panelAlign: PanelAlign;
@@ -32,7 +30,17 @@ export interface BgImage {
   bgPosition: string;
 }
 
-function loadEntries(): Record<string, BgImageEntry> {
+/**
+ * Stored `closedAt` values are always 22:00:00 UTC on the intended calendar
+ * day (see the timezone fix in the simulated Past Movie Nights data), which
+ * keeps the UTC and any realistic local calendar day identical -- so reading
+ * the UTC components directly is deterministic regardless of server TZ.
+ */
+function formatWatchedDate(closedAt: Date): string {
+  return `${closedAt.getUTCMonth() + 1}/${closedAt.getUTCDate()}/${closedAt.getUTCFullYear()}`;
+}
+
+function loadLegacyEntries(): Record<string, BgImageEntry> {
   const creditsPath = path.join(BG_DIR, "credits.json");
   try {
     return JSON.parse(fs.readFileSync(creditsPath, "utf-8"));
@@ -41,29 +49,69 @@ function loadEntries(): Record<string, BgImageEntry> {
   }
 }
 
-function listBgFilenames(): string[] {
+/**
+ * Movies with no catalog row yet (e.g. The Man Who Fell to Earth) still fall
+ * back to the static public/bg + credits.json pool used before background
+ * images became real Movie data. Once every legacy entry has a matching
+ * Movie, this function -- and the files/JSON it reads -- can be deleted.
+ */
+function listLegacyImages(): BgImage[] {
+  const entries = loadLegacyEntries();
+  let filenames: string[];
   try {
-    return fs
+    filenames = fs
       .readdirSync(BG_DIR)
       .filter((name) => IMAGE_EXTENSIONS.has(path.extname(name).toLowerCase()));
   } catch {
     return [];
   }
+
+  return filenames.map((filename) => {
+    const entry = entries[filename];
+    return {
+      url: `/bg/${encodeURIComponent(filename)}`,
+      credit: entry ? { title: entry.title, year: entry.year, watched: entry.watched } : null,
+      panelAlign: entry?.panelAlign ?? DEFAULT_PANEL_ALIGN,
+      bgPosition: entry?.bgPosition ?? DEFAULT_BG_POSITION,
+    };
+  });
 }
 
-/** Picks a random image from `public/bg`, paired with its credit info if any. */
-export function getRandomBgImage(): BgImage | null {
-  const filenames = listBgFilenames();
-  if (filenames.length === 0) return null;
+/** Picks a random background image, paired with its movie's credit info. */
+export async function getRandomBgImage(): Promise<BgImage | null> {
+  const dbImages = await db.movieBackgroundImage.findMany({
+    select: {
+      filename: true,
+      panelAlign: true,
+      bgPosition: true,
+      movie: { select: { id: true, title: true, year: true } },
+    },
+  });
+  const legacyImages = listLegacyImages();
 
-  const entries = loadEntries();
-  const filename = filenames[Math.floor(Math.random() * filenames.length)];
-  const entry = entries[filename];
+  const pool = dbImages.length + legacyImages.length;
+  if (pool === 0) return null;
+
+  const index = Math.floor(Math.random() * pool);
+  if (index >= dbImages.length) {
+    return legacyImages[index - dbImages.length];
+  }
+
+  const picked = dbImages[index];
+  const week = await db.movieNightWeek.findFirst({
+    where: { winningMovieId: picked.movie.id, closedAt: { not: null } },
+    orderBy: { closedAt: "desc" },
+    select: { closedAt: true },
+  });
 
   return {
-    url: `/bg/${encodeURIComponent(filename)}`,
-    credit: entry ? { title: entry.title, year: entry.year, watched: entry.watched } : null,
-    panelAlign: entry?.panelAlign ?? DEFAULT_PANEL_ALIGN,
-    bgPosition: entry?.bgPosition ?? DEFAULT_BG_POSITION,
+    url: `/media/bg/${picked.filename}`,
+    credit: {
+      title: picked.movie.title,
+      year: picked.movie.year ?? 0,
+      watched: week?.closedAt ? formatWatchedDate(week.closedAt) : "TBD",
+    },
+    panelAlign: picked.panelAlign as PanelAlign,
+    bgPosition: picked.bgPosition,
   };
 }

@@ -68,3 +68,6 @@ next-env.d.ts
 
 # Database backups (created by npm run db:backup)
 /backups/
+
+# Uploaded background images (persisted at runtime, mirrors the sqlite ignores above)
+/data/

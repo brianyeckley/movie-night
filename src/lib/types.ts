@@ -22,14 +22,19 @@ export type MovieWithGenresAndCategory = Prisma.MovieGetPayload<{
   include: { genres: true; category: true };
 }>;
 
+/** A movie plus its background images, as edited in the catalog view. */
+export type MovieWithGenresAndBackgrounds = Prisma.MovieGetPayload<{
+  include: { genres: true; backgroundImages: true };
+}>;
+
 /**
  * A top-level category as loaded by the catalog page: its direct movies plus
  * each subcategory and the movies inside it.
  */
 export type CatalogCategory = Prisma.CategoryGetPayload<{
   include: {
-    subcategories: { include: { movies: { include: { genres: true } } } };
-    movies: { include: { genres: true } };
+    subcategories: { include: { movies: { include: { genres: true; backgroundImages: true } } } };
+    movies: { include: { genres: true; backgroundImages: true } };
   };
 }>;
 
