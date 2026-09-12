@@ -155,14 +155,17 @@ export default async function DashboardPage() {
     orderBy: { name: "asc" },
   });
 
-  // Fetch past movie night weeks (closed weeks)
+  // Fetch past movie night weeks (closed weeks), most recently watched first.
+  // Ordered by closedAt rather than weekNumber: a night logged manually after
+  // the fact gets the next week number but an older watch date, so week
+  // number no longer tracks the order these were actually watched in.
   const closedWeeks = await db.movieNightWeek.findMany({
     where: { NOT: { closedAt: null } },
     include: {
       themeCategory: true,
       votes: { include: { user: true } },
     },
-    orderBy: { weekNumber: "desc" },
+    orderBy: { closedAt: "desc" },
   });
 
   // Fetch details for past winning movies in one query rather than one per week
