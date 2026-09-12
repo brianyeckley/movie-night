@@ -48,6 +48,11 @@ interface CreditsEntry {
  * Safe to run more than once: a movie that already has any background image
  * is assumed fully migrated and skipped.
  */
+/** Tolerates whitespace and casing drift between credits.json and the catalog without risking a false match on a different movie. */
+function normalizeTitle(title: string): string {
+  return title.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 async function backfill() {
   console.log("Starting background image backfill...");
 
@@ -61,13 +66,16 @@ async function backfill() {
     byTitle.get(title)!.push(pair);
   }
 
+  const allMovies = await prisma.movie.findMany({ select: { id: true, title: true } });
+  const moviesByNormalizedTitle = new Map(allMovies.map((m) => [normalizeTitle(m.title), m]));
+
   let migratedMovies = 0;
   let migratedImages = 0;
 
   for (const [title, files] of byTitle) {
-    const movie = await prisma.movie.findFirst({ where: { title } });
+    const movie = moviesByNormalizedTitle.get(normalizeTitle(title));
     if (!movie) {
-      console.log(`  - No catalog movie for "${title}" (${files.length} image(s)), leaving on the legacy path.`);
+      console.log(`  - No catalog movie matching "${title}" (${files.length} image(s)), leaving on the legacy path.`);
       continue;
     }
 
