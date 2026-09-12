@@ -159,11 +159,15 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
           physicalDvd
         );
         if (markWatched) {
-          await markMovieWatchedManuallyAction(
+          const result = await markMovieWatchedManuallyAction(
             movie.id,
             watchedDate,
             watchedType === "in-person"
           );
+          if (!result.success) {
+            alert(`Saved the movie, but couldn't mark it watched: ${result.error}`);
+            return;
+          }
         }
         setIsOpen(false);
       } catch (err) {

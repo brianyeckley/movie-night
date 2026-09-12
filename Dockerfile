@@ -58,6 +58,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.js ./prisma.config.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# The prisma/*.ts scripts run under tsx outside the Next bundle, so they rely
+# on whatever Next's file tracing happened to copy into node_modules. Tracing
+# dropped the driver adapter once already and took the whole boot down with
+# it; copy the database packages in explicitly rather than trusting it.
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma/adapter-better-sqlite3 ./node_modules/@prisma/adapter-better-sqlite3
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/bindings ./node_modules/bindings
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/file-uri-to-path ./node_modules/file-uri-to-path
+
 # Copy entrypoint script
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
