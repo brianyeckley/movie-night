@@ -73,38 +73,44 @@ async function backfill() {
   let migratedImages = 0;
 
   for (const [title, files] of byTitle) {
-    const movie = moviesByNormalizedTitle.get(normalizeTitle(title));
-    if (!movie) {
-      console.log(`  - No catalog movie matching "${title}" (${files.length} image(s)), leaving on the legacy path.`);
-      continue;
-    }
-
-    const existingCount = await prisma.movieBackgroundImage.count({ where: { movieId: movie.id } });
-    if (existingCount > 0) {
-      console.log(`  - "${title}" already has ${existingCount} background image(s), skipping.`);
-      continue;
-    }
-
-    for (const [filename, entry] of files) {
-      const sourcePath = path.join(BG_DIR, filename);
-      if (!fs.existsSync(sourcePath)) {
-        console.log(`  - Missing file for "${title}": ${filename}`);
+    try {
+      const movie = moviesByNormalizedTitle.get(normalizeTitle(title));
+      if (!movie) {
+        console.log(`  - No catalog movie matching "${title}" (${files.length} image(s)), leaving on the legacy path.`);
         continue;
       }
-      const buffer = fs.readFileSync(sourcePath);
-      const newFilename = saveBgImage(buffer);
-      await prisma.movieBackgroundImage.create({
-        data: {
-          movieId: movie.id,
-          filename: newFilename,
-          panelAlign: entry.panelAlign,
-          bgPosition: entry.bgPosition,
-        },
-      });
-      migratedImages++;
+
+      const existingCount = await prisma.movieBackgroundImage.count({ where: { movieId: movie.id } });
+      if (existingCount > 0) {
+        console.log(`  - "${title}" already has ${existingCount} background image(s), skipping.`);
+        continue;
+      }
+
+      for (const [filename, entry] of files) {
+        const sourcePath = path.join(BG_DIR, filename);
+        if (!fs.existsSync(sourcePath)) {
+          console.log(`  - Missing file for "${title}": ${filename}`);
+          continue;
+        }
+        const buffer = fs.readFileSync(sourcePath);
+        const newFilename = saveBgImage(buffer);
+        await prisma.movieBackgroundImage.create({
+          data: {
+            movieId: movie.id,
+            filename: newFilename,
+            panelAlign: entry.panelAlign,
+            bgPosition: entry.bgPosition,
+          },
+        });
+        migratedImages++;
+      }
+      console.log(`  ✓ Migrated ${files.length} image(s) for "${title}"`);
+      migratedMovies++;
+    } catch (e) {
+      // One movie's data (a bad file, a DB hiccup) must not stop every
+      // movie later in the list from getting its turn.
+      console.error(`  ✗ Failed to migrate "${title}":`, e);
     }
-    console.log(`  ✓ Migrated ${files.length} image(s) for "${title}"`);
-    migratedMovies++;
   }
 
   console.log(`Backfill completed: ${migratedImages} image(s) across ${migratedMovies} movie(s).`);

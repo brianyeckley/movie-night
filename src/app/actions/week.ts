@@ -363,7 +363,10 @@ export async function markMovieWatchedManuallyAction(
 
   await db.movie.update({ where: { id: movieId }, data: { watched: true } });
 
+  // Matches completeWeekAction/completeWeekLegacyOverrideAction: only "/"
+  // needs a refresh here. The catalog page's own updateMovieAction call
+  // already revalidates "/catalog", and re-rendering "/stats" pulls in
+  // this action's only change of scope from the established pattern for
+  // closing out a week.
   revalidatePath("/");
-  revalidatePath("/catalog");
-  revalidatePath("/stats");
 }
