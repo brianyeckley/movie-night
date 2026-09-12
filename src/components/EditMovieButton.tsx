@@ -168,7 +168,8 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
         setIsOpen(false);
       } catch (err) {
         console.error("Failed to update movie:", err);
-        alert("Failed to save changes. Please try again.");
+        const message = err instanceof Error ? err.message : "Please try again.";
+        alert(`Failed to save changes: ${message}`);
       }
     });
   };
