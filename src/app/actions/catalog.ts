@@ -306,3 +306,45 @@ export async function deleteMovieBackgroundImageAction(imageId: string) {
   revalidatePath("/catalog");
   revalidatePath("/");
 }
+
+// 21. Catalog Management: Add a watched movie to the Legacy re-watch pool
+//
+// Returns a result rather than throwing: Next redacts thrown server errors in
+// production to a generic message, which makes a failure here undiagnosable
+// from the browser.
+export async function addMovieToLegacyAction(
+  movieId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requireUser();
+
+    const legacyCategory = await db.category.findUnique({ where: { name: "Legacy" } });
+    if (!legacyCategory) {
+      return { success: false, error: "No Legacy category exists to add this movie to." };
+    }
+
+    const movie = await db.movie.findUnique({ where: { id: movieId } });
+    if (!movie) return { success: false, error: "Movie not found." };
+    if (movie.categoryId === legacyCategory.id) {
+      return { success: false, error: "That movie is already in Legacy." };
+    }
+
+    // A movie has one category, so joining the Legacy pool moves it there --
+    // the same thing the "Move to Legacy List" step at week close does.
+    // Everything in Legacy has been seen, so it counts as watched.
+    await db.movie.update({
+      where: { id: movieId },
+      data: { categoryId: legacyCategory.id, watched: true },
+    });
+
+    revalidatePath("/catalog");
+    revalidatePath("/");
+    return { success: true };
+  } catch (e) {
+    console.error("Failed to add movie to Legacy:", e);
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Unknown error adding movie to Legacy.",
+    };
+  }
+}

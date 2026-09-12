@@ -33,6 +33,8 @@ export default function CatalogListClient({
   const [selectedPlotMovie, setSelectedPlotMovie] = useState<MovieWithGenres | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const legacyCategoryId = flatCategories.find((c) => c.name === "Legacy")?.id;
+
   const handleGenreToggle = (genreId: string) => {
     setSelectedGenreIds((prev) => {
       const next = new Set(prev);
@@ -372,7 +374,16 @@ export default function CatalogListClient({
           })}
       </div>
       )}
-      <PlotModal movie={selectedPlotMovie} onClose={() => setSelectedPlotMovie(null)} />
+      <PlotModal
+        movie={
+          selectedPlotMovie && {
+            ...selectedPlotMovie,
+            isInLegacy: selectedPlotMovie.categoryId === legacyCategoryId,
+          }
+        }
+        allowAddToLegacy
+        onClose={() => setSelectedPlotMovie(null)}
+      />
     </div>
   );
 }
