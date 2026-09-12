@@ -28,8 +28,10 @@ fi
 # Link any legacy public/bg images to their catalog movie, if not already
 # done. Safe to run on every boot: it skips movies that already have
 # background images, so this only ever does real work once per movie.
+# Never let a failure here take the whole app down -- worst case the
+# rotation just keeps serving the legacy public/bg pool for another boot.
 echo "Linking legacy background images to catalog movies..."
-npx tsx prisma/backfill-bg-images.ts
+npx tsx prisma/backfill-bg-images.ts || echo "Background image backfill failed; continuing startup anyway."
 
 # Start the application
 echo "Starting Next.js application..."
