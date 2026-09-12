@@ -4,7 +4,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { PastWeekModal } from "@/components/PastWeekModal";
 import type { PastWeek } from "@/lib/types";
 
+// Both pull in the server action barrel, which reaches next/headers.
 vi.mock("@/components/DeletePastMovieNightButton", () => ({
+  default: () => null,
+}));
+
+vi.mock("@/components/AddToLegacyButton", () => ({
   default: () => null,
 }));
 

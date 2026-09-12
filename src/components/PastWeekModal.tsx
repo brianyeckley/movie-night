@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import TrailerButton from "@/components/TrailerButton";
 import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
+import AddToLegacyButton from "@/components/AddToLegacyButton";
 import type { PastWeek } from "@/lib/types";
 
 interface PastWeekModalProps {
@@ -94,12 +95,19 @@ export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
               {winner?.title || "Unknown Movie"}{winner?.year ? ` (${winner.year})` : ""}
             </h3>
 
-            <div className="flex-row gap-sm items-center">
+            <div className="flex-row gap-sm items-center flex-wrap">
               {winner?.trailerUrl && <TrailerButton trailerUrl={winner.trailerUrl} />}
               {winner?.imdbUrl && (
                 <a href={winner.imdbUrl} target="_blank" rel="noopener noreferrer" className="text-sm-alt text-primary-color underline">
                   IMDb Link <ExternalLink size="1em" className="inline-icon" />
                 </a>
+              )}
+              {winner && (
+                <AddToLegacyButton
+                  movieId={winner.id}
+                  watched={winner.watched}
+                  isInLegacy={winner.category.name === "Legacy"}
+                />
               )}
             </div>
 

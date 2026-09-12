@@ -1,8 +1,14 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import LeaderboardView from "@/components/LeaderboardView";
 import type { LeaderboardData } from "@/lib/stats";
+
+// Reached via PlotModal; pulls in the server action barrel, which reaches
+// next/headers. The leaderboard never enables the button anyway.
+vi.mock("@/components/AddToLegacyButton", () => ({
+  default: () => null,
+}));
 
 const mockLeaderboardData: LeaderboardData = {
   tastemakers: [
