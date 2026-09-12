@@ -342,28 +342,23 @@ export async function markMovieWatchedManuallyAction(
     throw new Error(`Invalid watched date: "${watchedDate}".`);
   }
 
-  // weekNumber is read and written in the same transaction so a second
-  // save landing between the read and the create (e.g. a double-click)
-  // can't collide on the @unique column.
-  await db.$transaction(async (tx) => {
-    const lastWeek = await tx.movieNightWeek.findFirst({
-      orderBy: { weekNumber: "desc" },
-    });
-    const nextWeekNumber = lastWeek ? lastWeek.weekNumber + 1 : 1;
+  const lastWeek = await db.movieNightWeek.findFirst({
+    orderBy: { weekNumber: "desc" },
+  });
+  const nextWeekNumber = lastWeek ? lastWeek.weekNumber + 1 : 1;
 
-    // No category voting or votes happened, so this week is created
-    // already complete -- closedAt is set at 22:00 UTC on the given day,
-    // the same convention the rest of the app uses so the date reads
-    // correctly regardless of the viewer's timezone.
-    await tx.movieNightWeek.create({
-      data: {
-        weekNumber: nextWeekNumber,
-        status: "COMPLETED",
-        winningMovieId: movieId,
-        isInPerson,
-        closedAt,
-      },
-    });
+  // No category voting or votes happened, so this week is created already
+  // complete -- closedAt is set at 22:00 UTC on the given day, the same
+  // convention the rest of the app uses so the date reads correctly
+  // regardless of the viewer's timezone.
+  await db.movieNightWeek.create({
+    data: {
+      weekNumber: nextWeekNumber,
+      status: "COMPLETED",
+      winningMovieId: movieId,
+      isInPerson,
+      closedAt,
+    },
   });
 
   await db.movie.update({ where: { id: movieId }, data: { watched: true } });
