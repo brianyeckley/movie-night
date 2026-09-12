@@ -324,49 +324,60 @@ export async function completeWeekLegacyOverrideAction(weekId: string, keepInLeg
 }
 
 // 12. Manually log a movie as watched outside the normal voting flow
+//
+// Returns a result rather than throwing: Next redacts thrown server errors
+// in production to a generic "specific message is omitted" string, which
+// made a plain authorization failure here impossible to diagnose from the
+// browser. `advanceWeekRoundAction` above uses the same shape.
 export async function markMovieWatchedManuallyAction(
   movieId: string,
   watchedDate: string,
   isInPerson: boolean
-) {
-  const currentUser = await getActiveUser();
-  if (!currentUser || currentUser.role !== "ADMIN") {
-    throw new Error("Unauthorized: Only Admin can manually mark a movie watched.");
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Everything else in the Edit Movie dialog is requireUser(), so gating
+    // this one checkbox on ADMIN locked out every non-admin editor.
+    const currentUser = await getActiveUser();
+    if (!currentUser) {
+      return { success: false, error: "You must be signed in to mark a movie watched." };
+    }
+
+    const movie = await db.movie.findUnique({ where: { id: movieId } });
+    if (!movie) return { success: false, error: "Movie not found." };
+
+    const closedAt = new Date(`${watchedDate}T22:00:00Z`);
+    if (Number.isNaN(closedAt.getTime())) {
+      return { success: false, error: `Invalid watched date: "${watchedDate}".` };
+    }
+
+    const lastWeek = await db.movieNightWeek.findFirst({
+      orderBy: { weekNumber: "desc" },
+    });
+    const nextWeekNumber = lastWeek ? lastWeek.weekNumber + 1 : 1;
+
+    // No category voting or votes happened, so this week is created already
+    // complete -- closedAt is set at 22:00 UTC on the given day, the same
+    // convention the rest of the app uses so the date reads correctly
+    // regardless of the viewer's timezone.
+    await db.movieNightWeek.create({
+      data: {
+        weekNumber: nextWeekNumber,
+        status: "COMPLETED",
+        winningMovieId: movieId,
+        isInPerson,
+        closedAt,
+      },
+    });
+
+    await db.movie.update({ where: { id: movieId }, data: { watched: true } });
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (e) {
+    console.error("Failed to mark movie watched manually:", e);
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Unknown error marking movie watched.",
+    };
   }
-
-  const movie = await db.movie.findUnique({ where: { id: movieId } });
-  if (!movie) throw new Error("Movie not found.");
-
-  const closedAt = new Date(`${watchedDate}T22:00:00Z`);
-  if (Number.isNaN(closedAt.getTime())) {
-    throw new Error(`Invalid watched date: "${watchedDate}".`);
-  }
-
-  const lastWeek = await db.movieNightWeek.findFirst({
-    orderBy: { weekNumber: "desc" },
-  });
-  const nextWeekNumber = lastWeek ? lastWeek.weekNumber + 1 : 1;
-
-  // No category voting or votes happened, so this week is created already
-  // complete -- closedAt is set at 22:00 UTC on the given day, the same
-  // convention the rest of the app uses so the date reads correctly
-  // regardless of the viewer's timezone.
-  await db.movieNightWeek.create({
-    data: {
-      weekNumber: nextWeekNumber,
-      status: "COMPLETED",
-      winningMovieId: movieId,
-      isInPerson,
-      closedAt,
-    },
-  });
-
-  await db.movie.update({ where: { id: movieId }, data: { watched: true } });
-
-  // Matches completeWeekAction/completeWeekLegacyOverrideAction: only "/"
-  // needs a refresh here. The catalog page's own updateMovieAction call
-  // already revalidates "/catalog", and re-rendering "/stats" pulls in
-  // this action's only change of scope from the established pattern for
-  // closing out a week.
-  revalidatePath("/");
 }
