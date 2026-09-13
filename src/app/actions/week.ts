@@ -253,7 +253,7 @@ export async function deleteCompletedWeekAction(weekId: string) {
 
   // Re-sequence remaining weeks so week numbers remain sequential without gaps
   const remainingWeeks = await db.movieNightWeek.findMany({
-    orderBy: { createdAt: "asc" },
+    orderBy: { weekNumber: "asc" },
   });
 
   const needsResequence = remainingWeeks.some((w, idx) => w.weekNumber !== idx + 1);
