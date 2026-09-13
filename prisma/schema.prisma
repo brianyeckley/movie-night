@@ -76,7 +76,7 @@ model MovieBackgroundImage {
 
 model MovieNightWeek {
   id                    String     @id @default(uuid())
-  weekNumber            Int        @unique
+  weekNumber            Int?       @unique
   // Statuses are defined by the WeekStatus union in src/lib/rounds.ts, which
   // also maps each one to the round that is open for voting.
   status                String     @default("CATEGORY_VOTING")

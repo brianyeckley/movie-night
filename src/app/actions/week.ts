@@ -28,7 +28,7 @@ export async function createWeekAction(themeCategoryName?: string, isInPerson: b
   const lastWeek = await db.movieNightWeek.findFirst({
     orderBy: { weekNumber: "desc" },
   });
-  const nextWeekNumber = lastWeek ? lastWeek.weekNumber + 1 : 1;
+  const nextWeekNumber = (lastWeek?.weekNumber ?? 0) + 1;
 
   let themeCategoryId: string | null = null;
 
@@ -251,28 +251,6 @@ export async function deleteCompletedWeekAction(weekId: string) {
   // Cascade: votes are deleted automatically via Prisma schema onDelete:Cascade
   await db.movieNightWeek.delete({ where: { id: weekId } });
 
-  // Re-sequence remaining weeks so week numbers remain sequential without gaps
-  const remainingWeeks = await db.movieNightWeek.findMany({
-    orderBy: { weekNumber: "asc" },
-  });
-
-  const needsResequence = remainingWeeks.some((w, idx) => w.weekNumber !== idx + 1);
-  if (needsResequence) {
-    await db.$transaction(async (tx) => {
-      for (let i = 0; i < remainingWeeks.length; i++) {
-        await tx.movieNightWeek.update({
-          where: { id: remainingWeeks[i].id },
-          data: { weekNumber: -(i + 1) },
-        });
-      }
-      for (let i = 0; i < remainingWeeks.length; i++) {
-        await tx.movieNightWeek.update({
-          where: { id: remainingWeeks[i].id },
-          data: { weekNumber: i + 1 },
-        });
-      }
-    });
-  }
 
   revalidatePath("/");
   revalidatePath("/stats");
@@ -353,7 +331,7 @@ export async function markMovieWatchedManuallyAction(
     const lastWeek = await db.movieNightWeek.findFirst({
       orderBy: { weekNumber: "desc" },
     });
-    const nextWeekNumber = lastWeek ? lastWeek.weekNumber + 1 : 1;
+    const nextWeekNumber = (lastWeek?.weekNumber ?? 0) + 1;
 
     // No category voting or votes happened, so this week is created already
     // complete -- closedAt is set at 22:00 UTC on the given day, the same

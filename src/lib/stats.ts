@@ -9,7 +9,7 @@ export interface UserTastemakerStats {
   weeksParticipated: number;
   winRate: number;
   winningMovies: {
-    weekNumber: number;
+    weekNumber?: number | null;
     watchedDate?: string | null;
     movie: MovieWithGenresAndCategory;
   }[];
@@ -28,7 +28,7 @@ export interface FilmSnobStats {
   soloMovies: {
     title: string;
     year: number | null;
-    weekNumber: number;
+    weekNumber?: number | null;
     watchedDate?: string | null;
   }[];
 }
@@ -59,7 +59,7 @@ export interface GlobalMovieStats {
 }
 
 export interface NominatedNonWinnerWeek {
-  weekNumber: number;
+  weekNumber?: number | null;
   watchedDate?: string | null;
   nominators: string[];
 }
@@ -151,7 +151,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
       },
       themeCategory: true,
     },
-    orderBy: { weekNumber: "asc" },
+    orderBy: { closedAt: "desc" },
   });
 
   const winnerIds = closedWeeks
@@ -183,7 +183,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
       totalWins: number;
       weeksParticipated: number;
       winningMovies: {
-        weekNumber: number;
+        weekNumber?: number | null;
         watchedDate?: string | null;
         movie: MovieWithGenresAndCategory;
       }[];
@@ -205,7 +205,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
     {
       user: { id: string; name: string; username: string };
       soloPickCount: number;
-      soloMovies: { title: string; year: number | null; weekNumber: number; watchedDate?: string | null }[];
+      soloMovies: { title: string; year: number | null; weekNumber?: number | null; watchedDate?: string | null }[];
     }
   >();
 
@@ -533,7 +533,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
   const nonWinnerMap = new Map<
     string,
     {
-      weeksMap: Map<number, Set<string>>;
+      weeksMap: Map<string, Set<string>>;
       totalVotesCount: number;
     }
   >();
@@ -546,7 +546,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
 
       if (!nonWinnerMap.has(v.targetId)) {
         nonWinnerMap.set(v.targetId, {
-          weeksMap: new Map<number, Set<string>>(),
+          weeksMap: new Map<string, Set<string>>(),
           totalVotesCount: 0,
         });
       }
@@ -555,29 +555,40 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
       entry.totalVotesCount += 1;
 
       if (NOMINATION_ROUNDS.has(v.round)) {
-        if (!entry.weeksMap.has(week.weekNumber)) {
-          entry.weeksMap.set(week.weekNumber, new Set<string>());
+        if (!entry.weeksMap.has(week.id)) {
+          entry.weeksMap.set(week.id, new Set<string>());
         }
-        entry.weeksMap.get(week.weekNumber)!.add(v.user.name);
+        entry.weeksMap.get(week.id)!.add(v.user.name);
       }
     });
   });
 
-  const weekDateMap = new Map<number, string | null>();
+  const weekInfoMap = new Map<string, { weekNumber: number | null; watchedDate: string | null }>();
   closedWeeks.forEach((w) => {
-    weekDateMap.set(w.weekNumber, w.closedAt ? w.closedAt.toISOString() : null);
+    weekInfoMap.set(w.id, {
+      weekNumber: w.weekNumber,
+      watchedDate: w.closedAt ? w.closedAt.toISOString() : null,
+    });
   });
 
   const mostNominatedNonWinners: NominatedNonWinner[] = Array.from(nonWinnerMap.entries())
     .map(([movieId, info]) => {
       const movie = movieById.get(movieId)!;
       const sortedWeeks = Array.from(info.weeksMap.entries())
-        .map(([weekNumber, nominatorsSet]) => ({
-          weekNumber,
-          watchedDate: weekDateMap.get(weekNumber) ?? null,
-          nominators: Array.from(nominatorsSet).sort(),
-        }))
-        .sort((a, b) => a.weekNumber - b.weekNumber);
+        .map(([weekId, nominatorsSet]) => {
+          const wInfo = weekInfoMap.get(weekId);
+          return {
+            weekNumber: wInfo?.weekNumber ?? null,
+            watchedDate: wInfo?.watchedDate ?? null,
+            nominators: Array.from(nominatorsSet).sort(),
+          };
+        })
+        .sort((a, b) => {
+          if (a.watchedDate && b.watchedDate) {
+            return new Date(b.watchedDate).getTime() - new Date(a.watchedDate).getTime();
+          }
+          return (b.weekNumber ?? 0) - (a.weekNumber ?? 0);
+        });
 
       const nominationCount = sortedWeeks.reduce(
         (sum, w) => sum + w.nominators.length,

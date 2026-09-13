@@ -6,7 +6,7 @@ import { deleteCompletedWeekAction } from "@/app/actions";
 
 interface Props {
   weekId: string;
-  weekNumber: number;
+  weekNumber?: number | null;
   movieTitle: string;
   /** Called after the week is successfully deleted, e.g. to close a modal showing it. */
   onDeleted?: () => void;

@@ -370,7 +370,7 @@ export default async function DashboardPage() {
                   <div className="dashboard-header-bar">
                     <div>
                       <h2 className="text-5xl font-extrabold">
-                        Week #{activeWeek.weekNumber} Voting {activeWeek.isInPerson && <Popcorn size="1em" className="inline-icon" />}
+                        Movie Night Voting {activeWeek.isInPerson && <Popcorn size="1em" className="inline-icon" />}
                       </h2>
                       {activeWeek.isInPerson ? (
                         <p className="text-secondary text-md mt-xs animate-slide-in">

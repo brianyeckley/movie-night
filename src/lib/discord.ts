@@ -49,7 +49,6 @@ export async function notifyNewWeek(weekId: string) {
   });
   if (!week) return;
 
-  const weekNum = week.weekNumber;
   const themeName = week.themeCategory?.name || "None";
   const isInPerson = week.isInPerson;
   const initialStatus = isInPerson ? "In Person Voting" : "Category Voting";
@@ -60,7 +59,7 @@ export async function notifyNewWeek(weekId: string) {
   await sendDiscordPayload({
     embeds: [
       {
-        title: isInPerson ? `🎬 In-Person Movie Night Opened! (Week ${weekNum})` : `🎬 New Movie Night Week Opened! (Week ${weekNum})`,
+        title: isInPerson ? "🎬 In-Person Movie Night Opened!" : "🎬 New Movie Night Opened!",
         description,
         url: APP_URL,
         color: isInPerson ? 0xe11d48 : 0x2ecc71, // Rose/Accent for In-Person, Green for standard
@@ -93,8 +92,7 @@ export async function notifyRoundAdvanced(
   });
   if (!week) return;
 
-  const weekNum = week.weekNumber;
-  let title = `🔄 Week ${weekNum}: Round Advanced`;
+  let title = "🔄 Round Advanced";
   let color = 0x3498db; // Blue
   let description = "";
   const fields: { name: string; value: string; inline?: boolean }[] = [];
@@ -139,7 +137,7 @@ export async function notifyRoundAdvanced(
         });
       }
     } else if (newStatus === "COMPLETED") {
-      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      title = "🏆 Winner Selected!";
       color = 0xf1c40f; // Gold
       description = `**Round 2 (Movie Voting)** concluded with an outright winner!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
       if (details.winnerPoster) {
@@ -148,7 +146,7 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "SUBCATEGORY_VOTING") {
     if (newStatus === "COMPLETED") {
-      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      title = "🏆 Winner Selected!";
       color = 0xf1c40f; // Gold
       description = `**Round 2b (Subcategory Voting)** concluded with an outright winner!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
       if (details.winnerPoster) {
@@ -173,7 +171,7 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "SUBCATEGORY_TIEBREAKER_VOTING") {
     if (newStatus === "COMPLETED") {
-      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      title = "🏆 Winner Selected!";
       color = 0xf1c40f; // Gold
       description = `**Round 2c (Subcategory Tiebreaker)** concluded!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
       if (details.winnerPoster) {
@@ -190,7 +188,7 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "SHORTLIST_VOTING") {
     if (newStatus === "COMPLETED") {
-      title = `🏆 Week ${weekNum}: Winner Selected!`;
+      title = "🏆 Winner Selected!";
       color = 0xf1c40f; // Gold
       description = `**Round 3 (Shortlist Voting)** concluded with an outright winner!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
       if (details.winnerPoster) {
@@ -206,7 +204,7 @@ export async function notifyRoundAdvanced(
       }
     }
   } else if (prevStatus === "FINAL_VOTING") {
-    title = `🏆 Week ${weekNum}: Winner Selected!`;
+    title = "🏆 Winner Selected!";
     color = 0xf1c40f; // Gold
     description = `**Round 4 (Final Tiebreaker)** concluded!\n\nThe movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
     if (details.winnerPoster) {
@@ -214,7 +212,7 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "IN_PERSON_VOTING") {
     if (newStatus === "IN_PERSON_TIEBREAKER") {
-      title = `⚡ Week ${weekNum}: In-Person Voting Tie`;
+      title = "⚡ In-Person Voting Tie";
       color = 0xe11d48; // Rose
       description = `Round 1 ended in a tie. We are advancing to the In-Person Tiebreaker.`;
       if (details.tiedItems && details.tiedItems.length > 0) {
@@ -224,7 +222,7 @@ export async function notifyRoundAdvanced(
         });
       }
     } else if (newStatus === "COMPLETED" && details.winnerName) {
-      title = `🏆 In-Person Winner Selected! (Week ${weekNum})`;
+      title = "🏆 In-Person Winner Selected!";
       color = 0xf1c40f; // Gold
       description = `The winning in-person movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + ".";
       if (details.winnerPoster) {
@@ -233,7 +231,7 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "IN_PERSON_TIEBREAKER") {
     if (newStatus === "IN_PERSON_ROUND_2") {
-      title = `⚡ Week ${weekNum}: In-Person Tiebreaker Tie`;
+      title = "⚡ In-Person Tiebreaker Tie";
       color = 0xe11d48; // Rose
       description = `Round 1b ended in a tie. We are advancing to a third round with 1 vote among the tied movies.`;
       if (details.tiedItems && details.tiedItems.length > 0) {
@@ -243,7 +241,7 @@ export async function notifyRoundAdvanced(
         });
       }
     } else if (newStatus === "COMPLETED" && details.winnerName) {
-      title = `🏆 In-Person Winner Selected! (Week ${weekNum})`;
+      title = "🏆 In-Person Winner Selected!";
       color = 0xf1c40f; // Gold
       description = `The winning in-person movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
       if (details.winnerPoster) {
@@ -252,7 +250,7 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "IN_PERSON_ROUND_2") {
     if (newStatus === "IN_PERSON_ROUND_3") {
-      title = `⚡ Week ${weekNum}: In-Person Third Round Tie`;
+      title = "⚡ In-Person Third Round Tie";
       color = 0xe11d48; // Rose
       description = `Round 2 ended in a tie. Since the remaining movies equals the number of voters, we are advancing to a final voting round of 2 votes each.`;
       if (details.tiedItems && details.tiedItems.length > 0) {
@@ -262,7 +260,7 @@ export async function notifyRoundAdvanced(
         });
       }
     } else if (newStatus === "COMPLETED" && details.winnerName) {
-      title = `🏆 In-Person Winner Selected! (Week ${weekNum})`;
+      title = "🏆 In-Person Winner Selected!";
       color = 0xf1c40f; // Gold
       description = `The winning in-person movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
       if (details.winnerPoster) {
@@ -271,7 +269,7 @@ export async function notifyRoundAdvanced(
     }
   } else if (prevStatus === "IN_PERSON_ROUND_3") {
     if (newStatus === "COMPLETED" && details.winnerName) {
-      title = `🏆 In-Person Winner Selected! (Week ${weekNum})`;
+      title = "🏆 In-Person Winner Selected!";
       color = 0xf1c40f; // Gold
       description = `The winning in-person movie for this week is: **${details.winnerName}**` + (details.winnerYear ? ` (${details.winnerYear})` : "") + `${details.isRandom ? " *(selected via random tiebreaker)*" : ""}.`;
       if (details.winnerPoster) {
@@ -289,7 +287,7 @@ export async function notifyRoundAdvanced(
   } else {
     fields.push({
       name: "Status",
-      value: `Week ${weekNum} is now completed! Get ready for movie night! 🍿`,
+      value: "Voting is now completed! Get ready for movie night! 🍿",
     });
   }
 
@@ -315,14 +313,13 @@ export async function notifyReminder(weekId: string, pendingVoterNames: string[]
   });
   if (!week) return;
 
-  const weekNum = week.weekNumber;
   const roundName = formatStatus(week.status);
 
   await sendDiscordPayload({
     content: `🔔 **Movie Night Reminder!** 🎬`,
     embeds: [
       {
-        title: `Reminder: Cast Your Votes for Week ${weekNum}!`,
+        title: "Reminder: Cast Your Votes for Movie Night!",
         description: `We are currently in **${roundName}**.\n\n⚠️ **Waiting on votes from:**\n${pendingVoterNames.map(name => `• **${name}**`).join("\n")}\n\nGo to the website to cast your vote: ${APP_URL}`,
         color: 0xe67e22, // Orange/Warning color
         timestamp: new Date().toISOString(),
