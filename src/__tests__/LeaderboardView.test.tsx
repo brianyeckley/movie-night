@@ -62,10 +62,10 @@ const mockLeaderboardData: LeaderboardData = {
       nominationCount: 4,
       weeksNominatedCount: 4,
       weeks: [
-        { weekNumber: 3, nominators: ["Stew"] },
-        { weekNumber: 5, nominators: ["Stew"] },
-        { weekNumber: 8, nominators: ["Stew"] },
-        { weekNumber: 10, nominators: ["Stew"] },
+        { weekNumber: 3, watchedDate: "2026-06-28T00:00:00.000Z", nominators: ["Stew"] },
+        { weekNumber: 5, watchedDate: "2026-07-12T00:00:00.000Z", nominators: ["Stew"] },
+        { weekNumber: 8, watchedDate: "2026-08-02T00:00:00.000Z", nominators: ["Stew"] },
+        { weekNumber: 10, watchedDate: "2026-08-16T00:00:00.000Z", nominators: ["Stew"] },
       ],
       totalVotesCount: 6,
     },
@@ -133,14 +133,20 @@ describe("LeaderboardView", () => {
     const detailButtons = screen.getAllByRole("button", { name: /Details/i });
     fireEvent.click(detailButtons[0]);
 
-    // Now breakdown should be visible
+    // Now breakdown should be visible with watched dates
     expect(screen.getByText(/Nominated by users 4 times across 4 weeks/i)).toBeDefined();
-    expect(screen.getByText("Week #3")).toBeDefined();
-    expect(screen.getByText("Week #10")).toBeDefined();
+    expect(screen.getByText(new Date("2026-06-28T00:00:00.000Z").toLocaleDateString())).toBeDefined();
+    expect(screen.getByText(new Date("2026-08-16T00:00:00.000Z").toLocaleDateString())).toBeDefined();
+    expect(screen.queryByText("Week #3")).toBeNull();
 
     // Toggle hide
     const hideButtons = screen.getAllByRole("button", { name: /Hide/i });
     fireEvent.click(hideButtons[0]);
     expect(screen.queryByText(/Nominated by users 4 times across 4 weeks/i)).toBeNull();
+
+    // Check second item (Stripes) which has no watchedDate provided - falls back to Week #5
+    fireEvent.click(detailButtons[1]);
+    expect(screen.getByText("Week #5")).toBeDefined();
+    expect(screen.getByText("Week #8")).toBeDefined();
   });
 });

@@ -10,6 +10,7 @@ export interface UserTastemakerStats {
   winRate: number;
   winningMovies: {
     weekNumber: number;
+    watchedDate?: string | null;
     movie: MovieWithGenresAndCategory;
   }[];
 }
@@ -28,6 +29,7 @@ export interface FilmSnobStats {
     title: string;
     year: number | null;
     weekNumber: number;
+    watchedDate?: string | null;
   }[];
 }
 
@@ -58,6 +60,7 @@ export interface GlobalMovieStats {
 
 export interface NominatedNonWinnerWeek {
   weekNumber: number;
+  watchedDate?: string | null;
   nominators: string[];
 }
 
@@ -181,6 +184,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
       weeksParticipated: number;
       winningMovies: {
         weekNumber: number;
+        watchedDate?: string | null;
         movie: MovieWithGenresAndCategory;
       }[];
     }
@@ -201,7 +205,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
     {
       user: { id: string; name: string; username: string };
       soloPickCount: number;
-      soloMovies: { title: string; year: number | null; weekNumber: number }[];
+      soloMovies: { title: string; year: number | null; weekNumber: number; watchedDate?: string | null }[];
     }
   >();
 
@@ -273,12 +277,15 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
           .map((v) => v.userId)
       );
 
+      const watchedDate = week.closedAt ? week.closedAt.toISOString() : null;
+
       earliestWinningVoters.forEach((uid) => {
         const entry = tastemakerMap.get(uid);
         if (entry && winningMovie) {
           entry.totalWins += 1;
           entry.winningMovies.push({
             weekNumber: week.weekNumber,
+            watchedDate,
             movie: winningMovie,
           });
         }
@@ -302,6 +309,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
               title: m.title,
               year: m.year,
               weekNumber: week.weekNumber,
+              watchedDate,
             });
           }
         }
@@ -555,12 +563,18 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
     });
   });
 
+  const weekDateMap = new Map<number, string | null>();
+  closedWeeks.forEach((w) => {
+    weekDateMap.set(w.weekNumber, w.closedAt ? w.closedAt.toISOString() : null);
+  });
+
   const mostNominatedNonWinners: NominatedNonWinner[] = Array.from(nonWinnerMap.entries())
     .map(([movieId, info]) => {
       const movie = movieById.get(movieId)!;
       const sortedWeeks = Array.from(info.weeksMap.entries())
         .map(([weekNumber, nominatorsSet]) => ({
           weekNumber,
+          watchedDate: weekDateMap.get(weekNumber) ?? null,
           nominators: Array.from(nominatorsSet).sort(),
         }))
         .sort((a, b) => a.weekNumber - b.weekNumber);

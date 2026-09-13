@@ -123,7 +123,8 @@ describe("PastWeekModal", () => {
   it("renders week details and winner information", () => {
     render(<PastWeekModal week={mockPastWeek} isAdmin={false} onClose={vi.fn()} />);
 
-    expect(screen.getByText("WEEK #8")).toBeDefined();
+    expect(screen.getByText(mockPastWeek.closedAt!.toLocaleDateString())).toBeDefined();
+    expect(screen.queryByText("WEEK #8")).toBeNull();
     expect(screen.getByText(/Super Troopers/i)).toBeDefined();
     expect(screen.getAllByText(/Jay Chandrasekhar/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/100 min/i)).toBeDefined();

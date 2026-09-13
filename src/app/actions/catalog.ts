@@ -118,12 +118,15 @@ async function assertNotAPastWinner(movieIds: string[]) {
 
   const week = await db.movieNightWeek.findFirst({
     where: { winningMovieId: { in: movieIds } },
-    select: { weekNumber: true },
+    select: { weekNumber: true, closedAt: true },
   });
 
   if (week) {
+    const when = week.closedAt
+      ? new Date(week.closedAt).toLocaleDateString()
+      : `Week #${week.weekNumber}`;
     throw new Error(
-      `This movie won Week #${week.weekNumber}. Delete that movie night first if you really want to remove it.`
+      `This movie won the movie night on ${when}. Delete that movie night first if you really want to remove it.`
     );
   }
 }

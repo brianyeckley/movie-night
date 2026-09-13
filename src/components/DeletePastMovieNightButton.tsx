@@ -33,7 +33,7 @@ export default function DeletePastMovieNightButton({ weekId, weekNumber, movieTi
     return (
       <div className="delete-confirm-box">
         <span className="delete-confirm-text">
-          Delete Week #{weekNumber}?
+          Delete this movie night?
         </span>
         <button
           onClick={handleDelete}

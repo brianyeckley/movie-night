@@ -28,7 +28,7 @@ export default function PastMovieNights({ pastWeeks, isAdmin }: PastMovieNightsP
               type="button"
               onClick={() => setSelectedWeek(wk)}
               className="past-week-tile"
-              aria-label={`View details for Week #${wk.weekNumber}: ${wk.winner?.title || "Unknown Movie"}`}
+              aria-label={`View details for ${wk.closedAt ? new Date(wk.closedAt).toLocaleDateString() : `Week #${wk.weekNumber}`}: ${wk.winner?.title || "Unknown Movie"}`}
             >
               {wk.winner?.posterUrl ? (
                 <img src={wk.winner.posterUrl} alt={`${wk.winner.title} poster`} />

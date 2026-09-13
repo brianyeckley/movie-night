@@ -204,7 +204,7 @@ export default function LeaderboardView({ data }: LeaderboardViewProps) {
               <div className="film-snob-movies-list">
                 {filmSnob.soloMovies.map((m, idx) => (
                   <span key={idx} className="film-snob-chip">
-                    {m.title} {m.year ? `(${m.year})` : ""} · Wk {m.weekNumber}
+                    {m.title} {m.year ? `(${m.year})` : ""} · {m.watchedDate ? new Date(m.watchedDate).toLocaleDateString() : `Wk ${m.weekNumber}`}
                   </span>
                 ))}
               </div>
@@ -401,10 +401,12 @@ export default function LeaderboardView({ data }: LeaderboardViewProps) {
                   {isExpanded && entry.winningMovies.length > 0 && (
                     <div className="winning-movies-drawer">
                       <div className="winning-movies-grid">
-                        {entry.winningMovies.map(({ weekNumber, movie }) => (
+                        {entry.winningMovies.map(({ weekNumber, watchedDate, movie }) => (
                           <div key={movie.id} className="winning-movie-card">
                             <div className="winning-movie-header">
-                              <span className="week-badge">Week #{weekNumber}</span>
+                              <span className="week-badge">
+                                {watchedDate ? new Date(watchedDate).toLocaleDateString() : `Week #${weekNumber}`}
+                              </span>
                               {movie.imdbRating && (
                                 <span className="imdb-chip">★ {movie.imdbRating}</span>
                               )}
@@ -600,7 +602,9 @@ export default function LeaderboardView({ data }: LeaderboardViewProps) {
                         <div className="non-winner-weeks-grid">
                           {entry.weeks.map((w) => (
                             <div key={w.weekNumber} className="non-winner-week-card">
-                              <span className="week-badge">Week #{w.weekNumber}</span>
+                              <span className="week-badge">
+                                {w.watchedDate ? new Date(w.watchedDate).toLocaleDateString() : `Week #${w.weekNumber}`}
+                              </span>
                               <div className="text-xs text-secondary mt-xs">
                                 Nominators:{" "}
                                 <span className="text-primary-var font-semibold">

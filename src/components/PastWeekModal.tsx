@@ -66,7 +66,7 @@ export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
             <div className="flex-between items-start gap-sm">
               <div className="flex-row items-center gap-xs">
                 <span className="text-sm-alt text-primary-color font-bold">
-                  WEEK #{week.weekNumber}
+                  {week.closedAt ? new Date(week.closedAt).toLocaleDateString() : (week.weekNumber ? `WEEK #${week.weekNumber}` : "")}
                 </span>
                 {isAdmin && (
                   <DeletePastMovieNightButton
@@ -86,10 +86,6 @@ export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
                 ✕
               </button>
             </div>
-
-            <span className="text-sm-alt text-muted">
-              {week.closedAt ? new Date(week.closedAt).toLocaleDateString() : ""}
-            </span>
 
             <h3 className="text-xl font-bold">
               {winner?.title || "Unknown Movie"}{winner?.year ? ` (${winner.year})` : ""}
