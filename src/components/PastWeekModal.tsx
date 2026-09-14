@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import TrailerButton from "@/components/TrailerButton";
 import DeletePastMovieNightButton from "@/components/DeletePastMovieNightButton";
+import EditPastMovieNightDateButton from "@/components/EditPastMovieNightDateButton";
 import AddToLegacyButton from "@/components/AddToLegacyButton";
 import type { PastWeek } from "@/lib/types";
 
@@ -28,11 +29,13 @@ interface PastWeekModalProps {
 
 export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
   const [showVotingHistory, setShowVotingHistory] = useState(false);
+  const [customClosedAt, setCustomClosedAt] = useState<Date | null>(null);
   const [prevWeekId, setPrevWeekId] = useState(week?.id);
 
   if (week?.id !== prevWeekId) {
     setPrevWeekId(week?.id);
     setShowVotingHistory(false);
+    setCustomClosedAt(null);
   }
 
   useEffect(() => {
@@ -64,10 +67,17 @@ export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
 
           <div className="flex-col gap-sm flex-1 min-w-0">
             <div className="flex-between items-start gap-sm">
-              <div className="flex-row items-center gap-xs">
+              <div className="flex-row items-center gap-xs flex-wrap">
                 <span className="text-sm-alt text-primary-color font-bold">
-                  {week.closedAt ? new Date(week.closedAt).toLocaleDateString() : (week.weekNumber ? `WEEK #${week.weekNumber}` : "")}
+                  {(customClosedAt ?? week.closedAt)
+                    ? new Date(customClosedAt ?? week.closedAt!).toLocaleDateString()
+                    : (week.weekNumber ? `WEEK #${week.weekNumber}` : "")}
                 </span>
+                <EditPastMovieNightDateButton
+                  weekId={week.id}
+                  currentClosedAt={customClosedAt ?? week.closedAt}
+                  onDateUpdated={(newDate) => setCustomClosedAt(newDate)}
+                />
                 {isAdmin && (
                   <DeletePastMovieNightButton
                     weekId={week.id}

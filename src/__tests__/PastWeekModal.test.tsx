@@ -9,6 +9,10 @@ vi.mock("@/components/DeletePastMovieNightButton", () => ({
   default: () => null,
 }));
 
+vi.mock("@/components/EditPastMovieNightDateButton", () => ({
+  default: () => null,
+}));
+
 vi.mock("@/components/AddToLegacyButton", () => ({
   default: () => null,
 }));

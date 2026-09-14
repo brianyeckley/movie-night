@@ -7,6 +7,7 @@ import { notifyNewWeek } from "@/lib/discord";
 import { advanceWeekRound } from "@/lib/round-engine";
 import { approvedVotesForRound, roundCodeForStatus } from "@/lib/rounds";
 import { ACTIVE_WEEK } from "@/lib/weeks";
+import { requireUser } from "@/lib/auth";
 
 // 2. Create new Movie Night Week
 export async function createWeekAction(themeCategoryName?: string, isInPerson: boolean = false) {
@@ -359,3 +360,26 @@ export async function markMovieWatchedManuallyAction(
     };
   }
 }
+
+// 18. Update past movie night watch date (available to any user)
+export async function updateWeekWatchDateAction(weekId: string, watchedDate: string) {
+  await requireUser();
+
+  const week = await db.movieNightWeek.findUnique({ where: { id: weekId } });
+  if (!week) throw new Error("Movie night not found.");
+
+  const closedAt = new Date(`${watchedDate}T22:00:00Z`);
+  if (Number.isNaN(closedAt.getTime())) {
+    throw new Error(`Invalid watched date: "${watchedDate}".`);
+  }
+
+  await db.movieNightWeek.update({
+    where: { id: weekId },
+    data: { closedAt },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/stats");
+  return { success: true, closedAt: closedAt.toISOString() };
+}
+
