@@ -31,10 +31,10 @@ export default function EditPastMovieNightDateButton({
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
+  const handleOpenEdit = () => {
     setDateValue(toLocalDateInputValue(currentClosedAt));
-  }, [currentClosedAt]);
+    setIsEditing(true);
+  };
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -111,7 +111,7 @@ export default function EditPastMovieNightDateButton({
   return (
     <button
       type="button"
-      onClick={() => setIsEditing(true)}
+      onClick={handleOpenEdit}
       title="Edit date watched"
       aria-label="Edit date watched"
       className="edit-icon-btn"

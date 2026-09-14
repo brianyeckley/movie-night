@@ -12,7 +12,7 @@ interface Props {
   onDeleted?: () => void;
 }
 
-export default function DeletePastMovieNightButton({ weekId, weekNumber, movieTitle, onDeleted }: Props) {
+export default function DeletePastMovieNightButton({ weekId, movieTitle, onDeleted }: Props) {
   const [confirming, setConfirming] = useState(false);
   const [isPending, startTransition] = useTransition();
 
