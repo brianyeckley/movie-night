@@ -12,11 +12,13 @@ export default async function CatalogPage() {
 
   // Fetch all top-level categories, including their nested subcategories and direct movies
   const rawCategories = await db.category.findMany({
-    where: { parentId: null },
+    where: { parentId: null, deletedAt: null },
     include: {
       subcategories: {
+        where: { deletedAt: null },
         include: {
           movies: {
+            where: { deletedAt: null },
             include: {
               genres: true,
               backgroundImages: true,
@@ -28,8 +30,9 @@ export default async function CatalogPage() {
       movies: {
         where: {
           category: {
-            parentId: null, // Only fetch direct movies here (redundant but safe)
+            is: { parentId: null },
           },
+          deletedAt: null,
         },
         include: {
           genres: true,
@@ -51,6 +54,7 @@ export default async function CatalogPage() {
 
   // Fetch all flat categories (both top-level and subcategories) for the dropdown list
   const flatCategories = await db.category.findMany({
+    where: { deletedAt: null },
     orderBy: { name: "asc" },
   });
 

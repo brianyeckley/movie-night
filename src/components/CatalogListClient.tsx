@@ -77,6 +77,8 @@ export default function CatalogListClient({
     setSelectedFormats(new Set());
   };
 
+  const hasActiveFilters = searchTerm !== "" || selectedGenreIds.size > 0 || selectedFormats.size > 0;
+
   // Client-side filtering logic
   const filteredCategories = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
@@ -110,21 +112,51 @@ export default function CatalogListClient({
       return true;
     };
 
-    return categories
-      .map((cat) => ({
-        ...cat,
-        movies: sortMoviesByTitle(cat.movies.filter(matchesFilters)),
-        subcategories: cat.subcategories
-          .map((sub) => ({
-            ...sub,
-            movies: sortMoviesByTitle(sub.movies.filter(matchesFilters)),
-          }))
-          .filter((sub) => sub.movies.length > 0),
-      }))
-      .filter((cat) => cat.movies.length > 0 || cat.subcategories.length > 0);
-  }, [categories, searchTerm, selectedGenreIds, selectedFormats]);
+    if (!hasActiveFilters) {
+      return categories;
+    }
 
-  const hasActiveFilters = searchTerm !== "" || selectedGenreIds.size > 0 || selectedFormats.size > 0;
+    return categories
+      .map((cat) => {
+        const catNameMatches = Boolean(term && cat.name.toLowerCase().includes(term));
+        const matchingMovies = sortMoviesByTitle(cat.movies.filter(matchesFilters));
+        const matchingSubcategories = cat.subcategories
+          .map((sub) => {
+            const subNameMatches = Boolean(term && sub.name.toLowerCase().includes(term));
+            const subMatchingMovies = sortMoviesByTitle(sub.movies.filter(matchesFilters));
+            const isMatch = subNameMatches || subMatchingMovies.length > 0;
+            return {
+              ...sub,
+              movies: subMatchingMovies,
+              isMatch,
+            };
+          })
+          .filter((sub) => sub.isMatch)
+          .map((sub) => {
+            const copy = { ...sub };
+            delete (copy as { isMatch?: boolean }).isMatch;
+            return copy;
+          });
+
+        const isMatch =
+          catNameMatches ||
+          matchingMovies.length > 0 ||
+          matchingSubcategories.length > 0;
+
+        return {
+          ...cat,
+          movies: matchingMovies,
+          subcategories: matchingSubcategories,
+          isMatch,
+        };
+      })
+      .filter((cat) => cat.isMatch)
+      .map((cat) => {
+        const copy = { ...cat };
+        delete (copy as { isMatch?: boolean }).isMatch;
+        return copy;
+      });
+  }, [categories, searchTerm, selectedGenreIds, selectedFormats, hasActiveFilters]);
 
   return (
     <div className="flex-col gap-xl">
@@ -326,18 +358,24 @@ export default function CatalogListClient({
                           </summary>
 
                           <div className="subcategory-details-content">
-                            {sub.movies.map((movie) => (
-                              <CatalogMovieCard
-                                key={movie.id}
-                                movie={movie}
-                                categories={flatCategories}
-                                genres={genres}
-                                isAdmin={isAdmin}
-                                isPending={isPending}
-                                onShowPlot={setSelectedPlotMovie}
-                                onRemove={handleRemoveMovie}
-                              />
-                            ))}
+                            {sub.movies.length === 0 ? (
+                              <p className="text-secondary text-sm italic py-sm px-xs">
+                                No movies in this subcategory yet.
+                              </p>
+                            ) : (
+                              sub.movies.map((movie) => (
+                                <CatalogMovieCard
+                                  key={movie.id}
+                                  movie={movie}
+                                  categories={flatCategories}
+                                  genres={genres}
+                                  isAdmin={isAdmin}
+                                  isPending={isPending}
+                                  onShowPlot={setSelectedPlotMovie}
+                                  onRemove={handleRemoveMovie}
+                                />
+                              ))
+                            )}
                           </div>
                         </details>
                       ))}
@@ -367,6 +405,12 @@ export default function CatalogListClient({
                         ))}
                       </div>
                     </div>
+                  )}
+
+                  {cat.movies.length === 0 && cat.subcategories.length === 0 && (
+                    <p className="text-secondary text-sm italic py-sm px-xs">
+                      No movies or subcategories in this category yet.
+                    </p>
                   )}
                 </div>
               </details>

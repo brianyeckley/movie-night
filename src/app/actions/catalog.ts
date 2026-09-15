@@ -16,7 +16,7 @@ export async function addCategoryAction(name: string, isThemed: boolean = false)
 
   const category = await db.category.upsert({
     where: { name },
-    update: { isActive: true, isThemed },
+    update: { isActive: true, isThemed, deletedAt: null, parentId: null },
     create: { name, isThemed, isActive: true },
   });
 
@@ -29,12 +29,33 @@ export async function addCategoryAction(name: string, isThemed: boolean = false)
 export async function addSubcategoryAction(name: string, parentId: string) {
   await requireUser();
 
-  const subcategory = await db.category.create({
-    data: {
-      name,
-      parentId,
-    },
+  const existing = await db.category.findUnique({
+    where: { name },
   });
+
+  let subcategory;
+  if (existing) {
+    if (existing.deletedAt) {
+      subcategory = await db.category.update({
+        where: { id: existing.id },
+        data: {
+          parentId,
+          deletedAt: null,
+          isActive: true,
+          isThemed: false,
+        },
+      });
+    } else {
+      throw new Error(`A category or subcategory named "${name}" already exists.`);
+    }
+  } else {
+    subcategory = await db.category.create({
+      data: {
+        name,
+        parentId,
+      },
+    });
+  }
 
   revalidatePath("/catalog");
   revalidatePath("/");
@@ -106,64 +127,56 @@ export async function addMovieAction(
   return movie;
 }
 
-/**
- * Refuse to delete a movie that a past movie night points at.
- *
- * `winningMovieId` is a plain column rather than a foreign key, so deleting a
- * winner leaves the week pointing at nothing and its entry in Past Movie
- * Nights permanently reads "Unknown Movie".
- */
-async function assertNotAPastWinner(movieIds: string[]) {
-  if (movieIds.length === 0) return;
-
-  const week = await db.movieNightWeek.findFirst({
-    where: { winningMovieId: { in: movieIds } },
-    select: { weekNumber: true, closedAt: true },
-  });
-
-  if (week) {
-    const when = week.closedAt
-      ? new Date(week.closedAt).toLocaleDateString()
-      : `Week #${week.weekNumber}`;
-    throw new Error(
-      `This movie won the movie night on ${when}. Delete that movie night first if you really want to remove it.`
-    );
-  }
-}
-
-// 15. Catalog Management: Delete Movie
+// 15. Catalog Management: Delete Movie (Logical Delete)
 export async function deleteMovieAction(movieId: string) {
   await requireAdmin("remove movies from the catalog");
-  await assertNotAPastWinner([movieId]);
 
-  const movie = await db.movie.delete({
+  await db.movie.update({
     where: { id: movieId },
-    include: { backgroundImages: true },
+    data: { deletedAt: new Date() },
   });
-  // The DB rows cascade automatically; the files on disk don't.
-  for (const image of movie.backgroundImages) {
-    deleteBgImageFile(image.filename);
-  }
 
   revalidatePath("/catalog");
   revalidatePath("/");
 }
 
-// 16. Catalog Management: Delete Category/Subcategory
+// 16. Catalog Management: Delete Category/Subcategory (Logical Delete)
 export async function deleteCategoryAction(categoryId: string) {
   await requireAdmin("delete categories");
 
-  // Deleting a category cascades to its subcategories and every movie inside
-  // them, so check the whole subtree for past winners before removing it.
-  const doomedMovies = await db.movie.findMany({
-    where: {
-      OR: [{ categoryId }, { category: { parentId: categoryId } }],
-    },
+  const now = new Date();
+
+  // Find all child subcategories
+  const childSubcategories = await db.category.findMany({
+    where: { parentId: categoryId },
     select: { id: true },
   });
-  await assertNotAPastWinner(doomedMovies.map((m) => m.id));
+  const allCategoryIds = [categoryId, ...childSubcategories.map((c) => c.id)];
 
-  await db.category.delete({ where: { id: categoryId } });
+  await db.$transaction([
+    // Logically delete all movies in this category and any of its subcategories
+    db.movie.updateMany({
+      where: {
+        categoryId: { in: allCategoryIds },
+        deletedAt: null,
+      },
+      data: { deletedAt: now },
+    }),
+    // Logically delete child subcategories
+    db.category.updateMany({
+      where: {
+        parentId: categoryId,
+        deletedAt: null,
+      },
+      data: { deletedAt: now },
+    }),
+    // Logically delete the category itself
+    db.category.update({
+      where: { id: categoryId },
+      data: { deletedAt: now },
+    }),
+  ]);
+
   revalidatePath("/catalog");
   revalidatePath("/");
 }

@@ -49,6 +49,7 @@ function movie(id: string, title: string): MovieWithGenres {
     physicalBluRay: false,
     physicalDvd: false,
     categoryId: "cat-1",
+    deletedAt: null,
     createdAt: new Date(),
     genres: [],
   } as MovieWithGenres;
@@ -61,6 +62,7 @@ function category(id: string, name: string): Category {
     isThemed: false,
     isActive: true,
     parentId: null,
+    deletedAt: null,
     createdAt: new Date(),
   } as Category;
 }

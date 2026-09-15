@@ -134,7 +134,7 @@ describe("Voting Data Compilation Helpers", () => {
 
       // Verify that movie.findMany was called to get subcategory movies
       expect(db.movie.findMany).toHaveBeenCalledWith({
-        where: { categoryId: "cat-3", watched: false },
+        where: { categoryId: "cat-3", watched: false, deletedAt: null },
         select: { id: true },
       });
 

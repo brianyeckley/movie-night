@@ -151,7 +151,7 @@ export default async function DashboardPage() {
 
   // Fetch themed categories
   const themeCategories = await db.category.findMany({
-    where: { isThemed: true },
+    where: { isThemed: true, deletedAt: null },
     orderBy: { name: "asc" },
   });
 

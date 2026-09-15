@@ -62,7 +62,7 @@ export async function getShortlistMovies(
     // If subcategory was in topSubIds, unpack all unwatched movies from that subcategory
     if (selectedSubcategoryId && topSubIds.includes(selectedSubcategoryId)) {
       const subMovies = await db.movie.findMany({
-        where: { categoryId: selectedSubcategoryId, watched: false },
+        where: { categoryId: selectedSubcategoryId, watched: false, deletedAt: null },
         select: { id: true },
       });
       subMovieIds.push(...subMovies.map((m) => m.id));

@@ -54,6 +54,7 @@ export async function CategoryVotingForm({ week, currentUserId }: RoundFormProps
   // `{ id: null }` would be meaningless.
   const categories = await db.category.findMany({
     where: {
+      deletedAt: null,
       parentId: null,
       OR: [
         { name: "Comedy" },
@@ -128,6 +129,7 @@ export async function MovieVotingForm({ week, currentUserId }: RoundFormProps) {
   // Movies in this category (exclude watched, unless it is Legacy)
   const rawMovies = await db.movie.findMany({
     where: {
+      deletedAt: null,
       categoryId: week.selectedCategoryId,
       OR: isLegacy ? undefined : [{ watched: false }],
     },
@@ -137,7 +139,7 @@ export async function MovieVotingForm({ week, currentUserId }: RoundFormProps) {
 
   // Subcategories in this category
   const subcategories = await db.category.findMany({
-    where: { parentId: week.selectedCategoryId },
+    where: { parentId: week.selectedCategoryId, deletedAt: null },
     orderBy: { name: "asc" },
   });
 
@@ -226,7 +228,7 @@ export async function SubcategoryVotingForm({ week, currentUserId }: RoundFormPr
       movies = sortMoviesByTitle(rawTiedMovies);
     } else {
       const rawSubMovies = await db.movie.findMany({
-        where: { categoryId: week.selectedSubcategoryId, watched: false },
+        where: { categoryId: week.selectedSubcategoryId, watched: false, deletedAt: null },
         include: { genres: true },
       });
       movies = sortMoviesByTitle(rawSubMovies);
@@ -537,6 +539,7 @@ const IN_PERSON_ROUND_VIEWS: Record<InPersonStatus, InPersonRoundView> = {
       sortMoviesByTitle(
         await db.movie.findMany({
           where: {
+            deletedAt: null,
             watched: false,
             OR: [
               { physical4K: true },

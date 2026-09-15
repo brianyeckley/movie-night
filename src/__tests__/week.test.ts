@@ -149,7 +149,7 @@ describe("Week Management Server Actions", () => {
       });
       expect(db.category.update).toHaveBeenCalledWith({
         where: { id: "cat-inperson" },
-        data: { isActive: true, isThemed: true },
+        data: { isActive: true, isThemed: true, deletedAt: null },
       });
       expect(db.movieNightWeek.create).toHaveBeenCalledWith({
         data: {

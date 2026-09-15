@@ -30,6 +30,7 @@ model Category {
   subcategories Category[]       @relation("Subcategories")
   movies        Movie[]
   weeks         MovieNightWeek[] @relation("ThemeCategory")
+  deletedAt     DateTime?
   createdAt     DateTime         @default(now())
 }
 
@@ -60,6 +61,7 @@ model Movie {
   category         Category               @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   genres           Genre[]
   backgroundImages MovieBackgroundImage[]
+  deletedAt        DateTime?
   createdAt        DateTime               @default(now())
 }
 

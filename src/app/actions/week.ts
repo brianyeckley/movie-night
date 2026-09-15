@@ -43,7 +43,7 @@ export async function createWeekAction(themeCategoryName?: string, isInPerson: b
     if (themeCategory) {
       themeCategory = await db.category.update({
         where: { id: themeCategory.id },
-        data: { isActive: true, isThemed: true },
+        data: { isActive: true, isThemed: true, deletedAt: null },
       });
     } else {
       themeCategory = await db.category.create({
@@ -74,7 +74,7 @@ export async function createWeekAction(themeCategoryName?: string, isInPerson: b
     if (themeCategory) {
       themeCategory = await db.category.update({
         where: { id: themeCategory.id },
-        data: { isActive: true, isThemed: true },
+        data: { isActive: true, isThemed: true, deletedAt: null },
       });
     } else {
       themeCategory = await db.category.create({

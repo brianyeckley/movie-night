@@ -80,6 +80,7 @@ function listLegacyImages(): BgImage[] {
 /** Picks a random background image, paired with its movie's credit info. */
 export async function getRandomBgImage(): Promise<BgImage | null> {
   const dbImages = await db.movieBackgroundImage.findMany({
+    where: { movie: { is: { deletedAt: null } } },
     select: {
       filename: true,
       panelAlign: true,
