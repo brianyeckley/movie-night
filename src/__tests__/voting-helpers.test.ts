@@ -15,6 +15,9 @@ vi.mock("@/lib/db", () => ({
     category: {
       findMany: vi.fn(),
     },
+    theme: {
+      findMany: vi.fn(),
+    },
     movie: {
       findMany: vi.fn(),
     },
@@ -38,6 +41,7 @@ describe("Voting Data Compilation Helpers", () => {
         { id: "cat-1", name: "Comedy" },
         { id: "cat-2", name: "Sci-Fi" },
       ] as any);
+      vi.mocked(db.theme.findMany).mockResolvedValueOnce([] as any);
 
       const result = await getCategoryTiebreakerCategories("week-1");
 
@@ -87,7 +91,7 @@ describe("Voting Data Compilation Helpers", () => {
       // Should load final shortlist movies (movie-1 from tied R2, and movie-2 from R2b subcategory win)
       expect(db.movie.findMany).toHaveBeenCalledWith({
         where: { id: { in: ["movie-1", "movie-2"] } },
-        include: { genres: true, category: true },
+        include: { genres: true, category: true, themes: true },
       });
 
       expect(result).toHaveLength(2);
@@ -141,7 +145,7 @@ describe("Voting Data Compilation Helpers", () => {
       // Verify final movie query loads only subcategory movies (movie-1 lost to cat-3 in Round 2b)
       expect(db.movie.findMany).toHaveBeenCalledWith({
         where: { id: { in: ["movie-2", "movie-3"] } },
-        include: { genres: true, category: true },
+        include: { genres: true, category: true, themes: true },
       });
 
       expect(result).toHaveLength(2);
@@ -188,7 +192,7 @@ describe("Voting Data Compilation Helpers", () => {
       // Verify final movie query includes movie-1 and movie-2, but EXCLUDES movie-99 which lost
       expect(db.movie.findMany).toHaveBeenCalledWith({
         where: { id: { in: ["movie-1", "movie-2"] } },
-        include: { genres: true, category: true },
+        include: { genres: true, category: true, themes: true },
       });
 
       expect(result).toHaveLength(2);
@@ -211,7 +215,7 @@ describe("Voting Data Compilation Helpers", () => {
 
       expect(db.movie.findMany).toHaveBeenCalledWith({
         where: { id: { in: ["movie-1", "movie-2"] } },
-        include: { genres: true, category: true },
+        include: { genres: true, category: true, themes: true },
       });
       expect(result).toHaveLength(2);
     });
@@ -234,7 +238,7 @@ describe("Voting Data Compilation Helpers", () => {
 
       expect(db.movie.findMany).toHaveBeenCalledWith({
         where: { id: { in: ["movie-1", "movie-2"] } },
-        include: { genres: true, category: true },
+        include: { genres: true, category: true, themes: true },
       });
       expect(result).toHaveLength(2);
       // "Alien" ('A') should sort before "The Thing" ('Thing' -> 'T')

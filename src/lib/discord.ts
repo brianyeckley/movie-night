@@ -45,26 +45,38 @@ export async function sendDiscordPayload(payload: {
 export async function notifyNewWeek(weekId: string) {
   const week = await db.movieNightWeek.findUnique({
     where: { id: weekId },
-    include: { themeCategory: true },
+    include: { theme: true },
   });
   if (!week) return;
 
-  const themeName = week.themeCategory?.name || "None";
+  const themeName = week.theme?.name || "None";
   const isInPerson = week.isInPerson;
-  const initialStatus = isInPerson ? "In Person Voting" : "Category Voting";
-  const description = isInPerson
-    ? `Voting is now open for **Round 1: In Person Voting** (Physical Media Only).\n\nGo to the website to cast your vote!`
-    : `Voting is now open for **Round 1: Category Voting**.\n\nGo to the website to cast your vote!`;
+  const isThemeWeek = week.status === "MOVIE_VOTING" && Boolean(week.selectedThemeId);
+
+  let initialStatus = "Category Voting";
+  let description = `Voting is now open for **Round 1: Category Voting**.\n\nGo to the website to cast your vote!`;
+
+  if (isInPerson) {
+    initialStatus = "In Person Voting";
+    description = `Voting is now open for **Round 1: In Person Voting** (Physical Media Only).\n\nGo to the website to cast your vote!`;
+  } else if (isThemeWeek) {
+    initialStatus = "Theme Week Movie Voting";
+    description = `Voting is now open for **Theme Week: ${themeName}** (Category voting skipped).\n\nGo to the website to cast your vote!`;
+  }
 
   await sendDiscordPayload({
     embeds: [
       {
-        title: isInPerson ? "🎬 In-Person Movie Night Opened!" : "🎬 New Movie Night Opened!",
+        title: isInPerson
+          ? "🎬 In-Person Movie Night Opened!"
+          : isThemeWeek
+          ? "🎬 Dedicated Theme Week Opened!"
+          : "🎬 New Movie Night Opened!",
         description,
         url: APP_URL,
-        color: isInPerson ? 0xe11d48 : 0x2ecc71, // Rose/Accent for In-Person, Green for standard
+        color: isInPerson ? 0xe11d48 : isThemeWeek ? 0xf59e0b : 0x2ecc71,
         fields: [
-          { name: "Theme Category", value: themeName, inline: true },
+          { name: "Theme", value: themeName, inline: true },
           { name: "Current Status", value: initialStatus, inline: true },
         ],
         timestamp: new Date().toISOString(),

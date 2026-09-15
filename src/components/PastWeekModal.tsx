@@ -149,7 +149,7 @@ export function PastWeekModal({ week, isAdmin, onClose }: PastWeekModalProps) {
               {week.isInPerson ? (
                 <span className="text-accent-color font-semibold"><CassetteTape size="1em" className="inline-icon" /> In-Person Screening</span>
               ) : (
-                <span>Theme: {week.themeCategory?.name || "None"}</span>
+                <span>Theme: {week.theme?.name || "None"}</span>
               )}
               {week.isRandomlyChosen && (
                 <span className="text-accent-color font-semibold"><Dices size="1em" className="inline-icon" /> Random Draw</span>

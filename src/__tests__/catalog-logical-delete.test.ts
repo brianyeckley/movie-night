@@ -100,12 +100,12 @@ describe("Catalog Logical Deletes and Revival", () => {
         deletedAt: null,
       } as any);
 
-      await addCategoryAction("Action", false);
+      await addCategoryAction("Action");
 
       expect(db.category.upsert).toHaveBeenCalledWith({
         where: { name: "Action" },
-        update: { isActive: true, isThemed: false, deletedAt: null, parentId: null },
-        create: { name: "Action", isThemed: false, isActive: true },
+        update: { deletedAt: null, parentId: null },
+        create: { name: "Action" },
       });
     });
   });
@@ -132,8 +132,6 @@ describe("Catalog Logical Deletes and Revival", () => {
         data: {
           parentId: "new-parent",
           deletedAt: null,
-          isActive: true,
-          isThemed: false,
         },
       });
       expect(db.category.create).not.toHaveBeenCalled();

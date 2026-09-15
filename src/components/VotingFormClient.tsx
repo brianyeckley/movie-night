@@ -19,8 +19,14 @@ import type { Category, MovieWithGenres } from "@/lib/types";
 // Shared pieces
 // ======================================================================
 
+export interface CategoryVoteOption {
+  id: string;
+  name: string;
+  isTheme?: boolean;
+}
+
 interface CategoryVoteRowProps {
-  category: Category;
+  category: CategoryVoteOption;
   mode: "checkbox" | "radio";
   checked: boolean;
   disabled: boolean;
@@ -28,7 +34,7 @@ interface CategoryVoteRowProps {
   onToggle: (checked: boolean) => void;
 }
 
-/** One selectable category, used by both the Round 1 and Round 1b forms. */
+/** One selectable category or theme, used by both the Round 1 and Round 1b forms. */
 function CategoryVoteRow({
   category,
   mode,
@@ -56,9 +62,9 @@ function CategoryVoteRow({
         <span className="font-semibold text-lg text-primary-var">
           {category.name}
         </span>
-        {category.isThemed && (
+        {category.isTheme && (
           <span className="text-sm text-accent-color">
-            Current Theme Category
+            Current Theme
           </span>
         )}
       </div>
@@ -116,7 +122,7 @@ function SubcategoryVoteRow({
 // ======================================================================
 interface CategoryVotingFormClientProps {
   weekId: string;
-  categories: Category[];
+  categories: CategoryVoteOption[];
   initialVoteId: string | null;
 }
 
@@ -472,7 +478,7 @@ export function FinalVotingFormClient({
 // ======================================================================
 interface CategoryTiebreakerVotingFormClientProps {
   weekId: string;
-  categories: Category[];
+  categories: CategoryVoteOption[];
   initialVotes: string[];
 }
 

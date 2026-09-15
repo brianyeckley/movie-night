@@ -11,18 +11,46 @@ import { saveBgImage, deleteBgImageFile } from "@/lib/bg-storage";
 const MAX_BG_IMAGE_UPLOAD_BYTES = 15 * 1024 * 1024;
 
 // 12. Catalog Management: Add Category
-export async function addCategoryAction(name: string, isThemed: boolean = false) {
+export async function addCategoryAction(name: string) {
   await requireUser();
 
   const category = await db.category.upsert({
     where: { name },
-    update: { isActive: true, isThemed, deletedAt: null, parentId: null },
-    create: { name, isThemed, isActive: true },
+    update: { deletedAt: null, parentId: null },
+    create: { name },
   });
 
   revalidatePath("/catalog");
   revalidatePath("/");
   return category;
+}
+
+// 12b. Catalog Management: Add Theme
+export async function addThemeAction(name: string) {
+  await requireUser();
+
+  const theme = await db.theme.upsert({
+    where: { name },
+    update: { deletedAt: null },
+    create: { name },
+  });
+
+  revalidatePath("/catalog");
+  revalidatePath("/");
+  return theme;
+}
+
+// 12c. Catalog Management: Delete Theme (Logical Delete)
+export async function deleteThemeAction(themeId: string) {
+  await requireAdmin("delete themes");
+
+  await db.theme.update({
+    where: { id: themeId },
+    data: { deletedAt: new Date() },
+  });
+
+  revalidatePath("/catalog");
+  revalidatePath("/");
 }
 
 // 13. Catalog Management: Add Subcategory
@@ -41,8 +69,6 @@ export async function addSubcategoryAction(name: string, parentId: string) {
         data: {
           parentId,
           deletedAt: null,
-          isActive: true,
-          isThemed: false,
         },
       });
     } else {
@@ -70,7 +96,8 @@ export async function addMovieAction(
   trailerUrl?: string,
   physical4K?: boolean,
   physicalBluRay?: boolean,
-  physicalDvd?: boolean
+  physicalDvd?: boolean,
+  themeIds?: string[]
 ) {
   await requireUser();
   if (!imdbUrl) throw new Error("IMDb URL is required.");
@@ -118,6 +145,9 @@ export async function addMovieAction(
       categoryId,
       genres: {
         connect: genreIds.map((id) => ({ id })),
+      },
+      themes: {
+        connect: (themeIds || []).map((id) => ({ id })),
       },
     },
   });
@@ -191,7 +221,8 @@ export async function updateMovieAction(
   genreIds?: string[],
   physical4K?: boolean,
   physicalBluRay?: boolean,
-  physicalDvd?: boolean
+  physicalDvd?: boolean,
+  themeIds?: string[]
 ) {
   await requireUser();
 
@@ -257,6 +288,12 @@ export async function updateMovieAction(
   if (genreIds) {
     updateData.genres = {
       set: genreIds.map((id) => ({ id })),
+    };
+  }
+
+  if (themeIds) {
+    updateData.themes = {
+      set: themeIds.map((id) => ({ id })),
     };
   }
 

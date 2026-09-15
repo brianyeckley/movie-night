@@ -19,7 +19,7 @@ async function loadRoundVotes(weekId: string, round: RoundCode) {
 async function loadMoviesById(ids: string[]) {
   const movies = await db.movie.findMany({
     where: { id: { in: ids } },
-    include: { genres: true, category: true },
+    include: { genres: true, category: true, themes: true },
   });
   return sortMoviesByTitle(movies);
 }
@@ -88,10 +88,21 @@ export async function getFinalTiebreakerMovies(weekId: string) {
 export async function getCategoryTiebreakerCategories(weekId: string) {
   const { tiedIds } = tallyVotes(await loadRoundVotes(weekId, "ROUND_1_CATEGORY"));
 
-  return db.category.findMany({
-    where: { id: { in: tiedIds } },
-    orderBy: { name: "asc" },
-  });
+  const [categories, themes] = await Promise.all([
+    db.category.findMany({
+      where: { id: { in: tiedIds } },
+      orderBy: { name: "asc" },
+    }),
+    db.theme.findMany({
+      where: { id: { in: tiedIds } },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  return [
+    ...categories.map((c) => ({ id: c.id, name: c.name, isTheme: false })),
+    ...themes.map((t) => ({ id: t.id, name: t.name, isTheme: true })),
+  ].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // Helper: Get in-person tiebreaker movies (every movie that received a vote in Round 1)

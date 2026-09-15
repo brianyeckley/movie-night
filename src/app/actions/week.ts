@@ -10,7 +10,11 @@ import { ACTIVE_WEEK } from "@/lib/weeks";
 import { requireUser } from "@/lib/auth";
 
 // 2. Create new Movie Night Week
-export async function createWeekAction(themeCategoryName?: string, isInPerson: boolean = false) {
+export async function createWeekAction(
+  themeNameOrId?: string,
+  isInPerson: boolean = false,
+  isThemeWeek: boolean = false
+) {
   const currentUser = await getActiveUser();
   if (!currentUser || currentUser.role !== "ADMIN") {
     throw new Error("Unauthorized: Only Admin can create weeks.");
@@ -31,69 +35,59 @@ export async function createWeekAction(themeCategoryName?: string, isInPerson: b
   });
   const nextWeekNumber = (lastWeek?.weekNumber ?? 0) + 1;
 
-  let themeCategoryId: string | null = null;
+  let themeId: string | null = null;
+  let status: "IN_PERSON_VOTING" | "MOVIE_VOTING" | "CATEGORY_VOTING" = "CATEGORY_VOTING";
+  let selectedThemeId: string | null = null;
 
   if (isInPerson) {
-    // For In-Person, we default the category theme to "In Person Physical Media" if not provided
-    const catName = themeCategoryName || "In Person Physical Media";
-    let themeCategory = await db.category.findUnique({
-      where: { name: catName },
-    });
-
-    if (themeCategory) {
-      themeCategory = await db.category.update({
-        where: { id: themeCategory.id },
-        data: { isActive: true, isThemed: true, deletedAt: null },
-      });
-    } else {
-      themeCategory = await db.category.create({
-        data: {
-          name: catName,
-          isThemed: true,
-          isActive: true,
-        },
-      });
-    }
-    themeCategoryId = themeCategory.id;
+    status = "IN_PERSON_VOTING";
   } else {
-    if (!themeCategoryName) {
-      throw new Error("Theme category name is required.");
+    if (!themeNameOrId) {
+      throw new Error("Theme is required.");
     }
 
-    // Deactivate all previous theme categories
-    await db.category.updateMany({
-      where: { isThemed: true },
-      data: { isActive: false },
+    // Resolve theme: check by ID or name
+    let theme = await db.theme.findFirst({
+      where: {
+        OR: [{ id: themeNameOrId }, { name: themeNameOrId }],
+        deletedAt: null,
+      },
     });
 
-    // Check if theme category already exists, if so make it active. If not, create it.
-    let themeCategory = await db.category.findUnique({
-      where: { name: themeCategoryName },
-    });
-
-    if (themeCategory) {
-      themeCategory = await db.category.update({
-        where: { id: themeCategory.id },
-        data: { isActive: true, isThemed: true, deletedAt: null },
+    if (!theme) {
+      const existingDeleted = await db.theme.findFirst({
+        where: { name: themeNameOrId, deletedAt: { not: null } },
       });
+      if (existingDeleted) {
+        theme = await db.theme.update({
+          where: { id: existingDeleted.id },
+          data: { deletedAt: null },
+        });
+      } else {
+        theme = await db.theme.create({
+          data: { name: themeNameOrId },
+        });
+      }
+    }
+
+    themeId = theme.id;
+
+    if (isThemeWeek) {
+      // Dedicated Theme Week mode: skip Round 1 category voting and start movie voting on this theme immediately
+      status = "MOVIE_VOTING";
+      selectedThemeId = theme.id;
     } else {
-      themeCategory = await db.category.create({
-        data: {
-          name: themeCategoryName,
-          isThemed: true,
-          isActive: true,
-        },
-      });
+      status = "CATEGORY_VOTING";
     }
-    themeCategoryId = themeCategory.id;
   }
 
   // Create the week
   const week = await db.movieNightWeek.create({
     data: {
       weekNumber: nextWeekNumber,
-      status: isInPerson ? "IN_PERSON_VOTING" : "CATEGORY_VOTING",
-      themeCategoryId,
+      status,
+      themeId,
+      selectedThemeId,
       isInPerson,
     },
   });

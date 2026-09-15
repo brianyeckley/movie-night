@@ -1,25 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Clapperboard, Info, Popcorn } from "lucide-react";
+import { Clapperboard, Info, Popcorn, Sparkles } from "lucide-react";
 import { createWeekAction } from "@/app/actions/week";
-
-interface ThemeCategory {
-  id: string;
-  name: string;
-}
+import type { Theme } from "@/lib/types";
 
 interface AdminStartWeekFormClientProps {
-  themeCategories: ThemeCategory[];
+  themes: Theme[];
 }
 
+type WeekMode = "standard" | "theme-week" | "in-person";
+
 export default function AdminStartWeekFormClient({
-  themeCategories,
+  themes,
 }: AdminStartWeekFormClientProps) {
-  const [isInPerson, setIsInPerson] = useState(false);
-  const [theme, setTheme] = useState(
-    themeCategories.length > 0 ? themeCategories[0].name : ""
-  );
+  const [mode, setMode] = useState<WeekMode>("standard");
+  const [theme, setTheme] = useState(themes.length > 0 ? themes[0].name : "");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -29,8 +25,13 @@ export default function AdminStartWeekFormClient({
 
     startTransition(async () => {
       try {
-        // Bypassing theme selection if in person, passing undefined triggers default "In Person Physical Media"
-        await createWeekAction(isInPerson ? undefined : theme, isInPerson);
+        if (mode === "in-person") {
+          await createWeekAction(undefined, true, false);
+        } else if (mode === "theme-week") {
+          await createWeekAction(theme, false, true);
+        } else {
+          await createWeekAction(theme, false, false);
+        }
       } catch (err) {
         console.error("Failed to start week:", err);
         setError(
@@ -51,7 +52,7 @@ export default function AdminStartWeekFormClient({
         <div className="mode-picker">
           <label
             className={`glass-panel mode-option mode-option-standard ${
-              !isInPerson ? "selected" : ""
+              mode === "standard" ? "selected" : ""
             }`}
             aria-disabled={isPending}
           >
@@ -59,11 +60,13 @@ export default function AdminStartWeekFormClient({
               type="radio"
               name="weekMode"
               value="standard"
-              checked={!isInPerson}
+              checked={mode === "standard"}
               disabled={isPending}
-              onChange={() => setIsInPerson(false)}
+              onChange={() => setMode("standard")}
             />
-            <span className="mode-option-icon"><Clapperboard size="1em" strokeWidth={1} className="inline-icon" /></span>
+            <span className="mode-option-icon">
+              <Clapperboard size="1em" strokeWidth={1} className="inline-icon" />
+            </span>
             <div className="flex-col gap-xxs">
               <span className="font-bold text-md text-primary-var">Standard Week</span>
               <span className="text-xs text-secondary">
@@ -73,8 +76,33 @@ export default function AdminStartWeekFormClient({
           </label>
 
           <label
+            className={`glass-panel mode-option mode-option-theme-week ${
+              mode === "theme-week" ? "selected" : ""
+            }`}
+            aria-disabled={isPending}
+          >
+            <input
+              type="radio"
+              name="weekMode"
+              value="theme-week"
+              checked={mode === "theme-week"}
+              disabled={isPending}
+              onChange={() => setMode("theme-week")}
+            />
+            <span className="mode-option-icon">
+              <Sparkles size="1em" strokeWidth={1} className="inline-icon" />
+            </span>
+            <div className="flex-col gap-xxs">
+              <span className="font-bold text-md text-primary-var">Dedicated Theme Week</span>
+              <span className="text-xs text-secondary">
+                Skip category voting! Vote directly on movies tagged with this theme (Halloween, Christmas, etc.).
+              </span>
+            </div>
+          </label>
+
+          <label
             className={`glass-panel mode-option mode-option-in-person ${
-              isInPerson ? "selected" : ""
+              mode === "in-person" ? "selected" : ""
             }`}
             aria-disabled={isPending}
           >
@@ -82,11 +110,13 @@ export default function AdminStartWeekFormClient({
               type="radio"
               name="weekMode"
               value="in-person"
-              checked={isInPerson}
+              checked={mode === "in-person"}
               disabled={isPending}
-              onChange={() => setIsInPerson(true)}
+              onChange={() => setMode("in-person")}
             />
-            <span className="mode-option-icon"><Popcorn size="1em" strokeWidth={1} className="inline-icon" /></span>
+            <span className="mode-option-icon">
+              <Popcorn size="1em" strokeWidth={1} className="inline-icon" />
+            </span>
             <div className="flex-col gap-xxs">
               <span className="font-bold text-md text-primary-var">In Person Night</span>
               <span className="text-xs text-secondary">
@@ -97,21 +127,21 @@ export default function AdminStartWeekFormClient({
         </div>
       </fieldset>
 
-      {!isInPerson ? (
+      {mode !== "in-person" ? (
         <div className="form-group animate-slide-in">
           <label htmlFor="week-theme" className="form-label">
-            Theme Category
+            Theme
           </label>
-          {themeCategories.length > 0 ? (
+          {themes.length > 0 ? (
             <select
               id="week-theme"
               value={theme}
               disabled={isPending}
               onChange={(e) => setTheme(e.target.value)}
-              required={!isInPerson}
+              required
               className="form-select w-full"
             >
-              {themeCategories.map((themeOption) => (
+              {themes.map((themeOption) => (
                 <option key={themeOption.id} value={themeOption.name}>
                   {themeOption.name}
                 </option>
@@ -125,14 +155,20 @@ export default function AdminStartWeekFormClient({
               disabled={isPending}
               onChange={(e) => setTheme(e.target.value)}
               placeholder="No themes found. Type to create..."
-              required={!isInPerson}
+              required
               className="form-input w-full"
             />
+          )}
+
+          {mode === "theme-week" && (
+            <div className="text-sm text-secondary italic mt-xs p-sm glass-panel text-center animate-slide-in" style={{ opacity: 0.9, backgroundColor: "var(--accent-light)", borderColor: "rgba(244, 63, 94, 0.2)" }}>
+              <Info size="1em" className="inline-icon" /> Category selection will be skipped! Voting will immediately begin on all unwatched movies tagged with <strong>&quot;{theme || "this theme"}&quot;</strong>.
+            </div>
           )}
         </div>
       ) : (
         <div className="text-sm text-secondary italic mb-sm p-sm glass-panel text-center animate-slide-in" style={{ opacity: 0.9, backgroundColor: "var(--accent-light)", borderColor: "rgba(244, 63, 94, 0.2)" }}>
-          <Info size="1em" className="inline-icon" /> The Theme will default to <strong>&quot;In Person Physical Media&quot;</strong> and the Category Selection round will be skipped.
+          <Info size="1em" className="inline-icon" /> Physical media only (4K, Blu-ray, DVD). The Category Selection round will be skipped.
         </div>
       )}
 
@@ -141,11 +177,12 @@ export default function AdminStartWeekFormClient({
       <button
         type="submit"
         disabled={isPending}
-        className={`btn w-full ${isInPerson ? "btn-accent" : "btn-primary"}`}
+        className={`btn w-full ${mode === "in-person" ? "btn-accent" : "btn-primary"}`}
       >
-        {isPending ? "Starting Week..." : "Start Week"}
+        {isPending ? "Starting Week..." : mode === "theme-week" ? "Start Dedicated Theme Week" : "Start Week"}
       </button>
     </form>
   );
 }
+
 

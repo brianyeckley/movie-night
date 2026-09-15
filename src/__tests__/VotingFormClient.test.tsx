@@ -52,6 +52,7 @@ function movie(id: string, title: string): MovieWithGenres {
     deletedAt: null,
     createdAt: new Date(),
     genres: [],
+    themes: [],
   } as MovieWithGenres;
 }
 
@@ -59,8 +60,6 @@ function category(id: string, name: string): Category {
   return {
     id,
     name,
-    isThemed: false,
-    isActive: true,
     parentId: null,
     deletedAt: null,
     createdAt: new Date(),

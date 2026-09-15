@@ -1,6 +1,11 @@
 import { AlertTriangle, Wrench } from "lucide-react";
 import { db } from "@/lib/db";
-import { getActiveUser, addCategoryAction, addSubcategoryAction } from "@/app/actions";
+import {
+  getActiveUser,
+  addCategoryAction,
+  addSubcategoryAction,
+  addThemeAction,
+} from "@/app/actions";
 import AddMovieForm from "@/components/AddMovieForm";
 import CatalogListClient from "@/components/CatalogListClient";
 import { sortMoviesByTitle } from "@/lib/movie-sort";
@@ -21,6 +26,7 @@ export default async function CatalogPage() {
             where: { deletedAt: null },
             include: {
               genres: true,
+              themes: true,
               backgroundImages: true,
             },
           },
@@ -36,6 +42,7 @@ export default async function CatalogPage() {
         },
         include: {
           genres: true,
+          themes: true,
           backgroundImages: true,
         },
       },
@@ -54,6 +61,12 @@ export default async function CatalogPage() {
 
   // Fetch all flat categories (both top-level and subcategories) for the dropdown list
   const flatCategories = await db.category.findMany({
+    where: { deletedAt: null },
+    orderBy: { name: "asc" },
+  });
+
+  // Fetch all active themes
+  const themes = await db.theme.findMany({
     where: { deletedAt: null },
     orderBy: { name: "asc" },
   });
@@ -97,6 +110,7 @@ export default async function CatalogPage() {
                   categories={categories}
                   flatCategories={flatCategories}
                   genres={genres}
+                  themes={themes}
                   isAdmin={currentUser.role === "ADMIN"}
                 />
               )}
@@ -112,7 +126,7 @@ export default async function CatalogPage() {
               <div className="sidebar-content">
               {/* Form 1: Add Movie */}
               <div className="glass-panel no-hover p-lg">
-                <AddMovieForm categories={flatCategories} genres={genres} />
+                <AddMovieForm categories={flatCategories} genres={genres} themes={themes} />
               </div>
 
               {/* Form 2: Add Category */}
@@ -122,9 +136,8 @@ export default async function CatalogPage() {
                   action={async (formData) => {
                     "use server";
                     const name = formData.get("name") as string;
-                    const isThemed = formData.get("isThemed") === "on";
                     if (name) {
-                      await addCategoryAction(name, isThemed);
+                      await addCategoryAction(name);
                     }
                   }}
                   className="form-container gap-md"
@@ -142,10 +155,6 @@ export default async function CatalogPage() {
                       className="form-input"
                     />
                   </div>
-                  <label className="checkbox-label">
-                    <input type="checkbox" name="isThemed" className="checkbox-input" />
-                    Mark as Themed Category
-                  </label>
                   <button type="submit" className="btn btn-secondary btn-md w-full">
                     Create Category
                   </button>
@@ -199,6 +208,38 @@ export default async function CatalogPage() {
                   </div>
                   <button type="submit" className="btn btn-secondary btn-md w-full">
                     Create Subcategory
+                  </button>
+                </form>
+              </div>
+
+              {/* Form 4: Add Theme */}
+              <div className="glass-panel no-hover p-lg">
+                <h3 className="text-2xl font-bold mb-lg">Add Theme</h3>
+                <form
+                  action={async (formData) => {
+                    "use server";
+                    const name = formData.get("name") as string;
+                    if (name) {
+                      await addThemeAction(name);
+                    }
+                  }}
+                  className="form-container gap-md"
+                >
+                  <div className="form-group">
+                    <label htmlFor="theme-name" className="form-label">
+                      Theme Name
+                    </label>
+                    <input
+                      id="theme-name"
+                      name="name"
+                      type="text"
+                      placeholder="e.g. Halloween, Christmas, 80s Slasher"
+                      required
+                      className="form-input"
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-secondary btn-md w-full">
+                    Create Theme
                   </button>
                 </form>
               </div>

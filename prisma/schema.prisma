@@ -23,15 +23,21 @@ model User {
 model Category {
   id            String           @id @default(uuid())
   name          String           @unique
-  isThemed      Boolean          @default(false)
-  isActive      Boolean          @default(true) // For archiving old theme categories
   parentId      String?
   parent        Category?        @relation("Subcategories", fields: [parentId], references: [id], onDelete: Cascade)
   subcategories Category[]       @relation("Subcategories")
   movies        Movie[]
-  weeks         MovieNightWeek[] @relation("ThemeCategory")
   deletedAt     DateTime?
   createdAt     DateTime         @default(now())
+}
+
+model Theme {
+  id        String           @id @default(uuid())
+  name      String           @unique
+  movies    Movie[]
+  weeks     MovieNightWeek[]
+  deletedAt DateTime?
+  createdAt DateTime         @default(now())
 }
 
 model Genre {
@@ -60,6 +66,7 @@ model Movie {
   categoryId       String
   category         Category               @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   genres           Genre[]
+  themes           Theme[]
   backgroundImages MovieBackgroundImage[]
   deletedAt        DateTime?
   createdAt        DateTime               @default(now())
@@ -82,10 +89,11 @@ model MovieNightWeek {
   // Statuses are defined by the WeekStatus union in src/lib/rounds.ts, which
   // also maps each one to the round that is open for voting.
   status                String     @default("CATEGORY_VOTING")
-  themeCategoryId       String?
-  themeCategory         Category?  @relation("ThemeCategory", fields: [themeCategoryId], references: [id])
+  themeId               String?
+  theme                 Theme?     @relation(fields: [themeId], references: [id])
   selectedCategoryId    String? // Winning category from Round 1
   selectedSubcategoryId String? // Winning subcategory from Round 2 (if applicable)
+  selectedThemeId       String? // Winning theme from Round 1 or active theme in dedicated Theme Week
   winningMovieId        String? // Final winner
   isRandomlyChosen      Boolean    @default(false)
   isInPerson            Boolean    @default(false)

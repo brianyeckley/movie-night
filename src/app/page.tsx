@@ -130,7 +130,7 @@ export default async function DashboardPage() {
   const activeWeek = await db.movieNightWeek.findFirst({
     where: ACTIVE_WEEK,
     include: {
-      themeCategory: true,
+      theme: true,
       votes: { include: { user: true } },
     },
   });
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
   const activeWinnerMovie = activeWeek?.winningMovieId
     ? await db.movie.findUnique({
         where: { id: activeWeek.winningMovieId },
-        include: { category: true, genres: true },
+        include: { category: true, genres: true, themes: true },
       })
     : null;
 
@@ -149,9 +149,9 @@ export default async function DashboardPage() {
     orderBy: { name: "asc" },
   });
 
-  // Fetch themed categories
-  const themeCategories = await db.category.findMany({
-    where: { isThemed: true, deletedAt: null },
+  // Fetch active themes
+  const themes = await db.theme.findMany({
+    where: { deletedAt: null },
     orderBy: { name: "asc" },
   });
 
@@ -162,7 +162,7 @@ export default async function DashboardPage() {
   const closedWeeks = await db.movieNightWeek.findMany({
     where: { NOT: { closedAt: null } },
     include: {
-      themeCategory: true,
+      theme: true,
       votes: { include: { user: true } },
     },
     orderBy: { closedAt: "desc" },
@@ -175,7 +175,7 @@ export default async function DashboardPage() {
 
   const pastWinners = await db.movie.findMany({
     where: { id: { in: pastWinnerIds } },
-    include: { genres: true, category: true },
+    include: { genres: true, category: true, themes: true },
   });
   const pastWinnersById = new Map(pastWinners.map((m) => [m.id, m]));
 
@@ -187,14 +187,18 @@ export default async function DashboardPage() {
     ])
   );
 
-  const [votedCategories, votedMovies] = await Promise.all([
+  const [votedCategories, votedThemes, votedMovies] = await Promise.all([
     db.category.findMany({ where: { id: { in: allTargetIds } } }),
+    db.theme.findMany({ where: { id: { in: allTargetIds } } }),
     db.movie.findMany({ where: { id: { in: allTargetIds } } }),
   ]);
 
   const targetLookup: Record<string, string> = {};
   votedCategories.forEach((c) => {
     targetLookup[c.id] = c.name;
+  });
+  votedThemes.forEach((t) => {
+    targetLookup[t.id] = t.name;
   });
   votedMovies.forEach((m) => {
     targetLookup[m.id] = m.title + (m.year ? ` (${m.year})` : "");
@@ -244,8 +248,9 @@ export default async function DashboardPage() {
 
   const allVotesIn = activeWeek ? users.every((u) => roundVotedUserIds.includes(u.id)) : false;
   const round1TiebreakerTieInfo = completedRoundsData.find((r) => r.roundCode === "ROUND_1_CATEGORY_TIEBREAKER" && r.isTie);
-  const round1TiebreakerChosenName = round1TiebreakerTieInfo && activeWeek?.selectedCategoryId
-    ? round1TiebreakerTieInfo.targets.find((t) => t.targetId === activeWeek.selectedCategoryId)?.name
+  const round1TiebreakerChosenId = activeWeek?.selectedCategoryId || activeWeek?.selectedThemeId;
+  const round1TiebreakerChosenName = round1TiebreakerTieInfo && round1TiebreakerChosenId
+    ? round1TiebreakerTieInfo.targets.find((t) => t.targetId === round1TiebreakerChosenId)?.name
     : null;
 
   const inPersonTiebreakerTieInfo = completedRoundsData.find((r) => 
@@ -353,7 +358,7 @@ export default async function DashboardPage() {
                       <h3 className="text-lg font-bold mb-md text-primary-var">
                         Admin: Start New Movie Night Week
                       </h3>
-                      <AdminStartWeekFormClient themeCategories={themeCategories} />
+                      <AdminStartWeekFormClient themes={themes} />
                     </div>
                   ) : (
                     <div className="waiting-banner">
@@ -378,7 +383,7 @@ export default async function DashboardPage() {
                         </p>
                       ) : (
                         <p className="text-secondary text-md mt-xs">
-                          Active Theme: <strong className="text-primary-color">{activeWeek.themeCategory?.name}</strong>
+                          Active Theme: <strong className="text-primary-color">{activeWeek.theme?.name || "None"}</strong>
                         </p>
                       )}
                     </div>

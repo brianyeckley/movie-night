@@ -26,6 +26,7 @@ interface EditMovieButtonProps {
     trailerUrl: string | null;
     categoryId: string;
     genres: { id: string; name: string }[];
+    themes?: { id: string; name: string }[];
     physical4K: boolean;
     physicalBluRay: boolean;
     physicalDvd: boolean;
@@ -33,6 +34,7 @@ interface EditMovieButtonProps {
   };
   categories: { id: string; name: string; parentId: string | null }[];
   genres: { id: string; name: string }[];
+  themes?: { id: string; name: string }[];
 }
 
 const PANEL_ALIGN_OPTIONS = [
@@ -53,7 +55,7 @@ const BG_POSITION_OPTIONS = [
   { value: "bottom right", label: "Bottom Right" },
 ];
 
-export default function EditMovieButton({ movie, categories, genres }: EditMovieButtonProps) {
+export default function EditMovieButton({ movie, categories, genres, themes = [] }: EditMovieButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -65,6 +67,9 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
   const [categoryId, setCategoryId] = useState(movie.categoryId);
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>(
     movie.genres.map((g) => g.id)
+  );
+  const [selectedThemeIds, setSelectedThemeIds] = useState<string[]>(
+    movie.themes ? movie.themes.map((t) => t.id) : []
   );
   const [physical4K, setPhysical4K] = useState(movie.physical4K);
   const [physicalBluRay, setPhysicalBluRay] = useState(movie.physicalBluRay);
@@ -101,6 +106,12 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
   const handleGenreToggle = (genreId: string) => {
     setSelectedGenreIds((prev) =>
       prev.includes(genreId) ? prev.filter((id) => id !== genreId) : [...prev, genreId]
+    );
+  };
+
+  const handleThemeToggle = (themeId: string) => {
+    setSelectedThemeIds((prev) =>
+      prev.includes(themeId) ? prev.filter((id) => id !== themeId) : [...prev, themeId]
     );
   };
 
@@ -156,7 +167,8 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
           selectedGenreIds,
           physical4K,
           physicalBluRay,
-          physicalDvd
+          physicalDvd,
+          selectedThemeIds
         );
         if (markWatched) {
           const result = await markMovieWatchedManuallyAction(
@@ -339,6 +351,34 @@ export default function EditMovieButton({ movie, categories, genres }: EditMovie
                   </label>
                 </div>
               </div>
+
+              {/* Themes (Optional) */}
+              {themes.length > 0 && (
+                <div className="form-group">
+                  <label className="form-label-bold">
+                    Themes (Optional)
+                  </label>
+                  <div className="checkbox-group">
+                    {themes.map((theme) => {
+                      const isChecked = selectedThemeIds.includes(theme.id);
+                      return (
+                        <label
+                          key={theme.id}
+                          className={`checkbox-label ${isChecked ? "text-primary-var" : "text-secondary"}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleThemeToggle(theme.id)}
+                            className="checkbox-input"
+                          />
+                          {theme.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Mark as Watched */}
               <div className="form-group">

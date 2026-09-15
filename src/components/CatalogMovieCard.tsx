@@ -10,6 +10,7 @@ interface CatalogMovieCardProps {
   /** Flat category list for the edit dialog's parent dropdown. */
   categories: { id: string; name: string; parentId: string | null }[];
   genres: { id: string; name: string }[];
+  themes?: { id: string; name: string }[];
   /** Removal cascades, so only admins get the control. */
   isAdmin: boolean;
   isPending: boolean;
@@ -25,6 +26,7 @@ export default function CatalogMovieCard({
   movie,
   categories,
   genres,
+  themes = [],
   isAdmin,
   isPending,
   onShowPlot,
@@ -93,6 +95,11 @@ export default function CatalogMovieCard({
               {g.name}
             </span>
           ))}
+          {movie.themes?.map((t) => (
+            <span key={t.id} className="badge-theme">
+              {t.name}
+            </span>
+          ))}
         </div>
 
         <div className="movie-card-actions">
@@ -123,6 +130,7 @@ export default function CatalogMovieCard({
             movie={movie}
             categories={categories}
             genres={genres}
+            themes={themes}
           />
           {isAdmin && (
             <button

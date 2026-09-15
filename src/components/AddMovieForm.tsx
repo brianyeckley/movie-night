@@ -16,16 +16,23 @@ interface Genre {
   name: string;
 }
 
+interface Theme {
+  id: string;
+  name: string;
+}
+
 interface AddMovieFormProps {
   categories: Category[];
   genres: Genre[];
+  themes?: Theme[];
 }
 
-export default function AddMovieForm({ categories, genres }: AddMovieFormProps) {
+export default function AddMovieForm({ categories, genres, themes = [] }: AddMovieFormProps) {
   const [imdbUrl, setImdbUrl] = useState("");
   const [trailerUrl, setTrailerUrl] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
+  const [selectedThemeIds, setSelectedThemeIds] = useState<string[]>([]);
   const [physical4K, setPhysical4K] = useState(false);
   const [physicalBluRay, setPhysicalBluRay] = useState(false);
   const [physicalDvd, setPhysicalDvd] = useState(false);
@@ -60,6 +67,14 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
     }
   };
 
+  const handleThemeChange = (themeId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedThemeIds((prev) => [...prev, themeId]);
+    } else {
+      setSelectedThemeIds((prev) => prev.filter((id) => id !== themeId));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!imdbUrl || !categoryId) {
@@ -79,12 +94,14 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
           trailerUrl,
           physical4K,
           physicalBluRay,
-          physicalDvd
+          physicalDvd,
+          selectedThemeIds
         );
         setImdbUrl("");
         setTrailerUrl("");
         setCategoryId("");
         setSelectedGenreIds([]);
+        setSelectedThemeIds([]);
         setPhysical4K(false);
         setPhysicalBluRay(false);
         setPhysicalDvd(false);
@@ -226,6 +243,26 @@ export default function AddMovieForm({ categories, genres }: AddMovieFormProps) 
           </label>
         </div>
       </div>
+
+      {themes.length > 0 && (
+        <div className="form-group">
+          <span className="form-label">Themes (Optional)</span>
+          <div className="checkbox-group">
+            {themes.map((theme) => (
+              <label key={theme.id} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={selectedThemeIds.includes(theme.id)}
+                  onChange={(e) => handleThemeChange(theme.id, e.target.checked)}
+                  disabled={isPending}
+                  className="checkbox-input"
+                />
+                {theme.name}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       <button type="submit" disabled={isPending} className="btn btn-primary mt-sm w-full">
         {isPending ? "Adding Movie..." : "Add Movie"}

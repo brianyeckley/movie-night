@@ -80,12 +80,17 @@ export async function advanceWeekRound(
         },
       });
 
-      const tiedCategories = await db.category.findMany({
-        where: { id: { in: winners } },
-      });
+      const [tiedCategories, tiedThemes] = await Promise.all([
+        db.category.findMany({ where: { id: { in: winners } } }),
+        db.theme.findMany({ where: { id: { in: winners } } }),
+      ]);
+      const tiedNames = [
+        ...tiedCategories.map((c) => c.name),
+        ...tiedThemes.map((t) => t.name),
+      ];
 
       notifyRoundAdvanced(weekId, "CATEGORY_VOTING", "CATEGORY_TIEBREAKER_VOTING", {
-        tiedItems: tiedCategories.map((c) => c.name),
+        tiedItems: tiedNames,
       }).catch((e) => console.error("Discord notification error:", e));
     } else {
       // Outright winner! Transition to MOVIE_VOTING
@@ -93,20 +98,41 @@ export async function advanceWeekRound(
       const winnerCategory = await db.category.findUnique({
         where: { id: winnerId },
       });
-      const winnerName = winnerCategory?.name || "Unknown";
 
-      await db.movieNightWeek.update({
-        where: { id: weekId },
-        data: {
-          selectedCategoryId: winnerId,
-          status: "MOVIE_VOTING",
-        },
-      });
+      if (winnerCategory) {
+        await db.movieNightWeek.update({
+          where: { id: weekId },
+          data: {
+            selectedCategoryId: winnerId,
+            selectedThemeId: null,
+            status: "MOVIE_VOTING",
+          },
+        });
 
-      notifyRoundAdvanced(weekId, "CATEGORY_VOTING", "MOVIE_VOTING", {
-        winnerName,
-        isRandom: false,
-      }).catch((e) => console.error("Discord notification error:", e));
+        notifyRoundAdvanced(weekId, "CATEGORY_VOTING", "MOVIE_VOTING", {
+          winnerName: winnerCategory.name,
+          isRandom: false,
+        }).catch((e) => console.error("Discord notification error:", e));
+      } else {
+        const winnerTheme = await db.theme.findUnique({
+          where: { id: winnerId },
+        });
+        const winnerName = winnerTheme?.name || "Unknown Theme";
+
+        await db.movieNightWeek.update({
+          where: { id: weekId },
+          data: {
+            selectedThemeId: winnerId,
+            selectedCategoryId: null,
+            status: "MOVIE_VOTING",
+          },
+        });
+
+        notifyRoundAdvanced(weekId, "CATEGORY_VOTING", "MOVIE_VOTING", {
+          winnerName,
+          isRandom: false,
+        }).catch((e) => console.error("Discord notification error:", e));
+      }
     }
   } 
   else if (week.status === "CATEGORY_TIEBREAKER_VOTING") {
@@ -129,20 +155,41 @@ export async function advanceWeekRound(
     const winnerCategory = await db.category.findUnique({
       where: { id: winnerId },
     });
-    const winnerName = winnerCategory?.name || "Unknown";
 
-    await db.movieNightWeek.update({
-      where: { id: weekId },
-      data: {
-        selectedCategoryId: winnerId,
-        status: "MOVIE_VOTING",
-      },
-    });
+    if (winnerCategory) {
+      await db.movieNightWeek.update({
+        where: { id: weekId },
+        data: {
+          selectedCategoryId: winnerId,
+          selectedThemeId: null,
+          status: "MOVIE_VOTING",
+        },
+      });
 
-    notifyRoundAdvanced(weekId, "CATEGORY_TIEBREAKER_VOTING", "MOVIE_VOTING", {
-      winnerName,
-      isRandom,
-    }).catch((e) => console.error("Discord notification error:", e));
+      notifyRoundAdvanced(weekId, "CATEGORY_TIEBREAKER_VOTING", "MOVIE_VOTING", {
+        winnerName: winnerCategory.name,
+        isRandom,
+      }).catch((e) => console.error("Discord notification error:", e));
+    } else {
+      const winnerTheme = await db.theme.findUnique({
+        where: { id: winnerId },
+      });
+      const winnerName = winnerTheme?.name || "Unknown Theme";
+
+      await db.movieNightWeek.update({
+        where: { id: weekId },
+        data: {
+          selectedThemeId: winnerId,
+          selectedCategoryId: null,
+          status: "MOVIE_VOTING",
+        },
+      });
+
+      notifyRoundAdvanced(weekId, "CATEGORY_TIEBREAKER_VOTING", "MOVIE_VOTING", {
+        winnerName,
+        isRandom,
+      }).catch((e) => console.error("Discord notification error:", e));
+    }
   } 
   else if (week.status === "MOVIE_VOTING") {
     // ----------------------------------------

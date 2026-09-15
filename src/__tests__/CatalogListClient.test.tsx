@@ -26,8 +26,6 @@ describe("CatalogListClient", () => {
     {
       id: "cat-empty",
       name: "Empty Category",
-      isThemed: false,
-      isActive: true,
       parentId: null,
       deletedAt: null,
       createdAt: new Date(),
@@ -36,8 +34,6 @@ describe("CatalogListClient", () => {
         {
           id: "sub-empty",
           name: "Empty Subcategory",
-          isThemed: false,
-          isActive: true,
           parentId: "cat-empty",
           deletedAt: null,
           createdAt: new Date(),
@@ -48,8 +44,6 @@ describe("CatalogListClient", () => {
     {
       id: "cat-action",
       name: "Action",
-      isThemed: false,
-      isActive: true,
       parentId: null,
       deletedAt: null,
       createdAt: new Date(),
@@ -74,6 +68,7 @@ describe("CatalogListClient", () => {
           deletedAt: null,
           createdAt: new Date(),
           genres: [],
+          themes: [],
           backgroundImages: [],
         },
       ],
@@ -85,8 +80,6 @@ describe("CatalogListClient", () => {
     {
       id: "cat-empty",
       name: "Empty Category",
-      isThemed: false,
-      isActive: true,
       parentId: null,
       deletedAt: null,
       createdAt: new Date(),
@@ -94,8 +87,6 @@ describe("CatalogListClient", () => {
     {
       id: "sub-empty",
       name: "Empty Subcategory",
-      isThemed: false,
-      isActive: true,
       parentId: "cat-empty",
       deletedAt: null,
       createdAt: new Date(),
@@ -103,8 +94,6 @@ describe("CatalogListClient", () => {
     {
       id: "cat-action",
       name: "Action",
-      isThemed: false,
-      isActive: true,
       parentId: null,
       deletedAt: null,
       createdAt: new Date(),

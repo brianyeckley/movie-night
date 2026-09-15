@@ -49,21 +49,31 @@ async function loadApprovedRoundVotes(weekId: string, round: RoundCode) {
 
 // 1. Round 1: Category Voting
 export async function CategoryVotingForm({ week, currentUserId }: RoundFormProps) {
-  // Fetch active categories (Comedy, Other, Legacy, and active Theme).
-  // A week without a theme contributes no id clause at all - matching on
-  // `{ id: null }` would be meaningless.
-  const categories = await db.category.findMany({
-    where: {
-      deletedAt: null,
-      parentId: null,
-      OR: [
-        { name: "Comedy" },
-        { name: "Other" },
-        { name: "Legacy" },
-        ...(week.themeCategoryId ? [{ id: week.themeCategoryId }] : []),
-      ],
-    },
-  });
+  // Fetch active categories (Comedy, Other, Legacy) and week's active Theme.
+  const [categories, theme] = await Promise.all([
+    db.category.findMany({
+      where: {
+        deletedAt: null,
+        parentId: null,
+        OR: [
+          { name: "Comedy" },
+          { name: "Other" },
+          { name: "Legacy" },
+        ],
+      },
+      orderBy: { name: "asc" },
+    }),
+    week.themeId
+      ? db.theme.findUnique({
+          where: { id: week.themeId },
+        })
+      : null,
+  ]);
+
+  const votingOptions = [
+    ...categories.map((c) => ({ id: c.id, name: c.name, isTheme: false })),
+    ...(theme ? [{ id: theme.id, name: theme.name, isTheme: true }] : []),
+  ];
 
   // Find if user already voted
   const userVote = await db.weekVote.findFirst({
@@ -79,7 +89,7 @@ export async function CategoryVotingForm({ week, currentUserId }: RoundFormProps
 
       <CategoryVotingFormClient
         weekId={week.id}
-        categories={categories}
+        categories={votingOptions}
         initialVoteId={userVote?.targetId || null}
       />
     </div>
@@ -116,32 +126,60 @@ export async function CategoryTiebreakerVotingForm({ week, currentUserId }: Roun
   );
 }
 
-// 2. Round 2: Movie/Subcategory Voting in Category
+// 2. Round 2: Movie/Subcategory Voting in Category or Theme
 export async function MovieVotingForm({ week, currentUserId }: RoundFormProps) {
-  if (!week.selectedCategoryId) return <p>Category not selected.</p>;
+  if (!week.selectedCategoryId && !week.selectedThemeId) {
+    return <p>Category or Theme not selected.</p>;
+  }
 
-  const category = await db.category.findUnique({
-    where: { id: week.selectedCategoryId },
-  });
+  let titleTarget = "";
+  let movies: MovieWithGenres[] = [];
+  let subcategories: Category[] = [];
 
-  const isLegacy = category?.name === "Legacy";
+  if (week.selectedThemeId) {
+    // Theme week or theme won Round 1
+    const theme = await db.theme.findUnique({
+      where: { id: week.selectedThemeId },
+    });
+    titleTarget = `Theme: ${theme?.name ?? "Theme"}`;
 
-  // Movies in this category (exclude watched, unless it is Legacy)
-  const rawMovies = await db.movie.findMany({
-    where: {
-      deletedAt: null,
-      categoryId: week.selectedCategoryId,
-      OR: isLegacy ? undefined : [{ watched: false }],
-    },
-    include: { genres: true },
-  });
-  const movies = sortMoviesByTitle(rawMovies);
+    const rawMovies = await db.movie.findMany({
+      where: {
+        deletedAt: null,
+        watched: false,
+        themes: {
+          some: { id: week.selectedThemeId },
+        },
+      },
+      include: { genres: true, themes: true },
+    });
+    movies = sortMoviesByTitle(rawMovies);
+    subcategories = [];
+  } else if (week.selectedCategoryId) {
+    const category = await db.category.findUnique({
+      where: { id: week.selectedCategoryId },
+    });
+    titleTarget = category?.name ?? "Category";
 
-  // Subcategories in this category
-  const subcategories = await db.category.findMany({
-    where: { parentId: week.selectedCategoryId, deletedAt: null },
-    orderBy: { name: "asc" },
-  });
+    const isLegacy = category?.name === "Legacy";
+
+    // Movies in this category (exclude watched, unless it is Legacy)
+    const rawMovies = await db.movie.findMany({
+      where: {
+        deletedAt: null,
+        categoryId: week.selectedCategoryId,
+        OR: isLegacy ? undefined : [{ watched: false }],
+      },
+      include: { genres: true, themes: true },
+    });
+    movies = sortMoviesByTitle(rawMovies);
+
+    // Subcategories in this category
+    subcategories = await db.category.findMany({
+      where: { parentId: week.selectedCategoryId, deletedAt: null },
+      orderBy: { name: "asc" },
+    });
+  }
 
   // User's current votes in this round
   const userVotes = await db.weekVote.findMany({
@@ -152,15 +190,15 @@ export async function MovieVotingForm({ week, currentUserId }: RoundFormProps) {
   return (
     <div>
       <h3 className="text-3xl font-bold mb-sm">
-        Round 2: Select Movies in <span className="text-primary-color">{category?.name}</span>
+        Round 2: Select Movies in <span className="text-primary-color">{titleTarget}</span>
       </h3>
       <p className="text-secondary mb-xl text-md">
-        Select movies or subcategories from the winning category. If one movie wins outright, it becomes the weekly winner immediately! (Max 2 Votes)
+        Select movies or subcategories from the winning category or theme. If one movie wins outright, it becomes the weekly winner immediately! (Max 2 Votes)
       </p>
 
       {movies.length === 0 && subcategories.length === 0 ? (
         <p className="text-muted italic py-sm">
-          No options created in this category yet. Go to the Catalog tab to add movies or subcategories!
+          No options found in this selection yet. Go to the Catalog tab to add movies or tag them with this theme!
         </p>
       ) : (
         <MovieVotingFormClient
@@ -206,7 +244,7 @@ export async function SubcategoryVotingForm({ week, currentUserId }: RoundFormPr
     const tiedMovieIds = r2bTiedIds.filter((id) => id !== week.selectedSubcategoryId);
     const rawTiedMovies = await db.movie.findMany({
       where: { id: { in: tiedMovieIds } },
-      include: { genres: true },
+      include: { genres: true, themes: true },
     });
     movies = sortMoviesByTitle(rawTiedMovies);
   } else {
@@ -223,13 +261,13 @@ export async function SubcategoryVotingForm({ week, currentUserId }: RoundFormPr
       const tiedMovieIds = r2TiedIds.filter((id) => id !== week.selectedSubcategoryId);
       const rawTiedMovies = await db.movie.findMany({
         where: { id: { in: tiedMovieIds } },
-        include: { genres: true },
+        include: { genres: true, themes: true },
       });
       movies = sortMoviesByTitle(rawTiedMovies);
     } else {
       const rawSubMovies = await db.movie.findMany({
         where: { categoryId: week.selectedSubcategoryId, watched: false, deletedAt: null },
-        include: { genres: true },
+        include: { genres: true, themes: true },
       });
       movies = sortMoviesByTitle(rawSubMovies);
     }
@@ -547,7 +585,7 @@ const IN_PERSON_ROUND_VIEWS: Record<InPersonStatus, InPersonRoundView> = {
               { physicalDvd: true },
             ],
           },
-          include: { genres: true },
+          include: { genres: true, themes: true },
         })
       ),
   },

@@ -10,6 +10,7 @@ import type {
   Category,
   Genre,
   MovieWithGenres,
+  Theme,
 } from "@/lib/types";
 import { sortMoviesByTitle } from "@/lib/movie-sort";
 
@@ -17,6 +18,7 @@ interface CatalogListClientProps {
   categories: CatalogCategory[];
   flatCategories: Category[];
   genres: Genre[];
+  themes?: Theme[];
   /** Deletions cascade, so only admins get the controls. */
   isAdmin: boolean;
 }
@@ -25,11 +27,13 @@ export default function CatalogListClient({
   categories,
   flatCategories,
   genres,
+  themes = [],
   isAdmin,
 }: CatalogListClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenreIds, setSelectedGenreIds] = useState<Set<string>>(new Set());
   const [selectedFormats, setSelectedFormats] = useState<Set<string>>(new Set());
+  const [selectedThemeIds, setSelectedThemeIds] = useState<Set<string>>(new Set());
   const [selectedPlotMovie, setSelectedPlotMovie] = useState<MovieWithGenres | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -59,6 +63,18 @@ export default function CatalogListClient({
     });
   };
 
+  const handleThemeToggle = (themeId: string) => {
+    setSelectedThemeIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(themeId)) {
+        next.delete(themeId);
+      } else {
+        next.add(themeId);
+      }
+      return next;
+    });
+  };
+
   const handleRemoveMovie = (movie: MovieWithGenres) => {
     if (
       confirm(
@@ -75,9 +91,14 @@ export default function CatalogListClient({
     setSearchTerm("");
     setSelectedGenreIds(new Set());
     setSelectedFormats(new Set());
+    setSelectedThemeIds(new Set());
   };
 
-  const hasActiveFilters = searchTerm !== "" || selectedGenreIds.size > 0 || selectedFormats.size > 0;
+  const hasActiveFilters =
+    searchTerm !== "" ||
+    selectedGenreIds.size > 0 ||
+    selectedFormats.size > 0 ||
+    selectedThemeIds.size > 0;
 
   // Client-side filtering logic
   const filteredCategories = useMemo(() => {
@@ -107,6 +128,12 @@ export default function CatalogListClient({
           (selectedFormats.has("Blu-ray") && movie.physicalBluRay) ||
           (selectedFormats.has("DVD") && movie.physicalDvd);
         if (!matchesFormat) return false;
+      }
+
+      if (selectedThemeIds.size > 0) {
+        if (!movie.themes || !movie.themes.some((t) => selectedThemeIds.has(t.id))) {
+          return false;
+        }
       }
 
       return true;
@@ -156,7 +183,7 @@ export default function CatalogListClient({
         delete (copy as { isMatch?: boolean }).isMatch;
         return copy;
       });
-  }, [categories, searchTerm, selectedGenreIds, selectedFormats, hasActiveFilters]);
+  }, [categories, searchTerm, selectedGenreIds, selectedFormats, selectedThemeIds, hasActiveFilters]);
 
   return (
     <div className="flex-col gap-xl">
@@ -244,6 +271,28 @@ export default function CatalogListClient({
             </div>
           )}
 
+          {/* Themes Filter */}
+          {themes.length > 0 && (
+            <div className="filter-section">
+              <div className="filter-label">Themes</div>
+              <div className="filter-pills-row">
+                {themes.map((t) => {
+                  const isActive = selectedThemeIds.has(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => handleThemeToggle(t.id)}
+                      className={`filter-pill ${isActive ? "active" : ""}`}
+                    >
+                      {t.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {hasActiveFilters && (
             <div className="flex-row justify-end">
               <button
@@ -291,7 +340,6 @@ export default function CatalogListClient({
                   <div className="category-title">
                     <span className="chevron-icon"><ChevronRight size="1em" className="inline-icon" /></span>
                     <span>{cat.name}</span>
-                    {cat.isThemed && <span className="badge-theme">Theme</span>}
                   </div>
                   <div className="flex-row items-center gap-sm">
                     <span className="category-count-badge">
@@ -369,6 +417,7 @@ export default function CatalogListClient({
                                   movie={movie}
                                   categories={flatCategories}
                                   genres={genres}
+                                  themes={themes}
                                   isAdmin={isAdmin}
                                   isPending={isPending}
                                   onShowPlot={setSelectedPlotMovie}
@@ -397,6 +446,7 @@ export default function CatalogListClient({
                             movie={movie}
                             categories={flatCategories}
                             genres={genres}
+                            themes={themes}
                             isAdmin={isAdmin}
                             isPending={isPending}
                             onShowPlot={setSelectedPlotMovie}

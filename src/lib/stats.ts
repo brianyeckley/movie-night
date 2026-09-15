@@ -149,7 +149,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
       votes: {
         include: { user: true },
       },
-      themeCategory: true,
+      theme: true,
     },
     orderBy: { closedAt: "desc" },
   });
@@ -168,7 +168,7 @@ export async function getLeaderboardStats(): Promise<LeaderboardData> {
 
   const movies = await db.movie.findMany({
     where: { id: { in: Array.from(new Set([...winnerIds, ...allVotedMovieIds])) } },
-    include: { category: true, genres: true },
+    include: { category: true, genres: true, themes: true },
   });
 
   const movieById = new Map<string, MovieWithGenresAndCategory>(

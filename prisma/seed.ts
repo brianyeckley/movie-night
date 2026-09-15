@@ -124,13 +124,13 @@ async function main() {
     create: { name: "Legacy" },
   });
 
-  const godzilla = await prisma.category.upsert({
+  const godzilla = await prisma.theme.upsert({
     where: { name: "Godzilla" },
     update: {},
-    create: { name: "Godzilla", isThemed: true },
+    create: { name: "Godzilla" },
   });
 
-  console.log("Seeded Categories: Comedy, Other, Legacy, Godzilla");
+  console.log("Seeded Categories: Comedy, Other, Legacy; Seeded Theme: Godzilla");
 
   // 4. Seed Subcategories
   const vanDamme = await prisma.category.upsert({

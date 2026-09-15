@@ -10,21 +10,22 @@ import type { Prisma } from "@/generated/prisma/client";
 
 export type Category = Prisma.CategoryModel;
 export type Genre = Prisma.GenreModel;
+export type Theme = Prisma.ThemeModel;
 export type User = Prisma.UserModel;
 
 /** A movie as rendered in a voting row. */
 export type MovieWithGenres = Prisma.MovieGetPayload<{
-  include: { genres: true };
+  include: { genres: true; themes: true };
 }>;
 
 /** A movie plus its category, as rendered on the winner and catalog views. */
 export type MovieWithGenresAndCategory = Prisma.MovieGetPayload<{
-  include: { genres: true; category: true };
+  include: { genres: true; category: true; themes: true };
 }>;
 
 /** A movie plus its background images, as edited in the catalog view. */
 export type MovieWithGenresAndBackgrounds = Prisma.MovieGetPayload<{
-  include: { genres: true; backgroundImages: true };
+  include: { genres: true; themes: true; backgroundImages: true };
 }>;
 
 /**
@@ -33,15 +34,15 @@ export type MovieWithGenresAndBackgrounds = Prisma.MovieGetPayload<{
  */
 export type CatalogCategory = Prisma.CategoryGetPayload<{
   include: {
-    subcategories: { include: { movies: { include: { genres: true; backgroundImages: true } } } };
-    movies: { include: { genres: true; backgroundImages: true } };
+    subcategories: { include: { movies: { include: { genres: true; themes: true; backgroundImages: true } } } };
+    movies: { include: { genres: true; themes: true; backgroundImages: true } };
   };
 }>;
 
 /** The active week as loaded by the dashboard, with its theme and every vote. */
 export type ActiveWeek = Prisma.MovieNightWeekGetPayload<{
   include: {
-    themeCategory: true;
+    theme: true;
     votes: { include: { user: true } };
   };
 }>;
@@ -66,7 +67,7 @@ export interface RoundResult {
 
 /** A closed week plus its resolved winning movie and voting history, as rendered in "Past Movie Nights". */
 export type PastWeek = Prisma.MovieNightWeekGetPayload<{
-  include: { themeCategory: true };
+  include: { theme: true };
 }> & {
   winner: MovieWithGenresAndCategory | null;
   votingHistory?: RoundResult[];

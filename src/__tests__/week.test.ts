@@ -16,6 +16,14 @@ vi.mock("@/lib/db", () => ({
     user: {
       findMany: vi.fn().mockResolvedValue([]),
     },
+    theme: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+    },
     category: {
       findMany: vi.fn().mockResolvedValue([]),
       findUnique: vi.fn(),
@@ -105,30 +113,27 @@ describe("Week Management Server Actions", () => {
         return { weekNumber: 5 } as any; // Last week
       }) as any);
 
-      vi.mocked(db.category.findUnique).mockResolvedValueOnce(null); // Category doesn't exist
-      vi.mocked(db.category.create).mockResolvedValueOnce({ id: "cat-new", name: "Sci-Fi" } as any);
+      vi.mocked(db.theme.findFirst).mockResolvedValueOnce(null).mockResolvedValueOnce(null); // Theme doesn't exist
+      vi.mocked(db.theme.create).mockResolvedValueOnce({ id: "theme-new", name: "Sci-Fi" } as any);
       vi.mocked(db.movieNightWeek.create).mockResolvedValueOnce({ id: "week-6", weekNumber: 6 } as any);
 
       await createWeekAction("Sci-Fi");
 
-      expect(db.category.updateMany).toHaveBeenCalledWith({
-        where: { isThemed: true },
-        data: { isActive: false },
-      });
-      expect(db.category.create).toHaveBeenCalledWith({
-        data: { name: "Sci-Fi", isThemed: true, isActive: true },
+      expect(db.theme.create).toHaveBeenCalledWith({
+        data: { name: "Sci-Fi" },
       });
       expect(db.movieNightWeek.create).toHaveBeenCalledWith({
         data: {
           weekNumber: 6,
           status: "CATEGORY_VOTING",
-          themeCategoryId: "cat-new",
+          themeId: "theme-new",
+          selectedThemeId: null,
           isInPerson: false,
         },
       });
     });
 
-    it("creates an In-Person week and skips categories selection using default theme", async () => {
+    it("creates an In-Person week and skips categories selection", async () => {
       vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
       vi.mocked(db.movieNightWeek.findFirst).mockImplementation((async ({ where }: any) => {
         // The active-week lookup filters on closedAt; the other findFirst
@@ -137,26 +142,40 @@ describe("Week Management Server Actions", () => {
         return { weekNumber: 10 } as any; // Last week
       }) as any);
 
-      // Category "In Person Physical Media" already exists
-      vi.mocked(db.category.findUnique).mockResolvedValueOnce({ id: "cat-inperson", name: "In Person Physical Media" } as any);
-      vi.mocked(db.category.update).mockResolvedValueOnce({ id: "cat-inperson", name: "In Person Physical Media" } as any);
       vi.mocked(db.movieNightWeek.create).mockResolvedValueOnce({ id: "week-11", weekNumber: 11 } as any);
 
       await createWeekAction(undefined, true);
 
-      expect(db.category.findUnique).toHaveBeenCalledWith({
-        where: { name: "In Person Physical Media" },
-      });
-      expect(db.category.update).toHaveBeenCalledWith({
-        where: { id: "cat-inperson" },
-        data: { isActive: true, isThemed: true, deletedAt: null },
-      });
       expect(db.movieNightWeek.create).toHaveBeenCalledWith({
         data: {
           weekNumber: 11,
           status: "IN_PERSON_VOTING",
-          themeCategoryId: "cat-inperson",
+          themeId: null,
+          selectedThemeId: null,
           isInPerson: true,
+        },
+      });
+    });
+
+    it("creates a Dedicated Theme Week successfully and starts directly in MOVIE_VOTING", async () => {
+      vi.mocked(getActiveUser).mockResolvedValueOnce(mockAdmin);
+      vi.mocked(db.movieNightWeek.findFirst).mockImplementation((async ({ where }: any) => {
+        if (where && "closedAt" in where) return null;
+        return { weekNumber: 6 } as any;
+      }) as any);
+
+      vi.mocked(db.theme.findFirst).mockResolvedValueOnce({ id: "theme-halloween", name: "Halloween" } as any);
+      vi.mocked(db.movieNightWeek.create).mockResolvedValueOnce({ id: "week-7", weekNumber: 7 } as any);
+
+      await createWeekAction("Halloween", false, true);
+
+      expect(db.movieNightWeek.create).toHaveBeenCalledWith({
+        data: {
+          weekNumber: 7,
+          status: "MOVIE_VOTING",
+          themeId: "theme-halloween",
+          selectedThemeId: "theme-halloween",
+          isInPerson: false,
         },
       });
     });
@@ -300,6 +319,7 @@ describe("Week Management Server Actions", () => {
         where: { id: "week-1" },
         data: {
           selectedCategoryId: "cat-1",
+          selectedThemeId: null,
           status: "MOVIE_VOTING",
         },
       });
@@ -333,6 +353,7 @@ describe("Week Management Server Actions", () => {
         where: { id: "week-1" },
         data: {
           selectedCategoryId: "cat-1",
+          selectedThemeId: null,
           status: "MOVIE_VOTING",
         },
       });
@@ -352,7 +373,7 @@ describe("Week Management Server Actions", () => {
         { id: "user-1", isApproved: true },
         { id: "user-2", isApproved: true },
       ] as any);
-      vi.mocked(db.category.findUnique).mockImplementation((async ({ where: { id } }: any) => {
+      vi.mocked(db.category.findUnique).mockImplementationOnce((async ({ where: { id } }: any) => {
         if (id === "cat-1") return { id: "cat-1", name: "Comedy" } as any;
         if (id === "cat-2") return { id: "cat-2", name: "Sci-Fi" } as any;
         return null;
