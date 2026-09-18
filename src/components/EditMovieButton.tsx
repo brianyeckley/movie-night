@@ -22,6 +22,7 @@ interface EditMovieButtonProps {
   movie: {
     id: string;
     title: string;
+    posterUrl?: string | null;
     imdbUrl: string | null;
     trailerUrl: string | null;
     categoryId: string;
@@ -62,6 +63,7 @@ export default function EditMovieButton({ movie, categories, genres, themes = []
 
   // Form states
   const [title, setTitle] = useState(movie.title);
+  const [posterUrl, setPosterUrl] = useState(movie.posterUrl || "");
   const [imdbUrl, setImdbUrl] = useState(movie.imdbUrl || "");
   const [trailerUrl, setTrailerUrl] = useState(movie.trailerUrl || "");
   const [categoryId, setCategoryId] = useState(movie.categoryId);
@@ -158,6 +160,10 @@ export default function EditMovieButton({ movie, categories, genres, themes = []
     e.preventDefault();
     startTransition(async () => {
       try {
+        const isPosterDirty = posterUrl !== (movie.posterUrl || "");
+        const isImdbDirty = imdbUrl !== (movie.imdbUrl || "");
+        const finalPosterUrl = isImdbDirty && !isPosterDirty ? undefined : posterUrl;
+
         await updateMovieAction(
           movie.id,
           title,
@@ -168,7 +174,8 @@ export default function EditMovieButton({ movie, categories, genres, themes = []
           physical4K,
           physicalBluRay,
           physicalDvd,
-          selectedThemeIds
+          selectedThemeIds,
+          finalPosterUrl
         );
         if (markWatched) {
           const result = await markMovieWatchedManuallyAction(
@@ -255,6 +262,35 @@ export default function EditMovieButton({ movie, categories, genres, themes = []
                 <span className="text-xs text-muted italic">
                   Note: Changing this will automatically trigger metadata scraping.
                 </span>
+              </div>
+
+              {/* Image URL Input */}
+              <div className="form-group">
+                <label className="form-label-bold">
+                  Image URL
+                </label>
+                <input
+                  type="url"
+                  value={posterUrl}
+                  onChange={(e) => setPosterUrl(e.target.value)}
+                  placeholder="https://m.media-amazon.com/images/..."
+                  className="form-input form-input-dark"
+                />
+                {posterUrl && (
+                  <div className="flex-row items-center gap-md mt-xs">
+                    <img
+                      key={posterUrl}
+                      src={posterUrl}
+                      alt="Poster preview"
+                      className="plot-modal-poster"
+                      style={{ maxHeight: "80px", width: "auto" }}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                      }}
+                    />
+                    <span className="text-xs text-muted">Image preview</span>
+                  </div>
+                )}
               </div>
 
               {/* YouTube URL Input */}

@@ -167,6 +167,68 @@ describe("Theme Feature & Theme Week Tests", () => {
         }),
       });
     });
+
+    it("updateMovieAction updates posterUrl when provided", async () => {
+      vi.mocked(db.movie.findUnique).mockResolvedValueOnce({
+        id: "movie-1",
+        title: "Scream",
+        imdbUrl: "https://imdb.com/title/tt0117577",
+        posterUrl: "https://broken-image.com/poster.jpg",
+      } as any);
+      vi.mocked(db.movie.update).mockResolvedValueOnce({} as any);
+
+      await updateMovieAction(
+        "movie-1",
+        "Scream (1996)",
+        "https://imdb.com/title/tt0117577",
+        undefined,
+        "cat-other",
+        ["genre-horror"],
+        true,
+        false,
+        false,
+        ["theme-halloween"],
+        "https://fixed-image.com/poster.jpg"
+      );
+
+      expect(db.movie.update).toHaveBeenCalledWith({
+        where: { id: "movie-1" },
+        data: expect.objectContaining({
+          posterUrl: "https://fixed-image.com/poster.jpg",
+        }),
+      });
+    });
+
+    it("updateMovieAction clears posterUrl when empty string is provided", async () => {
+      vi.mocked(db.movie.findUnique).mockResolvedValueOnce({
+        id: "movie-1",
+        title: "Scream",
+        imdbUrl: "https://imdb.com/title/tt0117577",
+        posterUrl: "https://broken-image.com/poster.jpg",
+      } as any);
+      vi.mocked(db.movie.update).mockResolvedValueOnce({} as any);
+
+      await updateMovieAction(
+        "movie-1",
+        "Scream (1996)",
+        "https://imdb.com/title/tt0117577",
+        undefined,
+        "cat-other",
+        ["genre-horror"],
+        true,
+        false,
+        false,
+        ["theme-halloween"],
+        ""
+      );
+
+      expect(db.movie.update).toHaveBeenCalledWith({
+        where: { id: "movie-1" },
+        data: expect.objectContaining({
+          posterUrl: null,
+        }),
+      });
+    });
   });
 
   describe("Dedicated Theme Week vs Standard Week", () => {

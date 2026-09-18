@@ -222,7 +222,8 @@ export async function updateMovieAction(
   physical4K?: boolean,
   physicalBluRay?: boolean,
   physicalDvd?: boolean,
-  themeIds?: string[]
+  themeIds?: string[],
+  posterUrl?: string | null
 ) {
   await requireUser();
 
@@ -237,7 +238,7 @@ export async function updateMovieAction(
   let stars = existingMovie.stars;
   let runtime = existingMovie.runtime;
   let plot = existingMovie.plot;
-  let posterUrl = existingMovie.posterUrl;
+  let resolvedPosterUrl = existingMovie.posterUrl;
   let imdbRating = existingMovie.imdbRating;
 
   if (imdbUrl && imdbUrl !== existingMovie.imdbUrl) {
@@ -249,7 +250,7 @@ export async function updateMovieAction(
         stars = meta.stars || null;
         runtime = meta.runtime || null;
         plot = meta.plot || null;
-        posterUrl = meta.posterUrl || null;
+        resolvedPosterUrl = meta.posterUrl || null;
         imdbRating = meta.imdbRating || null;
       }
     } catch (e) {
@@ -261,8 +262,12 @@ export async function updateMovieAction(
     stars = null;
     runtime = null;
     plot = null;
-    posterUrl = null;
+    resolvedPosterUrl = null;
     imdbRating = null;
+  }
+
+  if (posterUrl !== undefined) {
+    resolvedPosterUrl = posterUrl?.trim() || null;
   }
 
   const updateData: Prisma.MovieUpdateInput = {
@@ -274,7 +279,7 @@ export async function updateMovieAction(
     stars,
     runtime,
     plot,
-    posterUrl,
+    posterUrl: resolvedPosterUrl,
     imdbRating,
     physical4K: physical4K ?? false,
     physicalBluRay: physicalBluRay ?? false,
