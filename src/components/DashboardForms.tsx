@@ -146,10 +146,13 @@ export async function MovieVotingForm({ week, currentUserId }: RoundFormProps) {
     const rawMovies = await db.movie.findMany({
       where: {
         deletedAt: null,
-        watched: false,
         themes: {
           some: { id: week.selectedThemeId },
         },
+        OR: [
+          { watched: false },
+          { category: { name: "Legacy" } },
+        ],
       },
       include: { genres: true, themes: true },
     });

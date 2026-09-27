@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { getActiveUser } from "@/app/actions/user";
 import { fetchMovieMetadata } from "@/lib/imdb";
 
+import { MovieVotingForm } from "@/components/DashboardForms";
+
 vi.mock("@/lib/db", () => ({
   db: {
     theme: {
@@ -33,6 +35,9 @@ vi.mock("@/lib/db", () => ({
       update: vi.fn(),
     },
     user: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    weekVote: {
       findMany: vi.fn().mockResolvedValue([]),
     },
   },
@@ -353,6 +358,39 @@ describe("Theme Feature & Theme Week Tests", () => {
           selectedThemeId: null,
           status: "MOVIE_VOTING",
         },
+      });
+    });
+
+    it("MovieVotingForm queries unwatched movies and legacy movies matching the theme", async () => {
+      vi.mocked(db.theme.findUnique).mockResolvedValueOnce({
+        id: "theme-spooky",
+        name: "Spooky",
+      } as any);
+
+      vi.mocked(db.movie.findMany).mockResolvedValueOnce([]);
+
+      await MovieVotingForm({
+        week: {
+          id: "week-theme-1",
+          selectedThemeId: "theme-spooky",
+          selectedCategoryId: null,
+          status: "MOVIE_VOTING",
+        } as any,
+        currentUserId: "user-1",
+      });
+
+      expect(db.movie.findMany).toHaveBeenCalledWith({
+        where: {
+          deletedAt: null,
+          themes: {
+            some: { id: "theme-spooky" },
+          },
+          OR: [
+            { watched: false },
+            { category: { name: "Legacy" } },
+          ],
+        },
+        include: { genres: true, themes: true },
       });
     });
   });
