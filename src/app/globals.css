@@ -738,7 +738,13 @@ details.movie-row-details {
 .desktop-user {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+}
+
+.mobile-header-actions {
+  display: none;
+  align-items: center;
+  gap: 8px;
 }
 
 .mobile-menu-toggle {
@@ -751,6 +757,9 @@ details.movie-row-details {
   }
   .desktop-user {
     display: none !important;
+  }
+  .mobile-header-actions {
+    display: flex !important;
   }
   .mobile-menu-toggle {
     display: inline-flex !important;
@@ -1163,6 +1172,42 @@ details.movie-row-details {
 .account-menu-item:hover {
   background: var(--glass-hover);
   color: var(--primary);
+}
+
+/* Header Google Drive button */
+.header-drive-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.header-drive-btn:hover {
+  background: var(--glass-hover);
+  border-color: var(--text-secondary);
+  transform: translateY(-1px);
+}
+
+.header-drive-btn:active {
+  transform: translateY(0);
+}
+
+.header-drive-btn svg {
+  display: block;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.header-drive-btn:hover svg {
+  transform: scale(1.1);
 }
 .mobile-hamburger-btn {
   background: none;

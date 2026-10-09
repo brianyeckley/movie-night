@@ -17,6 +17,7 @@ services:
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
       - CRON_SECRET=${CRON_SECRET}
       - GOOGLE_SPREADSHEET_ID=${GOOGLE_SPREADSHEET_ID}
+      - GOOGLE_DRIVE_URL=${GOOGLE_DRIVE_URL}
       # Only read when the seed has to create an account, which happens on a
       # fresh database. Deliberately no fallback values: the seed stops with a
       # clear message rather than creating a guessable login on a public app.

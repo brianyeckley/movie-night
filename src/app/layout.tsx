@@ -58,11 +58,15 @@ export default async function RootLayout({
 }>) {
   // Get currently logged in user
   const currentUser = await getActiveUser();
+  const googleDriveUrl =
+    process.env.GOOGLE_DRIVE_URL ||
+    process.env.NEXT_PUBLIC_GOOGLE_DRIVE_URL ||
+    "https://drive.google.com/";
 
   return (
     <html lang="en" className={`${specialGothic.variable} ${specialGothicExpandedOne.variable} ${geistMono.variable}`}>
       <body>
-        <Header currentUser={currentUser} />
+        <Header currentUser={currentUser} googleDriveUrl={googleDriveUrl} />
         <div className="flex-1 flex-col">{children}</div>
       </body>
     </html>
