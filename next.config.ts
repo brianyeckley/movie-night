@@ -7,7 +7,11 @@ const nextConfig: NextConfig = {
   // it's actually present in the runtime image's node_modules, which both
   // the app itself and the prisma/*.ts scripts run via `tsx` depend on.
   outputFileTracingIncludes: {
-    "/**": ["./node_modules/@prisma/adapter-better-sqlite3/**"],
+    "/**": [
+      "./node_modules/@prisma/adapter-better-sqlite3/**",
+      "./node_modules/@prisma/driver-adapter-utils/**",
+      "./node_modules/@prisma/debug/**",
+    ],
   },
 };
 

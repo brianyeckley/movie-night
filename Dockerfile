@@ -63,6 +63,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # dropped the driver adapter once already and took the whole boot down with
 # it; copy the database packages in explicitly rather than trusting it.
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma/adapter-better-sqlite3 ./node_modules/@prisma/adapter-better-sqlite3
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma/driver-adapter-utils ./node_modules/@prisma/driver-adapter-utils
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma/debug ./node_modules/@prisma/debug
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/bindings ./node_modules/bindings
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/file-uri-to-path ./node_modules/file-uri-to-path
