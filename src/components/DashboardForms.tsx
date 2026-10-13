@@ -14,6 +14,7 @@ import {
   FinalVotingFormClient,
 } from "@/components/VotingFormClient";
 import TrailerButton from "@/components/TrailerButton";
+import WeekFilePanel from "@/components/WeekFilePanel";
 import {
   getCategoryTiebreakerCategories,
   getShortlistMovies,
@@ -404,12 +405,16 @@ interface CompletedWeekViewProps {
   currentUser: User;
 }
 
-export function CompletedWeekView({
+export async function CompletedWeekView({
   week,
   movie,
   currentUser,
 }: CompletedWeekViewProps) {
   const isLegacyMovie = movie.category.name === "Legacy";
+  const weekFile = await db.weekFile.findUnique({
+    where: { weekId: week.id },
+    include: { uploadedBy: true },
+  });
 
   return (
     <div className="text-center py-md">
@@ -492,6 +497,21 @@ export function CompletedWeekView({
         ))}
       </div>
 
+      <WeekFilePanel
+        weekId={week.id}
+        currentUserId={currentUser.id}
+        isAdmin={currentUser.role === "ADMIN"}
+        file={
+          weekFile && {
+            originalName: weekFile.originalName,
+            size: Number(weekFile.size),
+            uploadedById: weekFile.uploadedById,
+            uploadedByName: weekFile.uploadedBy?.name ?? null,
+            completed: weekFile.completedAt !== null,
+          }
+        }
+      />
+
       {/* Admin Close-out Prompt */}
       {currentUser.role === "ADMIN" && (
         <div className="admin-actions-bar max-w-xl mx-auto text-left flex-col gap-md">
@@ -499,7 +519,7 @@ export function CompletedWeekView({
             <Crown size="1em" className="inline-icon" /> Admin: Close out Movie Night Week
           </h3>
           <p className="text-sm text-secondary mb-md">
-            Ready to finalize the week? Choose an action below. This will mark the movie as watched and archive the week&apos;s history.
+            Ready to finalize the week? Choose an action below. This will mark the movie as watched, archive the week&apos;s history, and delete any uploaded movie file.
           </p>
 
           {!isLegacyMovie ? (

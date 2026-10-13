@@ -76,6 +76,11 @@ This file provides system context, build/test commands, and architectural workfl
 *   `src/hooks/useVoteSelection.ts`: Selection/submit state shared by those forms.
 *   `src/lib/voting-helpers.ts`: Compiles shortlist and tiebreaker movie selections from raw database votes.
 *   `src/lib/types.ts`: Prisma-derived shapes for the data the UI renders.
+*   `src/lib/week-files.ts`: The one movie file a week's winner can have (`WeekFile`).
+    Uploaded in 32 MB chunks through `src/app/api/weeks/[weekId]/file/` (Cloudflare
+    rejects request bodies over 100 MB), stored under `MOVIE_FILES_DIR`, and deleted
+    when the week is closed or deleted. `/api` is outside the proxy's sign-in check,
+    so those routes check the session themselves.
 
 ---
 

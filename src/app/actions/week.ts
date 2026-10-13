@@ -8,6 +8,7 @@ import { advanceWeekRound } from "@/lib/round-engine";
 import { approvedVotesForRound, roundCodeForStatus } from "@/lib/rounds";
 import { ACTIVE_WEEK } from "@/lib/weeks";
 import { requireUser } from "@/lib/auth";
+import { removeWeekFile } from "@/lib/week-files";
 
 // 2. Create new Movie Night Week
 export async function createWeekAction(
@@ -106,6 +107,8 @@ export async function deleteWeekAction(weekId: string) {
     throw new Error("Unauthorized: Only Admin can delete weeks.");
   }
 
+  // The row would cascade away on its own, but not the bytes on disk.
+  await removeWeekFile(weekId);
   await db.movieNightWeek.delete({ where: { id: weekId } });
   revalidatePath("/");
 }
@@ -228,6 +231,9 @@ export async function completeWeekAction(weekId: string, addToLegacy: boolean) {
     },
   });
 
+  // The shared file is only for watching the movie, so it goes at close-out.
+  await removeWeekFile(weekId);
+
   revalidatePath("/");
 }
 
@@ -292,6 +298,9 @@ export async function completeWeekLegacyOverrideAction(weekId: string, keepInLeg
       closedAt: new Date(),
     },
   });
+
+  // The shared file is only for watching the movie, so it goes at close-out.
+  await removeWeekFile(weekId);
 
   revalidatePath("/");
 }

@@ -7,8 +7,12 @@ services:
       - "4000:4000"
     volumes:
       - ${DATA_DIR:-./data}:/app/data
+      # Movie files uploaded for the winning movie. Kept apart from DATA_DIR so
+      # they can live on a bigger drive; each is deleted when its week closes.
+      - ${MOVIE_FILES_HOST_DIR:-./movie-files}:/app/movie-files
     environment:
       - DATABASE_URL=file:/app/data/dev.db
+      - MOVIE_FILES_DIR=/app/movie-files
       # Required. The app refuses to start in production without it, so that a
       # session cookie can never be signed with a key that is in the repository.
       - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET must be set}

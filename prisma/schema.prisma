@@ -18,6 +18,7 @@ model User {
   role         String     @default("USER") // "ADMIN" or "USER"
   isApproved   Boolean    @default(false)
   votes        WeekVote[]
+  weekFiles    WeekFile[]
 }
 
 model Category {
@@ -100,6 +101,25 @@ model MovieNightWeek {
   createdAt             DateTime   @default(now())
   closedAt              DateTime?
   votes                 WeekVote[]
+  file                  WeekFile?
+}
+
+// The one shared file attached to a week's winning movie. It only lives while
+// the week awaits close-out: closing the week deletes it from disk.
+model WeekFile {
+  id           String         @id @default(uuid())
+  weekId       String         @unique
+  week         MovieNightWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  // Null once the uploader's account is deleted; the file stays attached.
+  uploadedById String?
+  uploadedBy   User?          @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  originalName String
+  // BigInt because Prisma's Int is 32-bit and movie files pass 2 GB.
+  size         BigInt
+  // Null while chunks are still arriving; the bytes on disk are the progress.
+  completedAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model WeekVote {

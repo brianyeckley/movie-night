@@ -71,3 +71,6 @@ next-env.d.ts
 
 # Uploaded background images (persisted at runtime, mirrors the sqlite ignores above)
 /data/
+
+# Uploaded winning-movie files (docker compose default MOVIE_FILES_HOST_DIR)
+/movie-files/

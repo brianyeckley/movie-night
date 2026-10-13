@@ -3692,3 +3692,92 @@ details.movie-row-details {
 
 
 
+
+/* Winning movie file: drop zone, upload progress and download row */
+.week-file-panel {
+  max-width: 650px;
+  margin: 0 auto 24px auto;
+  text-align: left;
+}
+.week-file-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  border: 2px dashed rgba(99, 102, 241, 0.35);
+  border-radius: var(--radius-lg);
+  background-color: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+/* Children would otherwise fire dragleave as the pointer crosses them. */
+.week-file-dropzone > * {
+  pointer-events: none;
+}
+.week-file-dropzone:hover,
+.week-file-dropzone:focus-visible,
+.week-file-dropzone.dragging {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  outline: none;
+}
+.week-file-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+.week-file-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.week-file-details {
+  flex: 1;
+  min-width: 0;
+}
+.week-file-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.week-file-meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.week-file-progress {
+  height: 10px;
+  margin-top: 12px;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.week-file-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 0.2s linear;
+}
+.week-file-pct {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+.week-file-error {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--error);
+}
+@media (max-width: 640px) {
+  .week-file-row {
+    padding: 12px;
+    gap: 12px;
+  }
+}
