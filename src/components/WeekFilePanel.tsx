@@ -232,9 +232,11 @@ export default function WeekFilePanel({ weekId, file, currentUserId, isAdmin }: 
               {remaining !== null && ` · ${formatDuration(remaining)} left`}
             </div>
           </div>
-          <button type="button" className="btn-secondary-sm" onClick={cancelUpload}>
-            <X size="1em" className="inline-icon" /> Cancel
-          </button>
+          <div className="week-file-actions">
+            <button type="button" className="btn-secondary-sm" onClick={cancelUpload}>
+              <X size="1em" className="inline-icon" /> Cancel
+            </button>
+          </div>
         </div>
         <div
           className="week-file-progress"
@@ -263,35 +265,37 @@ export default function WeekFilePanel({ weekId, file, currentUserId, isAdmin }: 
               {file.uploadedByName && ` · uploaded by ${file.uploadedByName}`}
             </div>
           </div>
-          <a href={baseUrl} className="btn btn-primary btn-sm" download>
-            <Download size="1em" className="inline-icon" /> Download
-          </a>
-          {canDelete &&
-            (confirmingDelete ? (
-              <div className="delete-confirm-box">
-                <span className="delete-confirm-text">Delete file?</span>
-                <button type="button" onClick={handleDelete} disabled={isDeleting} className="btn-danger-sm">
-                  {isDeleting ? "Deleting…" : "Confirm"}
-                </button>
+          <div className="week-file-actions">
+            <a href={baseUrl} className="btn btn-primary btn-sm week-file-download" download>
+              <Download size="1em" className="inline-icon" /> Download
+            </a>
+            {canDelete &&
+              (confirmingDelete ? (
+                <div className="delete-confirm-box">
+                  <span className="delete-confirm-text">Delete file?</span>
+                  <button type="button" onClick={handleDelete} disabled={isDeleting} className="btn-danger-sm">
+                    {isDeleting ? "Deleting…" : "Confirm"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingDelete(false)}
+                    disabled={isDeleting}
+                    className="btn-secondary-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => setConfirmingDelete(false)}
-                  disabled={isDeleting}
-                  className="btn-secondary-sm"
+                  onClick={() => setConfirmingDelete(true)}
+                  title="Delete this file"
+                  className="delete-icon-btn"
                 >
-                  Cancel
+                  <Trash2 size={16} />
                 </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(true)}
-                title="Delete this file"
-                className="delete-icon-btn"
-              >
-                <Trash2 size={16} />
-              </button>
-            ))}
+              ))}
+          </div>
         </div>
         {error && <p className="week-file-error">{error}</p>}
       </div>
@@ -311,9 +315,11 @@ export default function WeekFilePanel({ weekId, file, currentUserId, isAdmin }: 
             </div>
           </div>
           {canDelete && (
-            <button type="button" className="btn-secondary-sm" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? "Cancelling…" : "Cancel upload"}
-            </button>
+            <div className="week-file-actions">
+              <button type="button" className="btn-secondary-sm" onClick={handleDelete} disabled={isDeleting}>
+                {isDeleting ? "Cancelling…" : "Cancel upload"}
+              </button>
+            </div>
           )}
         </div>
         {error && <p className="week-file-error">{error}</p>}

@@ -3738,14 +3738,25 @@ details.movie-row-details {
   flex-shrink: 0;
 }
 .week-file-details {
-  flex: 1;
+  flex: 1 1 180px;
   min-width: 0;
 }
+/* Wraps rather than ellipsizes: an unbreakable release name like
+   Movie.Name.1994.1080p.mkv would otherwise set the whole page's minimum
+   width and push the layout wider than a phone screen. */
 .week-file-name {
   font-weight: 600;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+.week-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .week-file-meta {
   font-size: 0.85rem;
@@ -3779,5 +3790,16 @@ details.movie-row-details {
   .week-file-row {
     padding: 12px;
     gap: 12px;
+  }
+  /* Buttons drop onto their own full-width line under the file name. */
+  .week-file-actions {
+    width: 100%;
+  }
+  .week-file-download {
+    flex: 1;
+    justify-content: center;
+  }
+  .week-file-dropzone {
+    padding: 20px 16px;
   }
 }
