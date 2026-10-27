@@ -508,6 +508,7 @@ export async function CompletedWeekView({
             uploadedById: weekFile.uploadedById,
             uploadedByName: weekFile.uploadedBy?.name ?? null,
             completed: weekFile.completedAt !== null,
+            contentHash: weekFile.contentHash,
           }
         }
       />

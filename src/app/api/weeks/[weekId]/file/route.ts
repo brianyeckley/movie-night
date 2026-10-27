@@ -85,6 +85,19 @@ export async function GET(request: Request, { params }: Params) {
   const total = bytesOnDisk(file.id);
   if (total === 0) return error("Not found", 404);
 
+  // A finished row over a short file: bytes the uploader was told had arrived
+  // never reached the disk, most likely a restart mid-upload. Serving this
+  // hands over a movie that stops part way through and looks like a complete
+  // download, so refuse it and say what to do instead.
+  const declared = Number(file.size);
+  if (total !== declared) {
+    console.error(`WeekFile ${file.id} holds ${total} bytes but its row declares ${declared}.`);
+    return error(
+      "This file is incomplete on the server, so downloading it would give you a broken movie. It needs uploading again.",
+      409
+    );
+  }
+
   // Strip characters that would break the quoted ASCII fallback; filename*
   // carries the real name for every current browser.
   const asciiName = file.originalName.replace(/[^\x20-\x7e]|["\\]/g, "_");
@@ -94,6 +107,8 @@ export async function GET(request: Request, { params }: Params) {
     "Accept-Ranges": "bytes",
     "Cache-Control": "private, no-store",
   };
+  // Lets someone check a finished download against what the server holds.
+  if (file.contentHash) headers["X-Content-SHA256"] = file.contentHash;
 
   let start = 0;
   let end = total - 1;
