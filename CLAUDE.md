@@ -82,6 +82,25 @@ This file provides system context, build/test commands, and architectural workfl
     when the week is closed or deleted. `/api` is outside the proxy's sign-in check,
     so those routes check the session themselves.
 
+    A movie that is subtly wrong is worse than one that failed outright, so a
+    byte count is never trusted unless it was read back off the disk:
+    *   Every chunk carries an `X-Chunk-SHA256` of its bytes and is verified
+        before it counts; a mismatch is truncated off and answered with 422 so
+        the client resends that chunk. Hashing uses `crypto.subtle`, so uploads
+        need a secure context -- HTTPS, or localhost in development.
+    *   `withFileLock` serialises writes to one file. Appending is atomic per
+        write, not per request, so two overlapping requests used to interleave
+        their bytes -- which is what an interrupted upload's retry did while the
+        abandoned write was still running.
+    *   Accepted bytes are `fsync`'d before the client is told they arrived,
+        since Watchtower restarts the container on its own schedule.
+    *   Completion and every reported offset come from `statSync`, not from a
+        running total, and `GET` refuses to serve a file whose length disagrees
+        with `WeekFile.size` rather than handing over a truncated movie.
+    *   `contentHash` is the finished file's SHA-256, recorded just after the
+        last chunk (hashing a whole movie outlives a request, so it runs after
+        the response) and shown in the UI for checking a download.
+
 ---
 
 ## Voting Rounds Flow

@@ -13,6 +13,8 @@ export interface WeekFileInfo {
   uploadedByName: string | null;
   /** False while an upload is still in progress (or was abandoned). */
   completed: boolean;
+  /** SHA-256 of the finished file; briefly null right after an upload. */
+  contentHash: string | null;
 }
 
 interface Props {
@@ -49,10 +51,25 @@ class UploadError extends Error {
   }
 }
 
+/**
+ * SHA-256 of one chunk, as hex. The server checks the bytes it stored against
+ * this, so a chunk damaged in transit is caught and resent rather than ending
+ * up in the finished movie.
+ *
+ * crypto.subtle needs a secure context: HTTPS, or localhost in development.
+ */
+async function sha256Hex(chunk: Blob): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await chunk.arrayBuffer());
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 /** PUTs one chunk with XHR, since fetch cannot report upload progress. */
 function sendChunk(
   url: string,
   chunk: Blob,
+  sha256: string,
   onProgress: (loaded: number) => void,
   xhrRef: { current: XMLHttpRequest | null }
 ): Promise<number> {
@@ -61,6 +78,7 @@ function sendChunk(
     xhrRef.current = xhr;
     xhr.open("PUT", url);
     xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    xhr.setRequestHeader("X-Chunk-SHA256", sha256);
     xhr.upload.onprogress = (e) => onProgress(e.loaded);
     xhr.onload = () => {
       let body: { error?: string; received?: number } = {};
@@ -110,6 +128,12 @@ export default function WeekFilePanel({ weekId, file, currentUserId, isAdmin }: 
       setError("That file is empty.");
       return;
     }
+    if (!crypto?.subtle) {
+      // Every upload is verified chunk by chunk, and this is what does the
+      // hashing. Without it there is no safe way to send a movie.
+      setError("This browser can't verify an upload on an insecure connection. Open the site over HTTPS and try again.");
+      return;
+    }
     cancelledRef.current = false;
     setProgress({ name: selected.name, sent: 0, total: selected.size, rate: 0 });
     let started = false;
@@ -135,10 +159,12 @@ export default function WeekFilePanel({ weekId, file, currentUserId, isAdmin }: 
         if (cancelledRef.current) throw new UploadError("Upload cancelled.", -1);
         const chunk = selected.slice(offset, offset + chunkSize);
         const chunkStart = offset;
+        const chunkHash = await sha256Hex(chunk);
         try {
           offset = await sendChunk(
             `${baseUrl}/chunk?uploadId=${encodeURIComponent(uploadId)}&offset=${offset}`,
             chunk,
+            chunkHash,
             (loaded) => {
               const sent = chunkStart + loaded;
               const now = performance.now();
@@ -155,11 +181,12 @@ export default function WeekFilePanel({ weekId, file, currentUserId, isAdmin }: 
           );
           retries = 0;
         } catch (err) {
-          // Network blips and offset mismatches are retried from wherever
-          // the server says it got to; anything else is fatal.
+          // Network blips, offset mismatches and a chunk that arrived
+          // corrupted (422) are retried from wherever the server says it got
+          // to; anything else is fatal.
           if (
             err instanceof UploadError &&
-            (err.status === 0 || err.status === 409 || err.status >= 500) &&
+            (err.status === 0 || err.status === 409 || err.status === 422 || err.status >= 500) &&
             retries < MAX_CHUNK_RETRIES
           ) {
             retries++;
@@ -264,6 +291,12 @@ export default function WeekFilePanel({ weekId, file, currentUserId, isAdmin }: 
               {formatBytes(file.size)}
               {file.uploadedByName && ` · uploaded by ${file.uploadedByName}`}
             </div>
+            {file.contentHash && (
+              <div className="week-file-meta" title={file.contentHash}>
+                SHA-256 {file.contentHash.slice(0, 16)}… — check a finished download with{" "}
+                <code>shasum -a 256</code>
+              </div>
+            )}
           </div>
           <div className="week-file-actions">
             <a href={baseUrl} className="btn btn-primary btn-sm week-file-download" download>

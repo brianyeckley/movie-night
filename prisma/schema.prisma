@@ -118,6 +118,9 @@ model WeekFile {
   size         BigInt
   // Null while chunks are still arriving; the bytes on disk are the progress.
   completedAt  DateTime?
+  // SHA-256 of the finished file, so a downloader can check what they got.
+  // Filled in just after the last chunk, so briefly null on a complete file.
+  contentHash  String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 }
