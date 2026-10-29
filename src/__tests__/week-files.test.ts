@@ -6,10 +6,14 @@ import path from "path";
 import { db } from "@/lib/db";
 import { getActiveUser } from "@/app/actions/user";
 import {
+  CHUNK_SIZE,
   ChunkHashMismatchError,
   ChunkTooLargeError,
+  MAX_CHUNK_BYTES,
+  STALE_UPLOAD_MS,
   appendChunk,
   bytesOnDisk,
+  lastProgressAt,
   removeWeekFile,
   storeContentHash,
   weekFilePath,
@@ -168,6 +172,36 @@ describe("withFileLock", () => {
       appendChunk(FILE_ID, streamOf("after"), 100, sha256("after"))
     );
     expect(size).toBe(5);
+  });
+});
+
+describe("lastProgressAt", () => {
+  it("counts bytes still arriving as progress, not just a finished chunk", async () => {
+    // A slow connection can spend longer than the stale window inside one
+    // chunk. updatedAt has not moved, but the file has been growing, and the
+    // upload is not abandoned.
+    await appendChunk(FILE_ID, streamOf("bytes still landing"), 100, sha256("bytes still landing"));
+    const chunkStartedLongAgo = new Date(Date.now() - 30 * 60 * 1000);
+
+    const progress = lastProgressAt({ id: FILE_ID, updatedAt: chunkStartedLongAgo });
+
+    expect(progress).toBeGreaterThan(chunkStartedLongAgo.getTime());
+    expect(Date.now() - progress).toBeLessThan(STALE_UPLOAD_MS);
+  });
+
+  it("falls back to the row when nothing has been written yet", () => {
+    const createdAt = new Date(Date.now() - 1000);
+    expect(lastProgressAt({ id: FILE_ID, updatedAt: createdAt })).toBe(createdAt.getTime());
+  });
+});
+
+describe("chunk sizes", () => {
+  it("never asks for a chunk bigger than the server will accept", () => {
+    // A tab loaded before CHUNK_SIZE changed keeps sending the old size, so
+    // the accepted cap has to stay at or above what was ever advertised.
+    expect(CHUNK_SIZE).toBeLessThanOrEqual(MAX_CHUNK_BYTES);
+    // Both stay well under Cloudflare's 100 MB request body limit.
+    expect(MAX_CHUNK_BYTES).toBeLessThan(100 * 1024 * 1024);
   });
 });
 

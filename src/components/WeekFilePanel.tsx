@@ -7,6 +7,9 @@ import { deleteWeekFileAction } from "@/app/actions";
 
 /** The week's file as the server renders it. Sizes are plain numbers here. */
 export interface WeekFileInfo {
+  /** Names this exact file in the download link, so a resume can't be
+   *  served out of a different one that took the slot since. */
+  id: string;
   originalName: string;
   size: number;
   uploadedById: string | null;
@@ -65,6 +68,31 @@ async function sha256Hex(chunk: Blob): Promise<string> {
     .join("");
 }
 
+/**
+ * How far the file got, from one chunk's response.
+ *
+ * A 2xx without a readable `received` is not progress, whatever it looks
+ * like -- an error page from the tunnel can arrive with a 200 on it. Treating
+ * a missing count as zero used to rewind the upload to the start of the file;
+ * raising it as a retryable failure lets the next attempt ask the server where
+ * it actually got to.
+ */
+export function readChunkResponse(status: number, responseText: string): number {
+  let body: { error?: string; received?: number } = {};
+  try {
+    body = JSON.parse(responseText);
+  } catch {
+    // Non-JSON error page, e.g. from the tunnel.
+  }
+  if (status < 200 || status >= 300) {
+    throw new UploadError(body.error ?? `Upload failed (${status}).`, status, body.received);
+  }
+  if (typeof body.received !== "number") {
+    throw new UploadError("The server's answer for that chunk could not be read.", 0);
+  }
+  return body.received;
+}
+
 /** PUTs one chunk with XHR, since fetch cannot report upload progress. */
 function sendChunk(
   url: string,
@@ -81,16 +109,10 @@ function sendChunk(
     xhr.setRequestHeader("X-Chunk-SHA256", sha256);
     xhr.upload.onprogress = (e) => onProgress(e.loaded);
     xhr.onload = () => {
-      let body: { error?: string; received?: number } = {};
       try {
-        body = JSON.parse(xhr.responseText);
-      } catch {
-        // Non-JSON error page, e.g. from the tunnel.
-      }
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(body.received ?? 0);
-      } else {
-        reject(new UploadError(body.error ?? `Upload failed (${xhr.status}).`, xhr.status, body.received));
+        resolve(readChunkResponse(xhr.status, xhr.responseText));
+      } catch (err) {
+        reject(err);
       }
     };
     xhr.onerror = () => reject(new UploadError("Network error during upload.", 0));
@@ -299,7 +321,11 @@ export default function WeekFilePanel({ weekId, file, currentUserId, isAdmin }: 
             )}
           </div>
           <div className="week-file-actions">
-            <a href={baseUrl} className="btn btn-primary btn-sm week-file-download" download>
+            <a
+              href={`${baseUrl}?v=${encodeURIComponent(file.id)}`}
+              className="btn btn-primary btn-sm week-file-download"
+              download
+            >
               <Download size="1em" className="inline-icon" /> Download
             </a>
             {canDelete &&

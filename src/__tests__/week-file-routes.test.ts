@@ -69,10 +69,10 @@ function chunkRequest(opts: {
   } as unknown as Request;
 }
 
-function downloadRequest(range?: string): Request {
+function downloadRequest(range?: string, extra: Record<string, string> = {}, v?: string): Request {
   return {
-    url: "http://localhost/api/weeks/week-1/file",
-    headers: new Headers(range ? { range } : {}),
+    url: `http://localhost/api/weeks/week-1/file${v ? `?v=${v}` : ""}`,
+    headers: new Headers({ ...(range ? { range } : {}), ...extra }),
   } as unknown as Request;
 }
 
@@ -257,5 +257,111 @@ describe("GET download", () => {
     writeFinished("0123456789", 20);
 
     expect((await GET(downloadRequest("bytes=0-3"), params)).status).toBe(409);
+  });
+});
+
+describe("GET download, resuming safely", () => {
+  function writeFinished(content: string, opts: { hash?: string | null } = {}) {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(weekFilePath(FILE_ID), content);
+    const contentHash = opts.hash === undefined ? sha256(content) : opts.hash;
+    vi.mocked(db.weekFile.findUnique).mockResolvedValue(
+      row(content.length, { completedAt: new Date(), contentHash }) as any
+    );
+  }
+
+  it("tags a finished file with its own hash, which is a strong validator", async () => {
+    writeFinished("0123456789");
+
+    const res = await GET(downloadRequest(), params);
+
+    expect(res.headers.get("etag")).toBe(`"${sha256("0123456789")}"`);
+    expect(res.headers.get("last-modified")).toBeTruthy();
+  });
+
+  it("falls back to a weak tag before the hash has been computed", async () => {
+    writeFinished("0123456789", { hash: null });
+
+    const res = await GET(downloadRequest(), params);
+
+    expect(res.headers.get("etag")).toMatch(/^W\/"10-\d+"$/);
+  });
+
+  it("serves the range when If-Range still matches the file", async () => {
+    writeFinished("0123456789");
+    const etag = `"${sha256("0123456789")}"`;
+
+    const res = await GET(downloadRequest("bytes=4-6", { "if-range": etag }), params);
+
+    expect(res.status).toBe(206);
+    expect(await res.text()).toBe("456");
+  });
+
+  it("sends the whole file when If-Range names a file that is no longer there", async () => {
+    // What a resumed download looks like once the slot holds something else:
+    // the client asks for a byte offset it worked out from the old file.
+    writeFinished("something else entirely");
+    const staleEtag = `"${sha256("the file they started downloading")}"`;
+
+    const res = await GET(downloadRequest("bytes=4-6", { "if-range": staleEtag }), params);
+
+    // 200, not 206: the client gets the current file from the start rather
+    // than its bytes spliced onto what was already downloaded.
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("something else entirely");
+  });
+
+  it("never honours a range against a weak validator", async () => {
+    writeFinished("0123456789", { hash: null });
+    const res = await GET(downloadRequest(), params);
+    const weakEtag = res.headers.get("etag")!;
+
+    const resumed = await GET(downloadRequest("bytes=4-6", { "if-range": weakEtag }), params);
+
+    expect(resumed.status).toBe(200);
+  });
+
+  it("accepts an If-Range date that matches when the file was written", async () => {
+    writeFinished("0123456789");
+    const lastModified = (await GET(downloadRequest(), params)).headers.get("last-modified")!;
+
+    const res = await GET(downloadRequest("bytes=0-3", { "if-range": lastModified }), params);
+
+    expect(res.status).toBe(206);
+    expect(await res.text()).toBe("0123");
+  });
+
+  it("sends the whole file when an If-Range date is older than the file", async () => {
+    writeFinished("0123456789");
+
+    const res = await GET(
+      downloadRequest("bytes=0-3", { "if-range": new Date(0).toUTCString() }),
+      params
+    );
+
+    expect(res.status).toBe(200);
+  });
+
+  it("refuses a resume whose link names a file that was replaced", async () => {
+    // This is what protects clients that resume with a bare Range and no
+    // If-Range at all, which is what `curl -C -` does by default.
+    writeFinished("the file that is there now");
+
+    const res = await GET(
+      downloadRequest("bytes=4-6", {}, "99999999-9999-9999-9999-999999999999"),
+      params
+    );
+
+    expect(res.status).toBe(410);
+    expect((await res.json()).error).toMatch(/replaced/i);
+  });
+
+  it("serves a link that names the current file", async () => {
+    writeFinished("0123456789");
+
+    const res = await GET(downloadRequest(undefined, {}, FILE_ID), params);
+
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("0123456789");
   });
 });
