@@ -77,10 +77,15 @@ This file provides system context, build/test commands, and architectural workfl
 *   `src/lib/voting-helpers.ts`: Compiles shortlist and tiebreaker movie selections from raw database votes.
 *   `src/lib/types.ts`: Prisma-derived shapes for the data the UI renders.
 *   `src/lib/week-files.ts`: The one movie file a week's winner can have (`WeekFile`).
-    Uploaded in 32 MB chunks through `src/app/api/weeks/[weekId]/file/` (Cloudflare
+    Uploaded in chunks through `src/app/api/weeks/[weekId]/file/` (Cloudflare
     rejects request bodies over 100 MB), stored under `MOVIE_FILES_DIR`, and deleted
     when the week is closed or deleted. `/api` is outside the proxy's sign-in check,
     so those routes check the session themselves.
+
+    `CHUNK_SIZE` (8 MB) is what the browser is told to send; `MAX_CHUNK_BYTES`
+    (32 MB) is the largest body a chunk may carry. They differ on purpose, so a
+    tab that loaded before `CHUNK_SIZE` last changed does not fail mid-upload --
+    keep the cap at or above every size ever advertised.
 
     A movie that is subtly wrong is worse than one that failed outright, so a
     byte count is never trusted unless it was read back off the disk:
@@ -99,7 +104,20 @@ This file provides system context, build/test commands, and architectural workfl
         with `WeekFile.size` rather than handing over a truncated movie.
     *   `contentHash` is the finished file's SHA-256, recorded just after the
         last chunk (hashing a whole movie outlives a request, so it runs after
-        the response) and shown in the UI for checking a download.
+        the response) and shown in the UI for checking a download. It doubles
+        as the download's strong `ETag`.
+    *   A week's slot can hold a different file tomorrow, and a resumed
+        download asks for a byte offset rather than for a particular file.
+        Download links carry `?v=<WeekFile.id>` and `GET` refuses (410) when it
+        names a file that has since been replaced -- that is what covers
+        clients resuming with a bare `Range`, such as `curl -C -`. `If-Range`
+        is honoured for clients that send it, with the strong comparison RFC
+        9110 requires, so a weak tag or a stale one restarts the download
+        instead of splicing two movies together.
+    *   Staleness is measured by `lastProgressAt` -- the later of `updatedAt`
+        and the file's mtime -- because `updatedAt` only moves when a chunk
+        *finishes*, and a slow connection can spend longer than
+        `STALE_UPLOAD_MS` inside one.
 
 ---
 

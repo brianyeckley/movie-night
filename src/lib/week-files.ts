@@ -29,8 +29,20 @@ import { Readable, Transform } from "stream";
 import { pipeline } from "stream/promises";
 import { db } from "@/lib/db";
 
-/** Each chunk the browser sends. Well under Cloudflare's 100 MB body limit. */
-export const CHUNK_SIZE = 32 * 1024 * 1024;
+/**
+ * The chunk size the browser is told to use. Small enough that a connection
+ * that drops near the end of one only costs that much to send again, which is
+ * the case worth optimising for -- flaky links are where this gets used.
+ */
+export const CHUNK_SIZE = 8 * 1024 * 1024;
+
+/**
+ * The largest single request body a chunk may carry, which is deliberately
+ * larger than what we ask for: a tab that loaded before CHUNK_SIZE last
+ * changed is still sending the old size, and its upload should not fail
+ * halfway. Still far under Cloudflare's 100 MB request-body limit.
+ */
+export const MAX_CHUNK_BYTES = 32 * 1024 * 1024;
 
 /**
  * How long an unfinished upload holds the slot before someone else can start
@@ -50,13 +62,32 @@ export function weekFilePath(fileId: string): string {
   return path.join(weekFilesDir(), fileId);
 }
 
+/** Size and last-write time of the bytes on disk, or null if there are none. */
+export function fileStats(fileId: string): { size: number; mtimeMs: number } | null {
+  try {
+    const stat = fs.statSync(weekFilePath(fileId));
+    return { size: stat.size, mtimeMs: stat.mtimeMs };
+  } catch {
+    return null;
+  }
+}
+
 /** Bytes written so far, or 0 when nothing has arrived yet. */
 export function bytesOnDisk(fileId: string): number {
-  try {
-    return fs.statSync(weekFilePath(fileId)).size;
-  } catch {
-    return 0;
-  }
+  return fileStats(fileId)?.size ?? 0;
+}
+
+/**
+ * When an upload last got somewhere: a chunk recorded, or bytes written.
+ *
+ * `updatedAt` only moves when a chunk *finishes*, so on a slow connection a
+ * single chunk can outlast STALE_UPLOAD_MS and the upload gets declared
+ * abandoned while it is actively running. The file's own mtime advances the
+ * whole time bytes are arriving, so taking the later of the two measures
+ * progress rather than how long the current chunk is taking.
+ */
+export function lastProgressAt(file: { id: string; updatedAt: Date }): number {
+  return Math.max(file.updatedAt.getTime(), fileStats(file.id)?.mtimeMs ?? 0);
 }
 
 export function deleteWeekFileFromDisk(fileId: string): void {

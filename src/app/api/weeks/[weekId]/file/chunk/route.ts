@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getActiveUser } from "@/app/actions/user";
 import {
-  CHUNK_SIZE,
+  MAX_CHUNK_BYTES,
   ChunkHashMismatchError,
   ChunkTooLargeError,
   appendChunk,
@@ -70,7 +70,7 @@ export async function PUT(request: Request, { params }: Params) {
 
     let newSize: number;
     try {
-      newSize = await appendChunk(file.id, body, Math.min(CHUNK_SIZE, size - received), expectedHash);
+      newSize = await appendChunk(file.id, body, Math.min(MAX_CHUNK_BYTES, size - received), expectedHash);
     } catch (err) {
       if (err instanceof ChunkTooLargeError) return error(err.message, 413);
       if (err instanceof ChunkHashMismatchError) {

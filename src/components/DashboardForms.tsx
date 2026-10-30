@@ -503,6 +503,7 @@ export async function CompletedWeekView({
         isAdmin={currentUser.role === "ADMIN"}
         file={
           weekFile && {
+            id: weekFile.id,
             originalName: weekFile.originalName,
             size: Number(weekFile.size),
             uploadedById: weekFile.uploadedById,
