@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { formatBytes } from "@/lib/format-bytes";
 import { formatStatus } from "@/lib/rounds";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
@@ -334,6 +335,51 @@ export async function notifyReminder(weekId: string, pendingVoterNames: string[]
         title: "Reminder: Cast Your Votes for Movie Night!",
         description: `We are currently in **${roundName}**.\n\n⚠️ **Waiting on votes from:**\n${pendingVoterNames.map(name => `• **${name}**`).join("\n")}\n\nGo to the website to cast your vote: ${APP_URL}`,
         color: 0xe67e22, // Orange/Warning color
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  });
+}
+
+// 4. Notify that the week's movie file has finished uploading
+//
+// Sent from the chunk route the moment the last chunk is verified and the
+// file is complete, so this only ever announces a file that is really there
+// to download. A replaced file announces again on purpose: the previous one
+// is gone, and anything half-downloaded from it is stale.
+export async function notifyFileUploaded(weekId: string) {
+  const week = await db.movieNightWeek.findUnique({
+    where: { id: weekId },
+    include: { file: { include: { uploadedBy: true } } },
+  });
+  // Cancelled or replaced in the moment between finishing and this running.
+  if (!week?.file?.completedAt) return;
+
+  const movie = week.winningMovieId
+    ? await db.movie.findUnique({ where: { id: week.winningMovieId } })
+    : null;
+
+  const movieTitle = movie
+    ? `**${movie.title}**${movie.year ? ` (${movie.year})` : ""}`
+    : "this week's movie";
+
+  await sendDiscordPayload({
+    embeds: [
+      {
+        title: "📁 Movie File Uploaded!",
+        description: `The file for ${movieTitle} is ready to download.\n\nGrab it from the website before the week is closed out — the file is deleted then: ${APP_URL}`,
+        url: APP_URL,
+        color: 0x9b59b6, // Purple
+        thumbnail: movie?.posterUrl ? { url: movie.posterUrl } : undefined,
+        fields: [
+          { name: "File", value: week.file.originalName },
+          { name: "Size", value: formatBytes(Number(week.file.size)), inline: true },
+          {
+            name: "Uploaded by",
+            value: week.file.uploadedBy?.name ?? "Someone",
+            inline: true,
+          },
+        ],
         timestamp: new Date().toISOString(),
       },
     ],

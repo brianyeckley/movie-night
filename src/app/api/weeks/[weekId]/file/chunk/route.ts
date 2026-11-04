@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getActiveUser } from "@/app/actions/user";
+import { notifyFileUploaded } from "@/lib/discord";
 import {
   MAX_CHUNK_BYTES,
   ChunkHashMismatchError,
@@ -110,6 +111,11 @@ export async function PUT(request: Request, { params }: Params) {
       // Hashing a whole movie takes minutes, so it runs on its own after the
       // uploader has been told the upload finished.
       void storeContentHash(file.id);
+      // Likewise the announcement: the uploader should not wait on Discord,
+      // and a webhook that is down must not fail an upload that worked.
+      notifyFileUploaded(weekId).catch((e) =>
+        console.error("Discord notification error:", e)
+      );
     }
 
     return NextResponse.json({ received: newSize, done });
