@@ -118,6 +118,10 @@ This file provides system context, build/test commands, and architectural workfl
         and the file's mtime -- because `updatedAt` only moves when a chunk
         *finishes*, and a slow connection can spend longer than
         `STALE_UPLOAD_MS` inside one.
+    *   A finished upload announces itself on Discord (`notifyFileUploaded`),
+        fired from the chunk route the moment the last chunk verifies. Like
+        every other notifier it is called fire-and-forget with a `.catch`, so
+        a webhook that is down can neither delay nor fail an upload.
 
 ---
 

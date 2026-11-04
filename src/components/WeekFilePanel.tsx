@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Download, FileVideo, Trash2, UploadCloud, X } from "lucide-react";
 import { deleteWeekFileAction } from "@/app/actions";
+import { formatBytes } from "@/lib/format-bytes";
 
 /** The week's file as the server renders it. Sizes are plain numbers here. */
 export interface WeekFileInfo {
@@ -36,17 +37,6 @@ interface Progress {
 }
 
 const MAX_CHUNK_RETRIES = 3;
-
-export function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
-}
 
 class UploadError extends Error {
   constructor(message: string, public status: number, public received?: number) {

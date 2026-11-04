@@ -11,6 +11,7 @@ import path from "path";
 import { db } from "@/lib/db";
 import { getActiveUser } from "@/app/actions/user";
 import { bytesOnDisk, weekFilePath } from "@/lib/week-files";
+import { notifyFileUploaded } from "@/lib/discord";
 import { PUT } from "@/app/api/weeks/[weekId]/file/chunk/route";
 import { GET } from "@/app/api/weeks/[weekId]/file/route";
 
@@ -21,6 +22,7 @@ vi.mock("@/lib/db", () => ({
 }));
 vi.mock("@/app/actions/user", () => ({ getActiveUser: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/discord", () => ({ notifyFileUploaded: vi.fn().mockResolvedValue(undefined) }));
 
 const FILE_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 const uploader = { id: "user-1", name: "Stew", role: "USER", isApproved: true };
@@ -166,6 +168,32 @@ describe("PUT chunk", () => {
         data: { contentHash: sha256("complete") },
       })
     );
+  });
+
+  it("announces the file on Discord once it is complete", async () => {
+    vi.mocked(db.weekFile.findUnique).mockResolvedValue(row(8) as any);
+
+    await PUT(chunkRequest({ offset: 0, body: "complete" }), params);
+
+    expect(notifyFileUploaded).toHaveBeenCalledWith("week-1");
+  });
+
+  it("says nothing on Discord for a chunk that is not the last one", async () => {
+    vi.mocked(db.weekFile.findUnique).mockResolvedValue(row(20) as any);
+
+    await PUT(chunkRequest({ offset: 0, body: "half of it" }), params);
+
+    expect(notifyFileUploaded).not.toHaveBeenCalled();
+  });
+
+  it("still finishes the upload when the Discord webhook is failing", async () => {
+    vi.mocked(db.weekFile.findUnique).mockResolvedValue(row(8) as any);
+    vi.mocked(notifyFileUploaded).mockRejectedValueOnce(new Error("webhook down"));
+
+    const res = await PUT(chunkRequest({ offset: 0, body: "complete" }), params);
+
+    expect(await res.json()).toEqual({ received: 8, done: true });
+    expect(fs.readFileSync(weekFilePath(FILE_ID), "utf8")).toBe("complete");
   });
 
   it("does not interleave a retry that arrives while the first write is running", async () => {
