@@ -2677,6 +2677,160 @@ details.movie-row-details {
   flex-direction: column;
   gap: 16px;
 }
+/* Catalog filters: the search box and every filter group on one line.
+ *
+ * The search box takes the slack so the dropdowns sit together on the right;
+ * each dropdown keeps its own width whatever is selected inside it, so the
+ * row never grows past one line on a desktop width.
+ */
+.catalog-filter-row {
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px !important;
+}
+
+.catalog-filter-row .search-input-wrapper {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.filter-clear-all {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.filter-select {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.filter-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.filter-select-trigger:hover,
+.filter-select-trigger[aria-expanded="true"] {
+  background: var(--glass-hover);
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+/* An active filter has to be obvious with the options out of sight. */
+.filter-select-trigger.has-selection {
+  color: var(--text-primary);
+  border-color: var(--primary);
+}
+
+.filter-select-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.filter-select-chevron {
+  transition: transform var(--transition-fast);
+}
+
+.filter-select-trigger[aria-expanded="true"] .filter-select-chevron {
+  transform: rotate(180deg);
+}
+
+.filter-select-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 200px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  z-index: 60;
+  animation: slideDown 0.15s ease-out;
+}
+
+.filter-select-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.filter-select-option:hover {
+  background: var(--glass-hover);
+}
+
+.filter-select-clear {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: none;
+  border-top: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.filter-select-clear:hover {
+  color: var(--primary);
+}
+
+/* The panel escapes the filter card, which would otherwise clip it. */
+.catalog-search-container {
+  position: relative;
+  z-index: 10;
+}
+
+@media (max-width: 640px) {
+  .catalog-filter-row .search-input-wrapper {
+    flex-basis: 100%;
+  }
+
+  .filter-select,
+  .filter-select-trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 .search-input-wrapper {
   position: relative;
   width: 100%;
