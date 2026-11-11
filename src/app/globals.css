@@ -805,35 +805,6 @@ details.movie-row-details {
   }
 }
 
-/* Catalog Page Banner
- *
- * The title sits left and the Add menu right; everything the catalog can
- * create opens from there in a modal, so the list below has the full width.
- */
-.catalog-banner {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  /* The panel's backdrop-filter makes it a stacking context, so the Add
-   * dropdown's own z-index only competes inside it. Without lifting the whole
-   * banner, the equally blurred catalog panel below paints over the menu. */
-  position: relative;
-  z-index: 20;
-}
-
-.catalog-banner-text {
-  min-width: 0;
-}
-
-@media (max-width: 768px) {
-  .catalog-banner {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-}
-
 @media (max-width: 992px) {
   .search-toggle-label {
     display: flex;
@@ -2677,21 +2648,24 @@ details.movie-row-details {
   flex-direction: column;
   gap: 16px;
 }
-/* Catalog filters: the search box and every filter group on one line.
+/* Catalog filters: the search box and every filter group on one line, with
+ * the Add menu pushed to the far right of the same row.
  *
- * The search box takes the slack so the dropdowns sit together on the right;
- * each dropdown keeps its own width whatever is selected inside it, so the
- * row never grows past one line on a desktop width.
+ * Search and filters are a left-aligned group of their own width, so the
+ * space between them and Add is whatever the page has left over.
  */
 .catalog-filter-row {
   flex-direction: row !important;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px !important;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .catalog-filter-row .search-input-wrapper {
-  flex: 1 1 260px;
+  flex: 0 1 240px;
+  max-width: 240px;
   min-width: 0;
 }
 
@@ -2813,10 +2787,18 @@ details.movie-row-details {
   color: var(--primary);
 }
 
-/* The panel escapes the filter card, which would otherwise clip it. */
+/* The filter card is the row: filters on the left, Add hard right. Also
+ * relative so the dropdown panels escape it rather than being clipped. */
 .catalog-search-container {
   position: relative;
   z-index: 10;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}
+
+.catalog-search-container .add-menu {
+  margin-left: auto;
 }
 
 @media (max-width: 640px) {
@@ -2983,6 +2965,14 @@ details.movie-row-details {
     background: var(--glass-bg) !important;
     border: 1px solid var(--glass-border) !important;
     border-radius: var(--radius-md) !important;
+    /* The filters collapse behind their toggle here, so the row becomes a
+     * stack: the toggle, the filters when open, then Add. */
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .catalog-search-container .add-menu {
+    margin-left: 0;
   }
 
   .search-toggle-label {

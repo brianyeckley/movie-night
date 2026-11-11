@@ -166,7 +166,7 @@ describe("CatalogListClient", () => {
       />
     );
 
-    const searchInput = screen.getByPlaceholderText("Search by title, plot, director, or cast...");
+    const searchInput = screen.getByLabelText("Search by title, plot, director, or cast");
     await userEvent.type(searchInput, "Die Hard");
 
     expect(screen.getByText("Die Hard")).toBeDefined();
@@ -183,7 +183,7 @@ describe("CatalogListClient", () => {
       />
     );
 
-    const searchInput = screen.getByPlaceholderText("Search by title, plot, director, or cast...");
+    const searchInput = screen.getByLabelText("Search by title, plot, director, or cast");
     await userEvent.type(searchInput, "Empty");
 
     expect(screen.getByText("Empty Category")).toBeDefined();

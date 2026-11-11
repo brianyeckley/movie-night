@@ -1,7 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { db } from "@/lib/db";
 import { getActiveUser } from "@/app/actions";
-import CatalogAddMenu from "@/components/CatalogAddMenu";
 import CatalogListClient from "@/components/CatalogListClient";
 import { sortMoviesByTitle } from "@/lib/movie-sort";
 
@@ -75,19 +74,13 @@ export default async function CatalogPage() {
     <div className="py-xl">
       <main className="container">
         {/* Banner */}
-        <div className="glass-panel no-hover p-xl mb-3xl catalog-banner">
-          <div className="catalog-banner-text">
-            <h1 className="text-5xl font-semibold mb-xs tracking-tighter">
-              Catalog Management
-            </h1>
-            <p className="text-secondary text-xl">
-              Manage the movie list, group them into categories or subcategories, and tag their genres.
-            </p>
-          </div>
-
-          {currentUser && (
-            <CatalogAddMenu categories={flatCategories} genres={genres} themes={themes} />
-          )}
+        <div className="glass-panel no-hover p-xl mb-3xl">
+          <h1 className="text-5xl font-semibold mb-xs tracking-tighter">
+            Catalog Management
+          </h1>
+          <p className="text-secondary text-xl">
+            Manage the movie list, group them into categories or subcategories, and tag their genres.
+          </p>
         </div>
 
         {!currentUser && (

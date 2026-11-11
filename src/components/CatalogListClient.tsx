@@ -4,6 +4,7 @@ import { useState, useTransition, useMemo } from "react";
 import { Clapperboard, ChevronRight, FolderOpen, Search } from "lucide-react";
 import { deleteMovieAction, deleteCategoryAction } from "@/app/actions";
 import { PlotModal } from "@/components/PlotModal";
+import CatalogAddMenu from "@/components/CatalogAddMenu";
 import CatalogMovieCard from "@/components/CatalogMovieCard";
 import FilterSelect from "@/components/FilterSelect";
 import type {
@@ -214,7 +215,8 @@ export default function CatalogListClient({
             <span className="search-input-icon"><Search size="1em" className="inline-icon" /></span>
             <input
               type="text"
-              placeholder="Search by title, plot, director, or cast..."
+              placeholder="Search"
+              aria-label="Search by title, plot, director, or cast"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -269,6 +271,10 @@ export default function CatalogListClient({
             </button>
           )}
         </div>
+
+        {/* Sits alongside the filters rather than inside them, so it stays
+            reachable on mobile when the filter row collapses. */}
+        <CatalogAddMenu categories={flatCategories} genres={genres} themes={themes} />
       </div>
 
       {/* Catalog Render List */}
