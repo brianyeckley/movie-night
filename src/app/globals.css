@@ -805,50 +805,36 @@ details.movie-row-details {
   }
 }
 
-/* Responsive Catalog Page Layout */
-.catalog-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
-  align-items: start;
-}
-
-/* Checkbox toggle elements for catalog sidebar on mobile */
-.sidebar-toggle-checkbox {
-  display: none;
-}
-
-.sidebar-toggle-label {
-  display: none;
-}
-
-.sidebar-content {
+/* Catalog Page Banner
+ *
+ * The title sits left and the Add menu right; everything the catalog can
+ * create opens from there in a modal, so the list below has the full width.
+ */
+.catalog-banner {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 24px;
+  /* The panel's backdrop-filter makes it a stacking context, so the Add
+   * dropdown's own z-index only competes inside it. Without lifting the whole
+   * banner, the equally blurred catalog panel below paints over the menu. */
+  position: relative;
+  z-index: 20;
+}
+
+.catalog-banner-text {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .catalog-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
 }
 
 @media (max-width: 992px) {
-  .catalog-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .catalog-list-container {
-    order: 2;
-  }
-
-  .catalog-sidebar {
-    order: 1;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
-    margin-bottom: 12px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .sidebar-toggle-label,
   .search-toggle-label {
     display: flex;
     justify-content: space-between;
@@ -860,21 +846,96 @@ details.movie-row-details {
     user-select: none;
     padding: 2px 0;
   }
+}
 
-  .sidebar-content {
-    display: none;
-    margin-top: 16px;
-    gap: 16px;
+/* Catalog "Add" dropdown */
+.add-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.add-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.add-menu-trigger:hover,
+.add-menu-trigger[aria-expanded="true"] {
+  background: var(--glass-hover);
+  border-color: var(--text-secondary);
+}
+
+.add-menu-chevron {
+  transition: transform var(--transition-fast);
+}
+
+.add-menu-trigger[aria-expanded="true"] .add-menu-chevron {
+  transform: rotate(180deg);
+}
+
+.add-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background: var(--bg-secondary);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  z-index: 110;
+  animation: slideDown 0.15s ease-out;
+}
+
+.add-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.add-menu-item:hover {
+  background: var(--glass-hover);
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .add-menu-trigger {
+    width: 100%;
+    justify-content: center;
   }
 
-  /* Expand forms list when checkbox is checked */
-  .sidebar-toggle-checkbox:checked ~ .sidebar-content {
-    display: flex;
-  }
-
-  /* Rotate the chevron indicator when expanded */
-  .sidebar-toggle-checkbox:checked ~ .sidebar-toggle-label .sidebar-chevron {
-    transform: rotate(180deg);
+  .add-menu-dropdown {
+    left: 0;
+    right: 0;
   }
 }
 
@@ -1993,10 +2054,6 @@ details.movie-row-details {
   font-size: 0.9rem;
   line-height: 1.45;
   margin: 0;
-}
-.sidebar-chevron {
-  display: inline-block;
-  transition: transform var(--transition-fast);
 }
 .movie-row-card {
   display: flex;
