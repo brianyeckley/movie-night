@@ -4,7 +4,9 @@ import { useState, useTransition, useMemo } from "react";
 import { Clapperboard, ChevronRight, FolderOpen, Search } from "lucide-react";
 import { deleteMovieAction, deleteCategoryAction } from "@/app/actions";
 import { PlotModal } from "@/components/PlotModal";
+import CatalogAddMenu from "@/components/CatalogAddMenu";
 import CatalogMovieCard from "@/components/CatalogMovieCard";
+import FilterSelect from "@/components/FilterSelect";
 import type {
   CatalogCategory,
   Category,
@@ -13,6 +15,13 @@ import type {
   Theme,
 } from "@/lib/types";
 import { sortMoviesByTitle } from "@/lib/movie-sort";
+
+/** Physical media filters; the values are what matchesFilters checks. */
+const FORMAT_OPTIONS = [
+  { value: "4K", label: "4K" },
+  { value: "Blu-ray", label: "Blu-ray" },
+  { value: "DVD", label: "DVD" },
+];
 
 interface CatalogListClientProps {
   categories: CatalogCategory[];
@@ -201,12 +210,13 @@ export default function CatalogListClient({
           </span>
           <span className="search-chevron">▼</span>
         </label>
-        <div className="search-toggle-content">
+        <div className="search-toggle-content catalog-filter-row">
           <div className="search-input-wrapper">
             <span className="search-input-icon"><Search size="1em" className="inline-icon" /></span>
             <input
               type="text"
-              placeholder="Search by title, plot, director, or cast..."
+              placeholder="Search"
+              aria-label="Search by title, plot, director, or cast"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -223,88 +233,48 @@ export default function CatalogListClient({
             )}
           </div>
 
-          {/* Media Formats Filter */}
-          <div className="filter-section">
-            <div className="filter-label">Media Type</div>
-            <div className="filter-pills-row">
-              {(["4K", "Blu-ray", "DVD"] as const).map((format) => {
-                const isActive = selectedFormats.has(format);
-                let activeClass = "";
-                if (isActive) {
-                  if (format === "4K") activeClass = "active-4k";
-                  else if (format === "Blu-ray") activeClass = "active-bluray";
-                  else if (format === "DVD") activeClass = "active-dvd";
-                }
-                return (
-                  <button
-                    key={format}
-                    type="button"
-                    onClick={() => handleFormatToggle(format)}
-                    className={`filter-pill filter-pill-format ${isActive ? `active ${activeClass}` : ""}`}
-                  >
-                    {format}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <FilterSelect
+            label="Media Type"
+            options={FORMAT_OPTIONS}
+            selected={selectedFormats}
+            onToggle={handleFormatToggle}
+            onClear={() => setSelectedFormats(new Set())}
+          />
 
-          {/* Genres Filter */}
           {genres.length > 0 && (
-            <div className="filter-section">
-              <div className="filter-label">Genres</div>
-              <div className="filter-pills-row">
-                {genres.map((g) => {
-                  const isActive = selectedGenreIds.has(g.id);
-                  return (
-                    <button
-                      key={g.id}
-                      type="button"
-                      onClick={() => handleGenreToggle(g.id)}
-                      className={`filter-pill ${isActive ? "active" : ""}`}
-                    >
-                      {g.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <FilterSelect
+              label="Genres"
+              options={genres.map((g) => ({ value: g.id, label: g.name }))}
+              selected={selectedGenreIds}
+              onToggle={handleGenreToggle}
+              onClear={() => setSelectedGenreIds(new Set())}
+            />
           )}
 
-          {/* Themes Filter */}
           {themes.length > 0 && (
-            <div className="filter-section">
-              <div className="filter-label">Themes</div>
-              <div className="filter-pills-row">
-                {themes.map((t) => {
-                  const isActive = selectedThemeIds.has(t.id);
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => handleThemeToggle(t.id)}
-                      className={`filter-pill ${isActive ? "active" : ""}`}
-                    >
-                      {t.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <FilterSelect
+              label="Themes"
+              options={themes.map((t) => ({ value: t.id, label: t.name }))}
+              selected={selectedThemeIds}
+              onToggle={handleThemeToggle}
+              onClear={() => setSelectedThemeIds(new Set())}
+            />
           )}
 
           {hasActiveFilters && (
-            <div className="flex-row justify-end">
-              <button
-                type="button"
-                onClick={handleClearFilters}
-                className="text-btn text-sm"
-              >
-                Clear Filters
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-btn text-sm filter-clear-all"
+            >
+              Clear Filters
+            </button>
           )}
         </div>
+
+        {/* Sits alongside the filters rather than inside them, so it stays
+            reachable on mobile when the filter row collapses. */}
+        <CatalogAddMenu categories={flatCategories} genres={genres} themes={themes} />
       </div>
 
       {/* Catalog Render List */}

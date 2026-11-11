@@ -166,7 +166,7 @@ describe("CatalogListClient", () => {
       />
     );
 
-    const searchInput = screen.getByPlaceholderText("Search by title, plot, director, or cast...");
+    const searchInput = screen.getByLabelText("Search by title, plot, director, or cast");
     await userEvent.type(searchInput, "Die Hard");
 
     expect(screen.getByText("Die Hard")).toBeDefined();
@@ -183,10 +183,119 @@ describe("CatalogListClient", () => {
       />
     );
 
-    const searchInput = screen.getByPlaceholderText("Search by title, plot, director, or cast...");
+    const searchInput = screen.getByLabelText("Search by title, plot, director, or cast");
     await userEvent.type(searchInput, "Empty");
 
     expect(screen.getByText("Empty Category")).toBeDefined();
     expect(screen.queryByText("Die Hard")).toBeNull();
+  });
+
+  describe("the filter dropdowns", () => {
+    /** Die Hard is the only movie, and it is on Blu-ray and tagged Action. */
+    const taggedCategories: CatalogCategory[] = [
+      {
+        ...emptyCategories[1],
+        movies: [
+          {
+            ...emptyCategories[1].movies[0],
+            physicalBluRay: true,
+            genres: [{ id: "g-action", name: "Action", createdAt: new Date() }],
+          },
+        ],
+      },
+    ];
+    const genres = [
+      { id: "g-action", name: "Action", createdAt: new Date() },
+      { id: "g-comedy", name: "Comedy", createdAt: new Date() },
+    ];
+
+    function renderTagged() {
+      return render(
+        <CatalogListClient
+          categories={taggedCategories}
+          flatCategories={flatCategories}
+          genres={genres}
+          isAdmin={false}
+        />
+      );
+    }
+
+    it("keeps the options out of the row until a filter is opened", async () => {
+      const user = userEvent.setup();
+      renderTagged();
+
+      // The row shows group names, not every tag.
+      expect(screen.queryByText("Comedy")).toBeNull();
+
+      await user.click(screen.getByRole("button", { name: /genres/i }));
+
+      expect(screen.getByLabelText("Comedy")).toBeDefined();
+    });
+
+    it("filters the list by a ticked genre", async () => {
+      const user = userEvent.setup();
+      renderTagged();
+
+      await user.click(screen.getByRole("button", { name: /genres/i }));
+      await user.click(screen.getByLabelText("Comedy"));
+
+      // Die Hard is Action, so filtering to Comedy empties the catalog.
+      await waitFor(() => expect(screen.getByText("No Movies Found")).toBeDefined());
+
+      await user.click(screen.getByLabelText("Action"));
+      expect(screen.getByText("Die Hard")).toBeDefined();
+    });
+
+    it("filters by media type", async () => {
+      const user = userEvent.setup();
+      renderTagged();
+
+      await user.click(screen.getByRole("button", { name: /media type/i }));
+      await user.click(screen.getByLabelText("DVD"));
+
+      await waitFor(() => expect(screen.getByText("No Movies Found")).toBeDefined());
+
+      await user.click(screen.getByLabelText("Blu-ray"));
+      expect(screen.getByText("Die Hard")).toBeDefined();
+    });
+
+    it("counts the active selections on the closed dropdown", async () => {
+      const user = userEvent.setup();
+      renderTagged();
+
+      const trigger = screen.getByRole("button", { name: /genres/i });
+      await user.click(trigger);
+      await user.click(screen.getByLabelText("Action"));
+      await user.click(screen.getByLabelText("Comedy"));
+
+      // Still open: these filters are additive, so ticking does not dismiss it.
+      expect(screen.getByLabelText("Comedy")).toBeDefined();
+      expect(trigger.textContent).toContain("2");
+    });
+
+    it("clears one group from inside its own dropdown", async () => {
+      const user = userEvent.setup();
+      renderTagged();
+
+      await user.click(screen.getByRole("button", { name: /genres/i }));
+      await user.click(screen.getByLabelText("Comedy"));
+      await waitFor(() => expect(screen.getByText("No Movies Found")).toBeDefined());
+
+      await user.click(screen.getByRole("button", { name: /clear genres/i }));
+
+      expect(screen.getByText("Die Hard")).toBeDefined();
+    });
+
+    it("closes when a click lands outside it", async () => {
+      const user = userEvent.setup();
+      renderTagged();
+
+      await user.click(screen.getByRole("button", { name: /genres/i }));
+      expect(screen.getByLabelText("Comedy")).toBeDefined();
+
+      await user.click(document.body);
+
+      await waitFor(() => expect(screen.queryByLabelText("Comedy")).toBeNull());
+    });
   });
 });

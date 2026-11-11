@@ -121,8 +121,7 @@ export default function AddMovieForm({ categories, genres, themes = [] }: AddMov
 
   return (
     <form onSubmit={handleSubmit} className="form-container">
-      <h3 className="text-2xl font-bold mb-sm">Add New Movie</h3>
-
+      {/* The modal that hosts this form carries the heading. */}
       {error && (
         <div className="alert-box alert-error text-accent-color text-base font-semibold">
           {error}
